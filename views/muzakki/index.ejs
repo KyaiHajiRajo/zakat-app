@@ -7,7 +7,7 @@
       <div class="header-content-wrapper">
         <div class="header-left-section">
           <div class="header-icon-box">
-            <i class="fas fa-users"></i>
+            <img src="/images/logo-dkm.png" alt="Logo DKM" class="header-logo">
           </div>
           <div class="header-text-box">
             <h1 class="header-title-text">Data Muzakki</h1>
@@ -130,7 +130,7 @@
                     <th>Total Jiwa</th>
                     <th>Total Beras</th>
                     <th>Total Uang</th>
-                    <th>Total Kembalian</th>
+                    <th>Kembalian & Infak</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
@@ -191,15 +191,21 @@
                             <div class="text-gray-400">-</div>
                             <% } %>
                       </td>
-                      <td class="text-center">
-                        <% if (rt.total_kembalian> 0) { %>
-                          <div class="amount-display amount-warning">
-                            <i class="fas fa-exchange-alt mr-1"></i>
-                            Rp <%= Math.floor(rt.total_kembalian).toLocaleString('id-ID') %>
+                      <td>
+                        <div class="kembalian-infak-simple">
+                          <div class="ki-row">
+                            <span class="ki-label">Kembalian:</span>
+                            <span class="ki-value ki-kembalian">
+                              Rp <%= (rt.total_kembalian_saat_ini > 0 ? Math.floor(rt.total_kembalian_saat_ini) : 0).toLocaleString('id-ID') %>
+                            </span>
                           </div>
-                          <% } else { %>
-                            <div class="text-gray-400">-</div>
-                            <% } %>
+                          <div class="ki-row">
+                            <span class="ki-label">Infak:</span>
+                            <span class="ki-value ki-infak">
+                              Rp <%= (rt.total_infak > 0 ? Math.floor(rt.total_infak) : 0).toLocaleString('id-ID') %>
+                            </span>
+                          </div>
+                        </div>
                       </td>
                       <td>
                         <div class="action-buttons-group">
@@ -280,16 +286,19 @@
     }
 
     .header-icon-box {
-      width: 60px;
-      height: 60px;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
-      border-radius: 16px;
+      width: 64px;
+      height: 64px;
+      background: white;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
+      font-size: 16px;
       color: white;
+      flex-shrink: 0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      padding: 8px;
+      overflow: hidden;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
 
@@ -747,6 +756,39 @@
       color: #d97706;
     }
 
+    /* Kembalian & Infak Simple */
+    .kembalian-infak-simple {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ki-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ki-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #6b7280;
+      min-width: 75px;
+    }
+
+    .ki-value {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .ki-kembalian {
+      color: #d97706;
+    }
+
+    .ki-infak {
+      color: #059669;
+    }
+
     /* Action Buttons */
     .action-buttons-group {
       display: flex;
@@ -831,6 +873,19 @@
       .data-table td {
         padding: 10px 8px;
       }
+
+      .kembalian-infak-simple {
+        gap: 6px;
+      }
+
+      .ki-label {
+        font-size: 12px;
+        min-width: 70px;
+      }
+
+      .ki-value {
+        font-size: 13px;
+      }
     }
 
     @media (max-width: 640px) {
@@ -858,6 +913,23 @@
       .table-badge {
         flex: 1;
         justify-content: center;
+      }
+
+      .kembalian-infak-simple {
+        gap: 5px;
+      }
+
+      .ki-row {
+        gap: 6px;
+      }
+
+      .ki-label {
+        font-size: 11px;
+        min-width: 60px;
+      }
+
+      .ki-value {
+        font-size: 12px;
       }
 
       .action-buttons-group {
@@ -1018,49 +1090,36 @@
         setTimeout(async () => {
           try {
             const timestamp = new Date().toISOString().split('T')[0];
-            
-            // Fetch file as blob
-            const response = await fetch('/muzakki/export-excel', {
-              method: 'GET',
-              headers: {
-                'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-              }
-            });
+
+            // Fetch file as raw binary
+            const response = await fetch('/muzakki/export-excel');
 
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // Get blob from response
-            const blob = await response.blob();
-            
-            if (blob.size === 0) {
+            // Get raw ArrayBuffer then create Blob with explicit MIME type
+            const arrayBuffer = await response.arrayBuffer();
+
+            if (!arrayBuffer || arrayBuffer.byteLength === 0) {
               throw new Error('File kosong - tidak ada data untuk diexport');
             }
 
-            // Create object URL from blob
+            const blob = new Blob([arrayBuffer], {
+              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+
+            // Create download link
             const url = window.URL.createObjectURL(blob);
-            
-            // Create temporary link and trigger download
             const link = document.createElement('a');
             link.href = url;
             link.download = `Data_Muzakki_${timestamp}.xlsx`;
-            link.style.display = 'none';
-            
-            // Add to document, click, and remove
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
-            // Clean up object URL after a delay
-            setTimeout(() => {
-              window.URL.revokeObjectURL(url);
-            }, 100);
 
-            // Clean up object URL after a delay
-            setTimeout(() => {
-              window.URL.revokeObjectURL(url);
-            }, 100);
+            // Clean up object URL
+            setTimeout(() => window.URL.revokeObjectURL(url), 1000);
 
             // Close loading and show success
             Swal.fire({

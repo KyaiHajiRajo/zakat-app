@@ -47,15 +47,7 @@ app.set("views", path.join(__dirname, "views"));
 // Middleware
 app.use(express.urlencoded({ extended: true })); // Changed to true to support complex objects
 
-// CRITICAL: Conditionally apply JSON middleware - skip for binary routes
-app.use((req, res, next) => {
-  // Skip JSON parsing for Excel export routes to prevent corruption
-  if (req.path.includes('/export-excel') || req.path.includes('/download')) {
-    console.log(`⚠️  Skipping JSON middleware for binary route: ${req.path}`);
-    return next();
-  }
-  express.json()(req, res, next);
-});
+app.use(express.json());
 
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
@@ -125,15 +117,7 @@ const distribusiRoutes = require("./routes/distribusi");
 app.use("/auth", authRoutes);
 app.use("/users", isAuthenticated, isAdmin, usersRoutes);
 
-// CRITICAL: Muzakki routes with special handling for binary exports
-// Disable compression for export-excel endpoints
-app.use("/muzakki", isAuthenticated, (req, res, next) => {
-  // Mark export routes to skip compression
-  if (req.path.includes('/export-excel')) {
-    res.set('X-No-Compression', '1');
-  }
-  next();
-}, muzakkiRoutes);
+app.use("/muzakki", isAuthenticated, muzakkiRoutes);
 
 app.use("/infak", isAuthenticated, infakRoutes);
 app.use("/laporan", isAuthenticated, laporanRoutes);

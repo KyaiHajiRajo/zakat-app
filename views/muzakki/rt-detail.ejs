@@ -1,19 +1,22 @@
 <%- include('../layouts/header', { title: 'Detail RT - Zakat Fitrah App',
 bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
+<!-- Flatpickr Date Picker -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+
 <div class="page-wrapper">
   <!-- Modern Header -->
   <div class="page-header">
     <div class="header-content-wrapper">
       <div class="header-left-section">
-        <a href="/muzakki" class="btn-back" title="Kembali">
-          <i class="fas fa-arrow-left"></i>
-        </a>
         <div class="header-icon-box">
-          <i class="fas fa-users"></i>
+          <img src="/images/logo-dkm.png" alt="Logo DKM" class="header-logo">
         </div>
         <div class="header-text-box">
-          <h1 class="header-title-text">Detail Muzakki RT <%= rt.nomor_rt %></h1>
+          <h1 class="header-title-text">Detail Muzakki <%= rt.nomor_rt %></h1>
           <p class="header-subtitle-text">Ketua RT: <%= rt.ketua_rt %></p>
         </div>
       </div>
@@ -23,8 +26,8 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
           <span>Tambah Muzakki</span>
         </a>
         <a href="/muzakki" class="btn-action btn-action-secondary">
-          <i class="fas fa-list mr-2"></i>
-          <span>Daftar RT</span>
+          <i class="fas fa-arrow-left mr-2"></i>
+          <span>Kembali</span>
         </a>
       </div>
     </div>
@@ -82,58 +85,54 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       </div>
     </div>
     <div class="filter-body">
-      <!-- Search Section -->
-      <div class="filter-section-group">
-        <div class="filter-section-title">
-          <i class="fas fa-search"></i>
-          <span>Pencarian</span>
-        </div>
+      <div class="filter-grid-row">
+        <!-- Nama Muzakki -->
         <div class="filter-item">
           <label for="filter_search" class="filter-label">
-            <i class="fas fa-user-search"></i> Nama Muzakki
+            <i class="fas fa-search"></i> Nama Muzakki
           </label>
           <div class="filter-input-wrapper">
             <i class="fas fa-search input-icon"></i>
-            <input type="text" id="filter_search" class="filter-input with-icon" placeholder="Ketik nama muzakki...">
+            <input type="text" id="filter_search" class="filter-input with-icon" placeholder="Ketik nama...">
           </div>
         </div>
-      </div>
 
-      <!-- Date Filter Section -->
-      <div class="filter-section-group">
-        <div class="filter-section-title">
-          <i class="fas fa-calendar-alt"></i>
-          <span>Filter Tanggal</span>
-        </div>
-        <div class="filter-date-row">
-          <div class="filter-item">
-            <label for="filter_start_date" class="filter-label">
-              <i class="fas fa-calendar-day"></i> Dari Tanggal
-            </label>
-            <input type="date" id="filter_start_date" class="filter-input">
-          </div>
-          <div class="filter-date-separator">
-            <i class="fas fa-arrow-right"></i>
-          </div>
-          <div class="filter-item">
-            <label for="filter_end_date" class="filter-label">
-              <i class="fas fa-calendar-check"></i> Sampai Tanggal
-            </label>
-            <input type="date" id="filter_end_date" class="filter-input">
+        <!-- Dari Tanggal -->
+        <div class="filter-item">
+          <label for="filter_start_date" class="filter-label">
+            <i class="fas fa-calendar-day"></i> Dari Tanggal
+          </label>
+          <div class="filter-input-wrapper">
+            <i class="fas fa-calendar input-icon"></i>
+            <input type="text" id="filter_start_date" class="filter-input with-icon flatpickr-input" placeholder="Pilih tanggal..." readonly>
           </div>
         </div>
-      </div>
 
-      <!-- Action Buttons -->
-      <div class="filter-actions-wrapper">
-        <button type="button" id="btn_apply_filter" class="btn-filter btn-filter-primary">
-          <i class="fas fa-check-circle"></i>
-          <span>Terapkan Filter</span>
-        </button>
-        <button type="button" id="btn_reset_filter" class="btn-filter btn-filter-secondary">
-          <i class="fas fa-redo-alt"></i>
-          <span>Reset Filter</span>
-        </button>
+        <!-- Sampai Tanggal -->
+        <div class="filter-item">
+          <label for="filter_end_date" class="filter-label">
+            <i class="fas fa-calendar-check"></i> Sampai Tanggal
+          </label>
+          <div class="filter-input-wrapper">
+            <i class="fas fa-calendar input-icon"></i>
+            <input type="text" id="filter_end_date" class="filter-input with-icon flatpickr-input" placeholder="Pilih tanggal..." readonly>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="filter-item filter-item-actions">
+          <label class="filter-label">&nbsp;</label>
+          <div class="filter-actions-wrapper">
+            <button type="button" id="btn_apply_filter" class="btn-filter btn-filter-primary">
+              <i class="fas fa-check-circle"></i>
+              <span>Filter</span>
+            </button>
+            <button type="button" id="btn_reset_filter" class="btn-filter btn-filter-secondary">
+              <i class="fas fa-redo-alt"></i>
+              <span>Reset</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Filter Info -->
@@ -254,7 +253,17 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                       </div>
                     </td>
                     <td class="text-center">
-                      <% if (item.kembalian > 0) { %>
+                      <% if (item.infak_id) { %>
+                        <div class="kembalian-wrapper">
+                          <div class="badge-sudah-sedekah">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Sudah disedekahkan</span>
+                          </div>
+                          <div class="amount-display amount-sedekah">
+                            Rp <%= Math.floor(parseFloat(item.infak_jumlah) || 0).toLocaleString('id-ID') %>
+                          </div>
+                        </div>
+                      <% } else if (item.kembalian > 0) { %>
                         <div class="kembalian-wrapper">
                           <div class="amount-display amount-warning">
                             Rp <%= Math.floor(item.kembalian).toLocaleString('id-ID') %>
@@ -284,7 +293,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                         <a href="/muzakki/<%= item.id %>/edit" class="btn-icon btn-icon-primary" title="Edit">
                           <i class="fas fa-edit"></i>
                         </a>
-                        <form method="POST" action="/muzakki/delete/<%= item.id %>?_method=DELETE" class="inline-form delete-form" data-name="<%= item.nama_muzakki_list %>">
+                        <form method="POST" action="/muzakki/<%= item.id %>?_method=DELETE" class="inline-form delete-form" data-name="<%= item.nama_muzakki_list %>">
                           <button type="button" class="btn-icon btn-icon-danger" title="Hapus" onclick="confirmDelete(this)">
                             <i class="fas fa-trash"></i>
                           </button>
@@ -343,7 +352,12 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                 <div class="mobile-card-row">
                   <div class="mobile-card-item">
                     <span class="mobile-card-label">Kembalian</span>
-                    <% if (item.kembalian > 0) { %>
+                    <% if (item.infak_id) { %>
+                      <div class="badge-sudah-sedekah-mobile">
+                        <i class="fas fa-check-circle"></i> Sudah disedekahkan
+                      </div>
+                      <span class="mobile-card-value amount-sedekah">Rp <%= Math.floor(parseFloat(item.infak_jumlah) || 0).toLocaleString('id-ID') %></span>
+                    <% } else if (item.kembalian > 0) { %>
                       <span class="mobile-card-value text-warning">Rp <%= Math.floor(item.kembalian).toLocaleString('id-ID') %></span>
                     <% } else { %>
                       <span class="mobile-card-value text-muted">-</span>
@@ -362,7 +376,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
               </div>
 
               <div class="mobile-card-footer">
-                <% if (item.kembalian > 0) { %>
+                <% if (!item.infak_id && item.kembalian > 0) { %>
                   <form method="POST" action="/muzakki/<%= item.id %>/sedekahkan-kembalian" class="sedekah-form">
                     <button type="submit" class="btn-sedekah-mobile">
                       <i class="fas fa-hand-holding-heart"></i> Sedekahkan
@@ -376,7 +390,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                   <a href="/muzakki/<%= item.id %>/edit" class="btn-icon btn-icon-primary" title="Edit">
                     <i class="fas fa-edit"></i>
                   </a>
-                  <form method="POST" action="/muzakki/delete/<%= item.id %>?_method=DELETE" class="inline-form delete-form" data-name="<%= item.nama_muzakki_list %>">
+                  <form method="POST" action="/muzakki/<%= item.id %>?_method=DELETE" class="inline-form delete-form" data-name="<%= item.nama_muzakki_list %>">
                     <button type="button" class="btn-icon btn-icon-danger" title="Hapus" onclick="confirmDelete(this)">
                       <i class="fas fa-trash"></i>
                     </button>
@@ -466,16 +480,19 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   }
 
   .header-icon-box {
-    width: 56px;
-    height: 56px;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
+    width: 64px;
+    height: 64px;
+    background: white;
     border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 16px;
     color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    padding: 8px;
+    overflow: hidden;
   }
 
   .header-text-box { color: white; }
@@ -580,52 +597,14 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   }
 
   .filter-body {
-    padding: 24px;
+    padding: 20px 24px;
   }
 
-  .filter-section-group {
-    margin-bottom: 20px;
-    padding: 16px;
-    background: #f9fafb;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
-  }
-
-  .filter-section-group:last-of-type {
-    margin-bottom: 0;
-  }
-
-  .filter-section-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    font-weight: 700;
-    color: #4b5563;
-    margin-bottom: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .filter-section-title i {
-    color: #6366f1;
-    font-size: 15px;
-  }
-
-  .filter-date-row {
+  .filter-grid-row {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     align-items: end;
-  }
-
-  .filter-date-separator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #9ca3af;
-    font-size: 18px;
-    padding-bottom: 10px;
   }
 
   .filter-item {
@@ -691,27 +670,46 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     color: #9ca3af;
   }
 
+  /* Flatpickr overrides */
+  .filter-input-wrapper .input-icon {
+    z-index: 2;
+  }
+
+  .filter-input.flatpickr-alt {
+    cursor: pointer;
+  }
+
+  .filter-input.flatpickr-alt::placeholder {
+    color: #9ca3af;
+  }
+
+  .filter-item-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
   .filter-actions-wrapper {
     display: flex;
-    gap: 12px;
-    padding-top: 4px;
-    justify-content: flex-end;
+    gap: 8px;
   }
 
   .btn-filter {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    border-radius: 12px;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 16px;
+    border-radius: 10px;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     border: none;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     position: relative;
     overflow: hidden;
+    flex: 1;
   }
 
   .btn-filter i {
@@ -1074,6 +1072,38 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   }
   .btn-sedekah:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
 
+  /* Badge Sudah Disedekahkan */
+  .badge-sudah-sedekah {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #065f46;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    border: 1px solid #6ee7b7;
+  }
+  .badge-sudah-sedekah i { font-size: 10px; color: #059669; }
+
+  .badge-sudah-sedekah-mobile {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #065f46;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid #6ee7b7;
+    margin-bottom: 2px;
+  }
+  .badge-sudah-sedekah-mobile i { font-size: 10px; color: #059669; }
+
+  .amount-sedekah { color: #059669; }
+
   /* Pencatat */
   .pencatat-info { text-align: left; }
   .pencatat-name { font-size: 13px; color: #374151; font-weight: 500; }
@@ -1206,17 +1236,19 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     
     /* Filter responsive */
     .filter-body { padding: 16px; }
-    .filter-section-group { padding: 12px; margin-bottom: 12px; }
-    .filter-date-row { grid-template-columns: 1fr; gap: 12px; }
-    .filter-date-separator { display: none; }
-    .filter-actions-wrapper { 
-      flex-direction: column; 
-      gap: 8px; 
+    .filter-grid-row {
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
-    .btn-filter { 
-      width: 100%; 
-      justify-content: center; 
-      padding: 12px 20px;
+    .filter-item-actions {
+      grid-column: span 2;
+    }
+    .filter-actions-wrapper {
+      gap: 8px;
+    }
+    .btn-filter {
+      justify-content: center;
+      padding: 11px 16px;
     }
     
     /* Table header responsive */
@@ -1253,6 +1285,12 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     .btn-back { width: 36px; height: 36px; font-size: 14px; }
     .header-icon-box { width: 44px; height: 44px; font-size: 18px; }
     .mobile-card-row { grid-template-columns: 1fr; gap: 8px; }
+    .filter-grid-row {
+      grid-template-columns: 1fr;
+    }
+    .filter-item-actions {
+      grid-column: span 1;
+    }
     
     .table-header-right {
       width: 100%;
@@ -1560,8 +1598,8 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
     // Reset inputs
     searchInput.value = '';
-    startDateInput.value = '';
-    endDateInput.value = '';
+    if (fpStart) { fpStart.clear(); fpStart.set('maxDate', null); }
+    if (fpEnd) { fpEnd.clear(); fpEnd.set('minDate', null); }
 
     // Show all rows
     const desktopRows = document.querySelectorAll('.desktop-view tbody tr');
@@ -1695,6 +1733,10 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     });
   }
 
+  // Flatpickr instances (global agar bisa diakses resetFilter)
+  let fpStart = null;
+  let fpEnd = null;
+
   // Event listeners for filter
   document.addEventListener('DOMContentLoaded', function() {
     const btnApplyFilter = document.getElementById('btn_apply_filter');
@@ -1702,6 +1744,35 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     const searchInput = document.getElementById('filter_search');
     const startDateInput = document.getElementById('filter_start_date');
     const endDateInput = document.getElementById('filter_end_date');
+
+    // Initialize Flatpickr date pickers
+    const fpConfig = {
+      locale: 'id',
+      dateFormat: 'Y-m-d',
+      altInput: true,
+      altFormat: 'j F Y',
+      altInputClass: 'filter-input with-icon flatpickr-alt',
+      allowInput: false,
+      disableMobile: true
+    };
+
+    fpStart = flatpickr('#filter_start_date', {
+      ...fpConfig,
+      onChange: function(selectedDates) {
+        if (selectedDates[0] && fpEnd) {
+          fpEnd.set('minDate', selectedDates[0]);
+        }
+      }
+    });
+
+    fpEnd = flatpickr('#filter_end_date', {
+      ...fpConfig,
+      onChange: function(selectedDates) {
+        if (selectedDates[0] && fpStart) {
+          fpStart.set('maxDate', selectedDates[0]);
+        }
+      }
+    });
 
     // Populate muzakki names on page load
     document.querySelectorAll('.muzakki-names-container').forEach(container => {

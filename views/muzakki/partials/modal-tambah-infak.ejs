@@ -59,136 +59,61 @@
       <!-- Muzakki List -->
       <form id="infakBatchForm" method="POST" action="/muzakki/rt/<%= rt.id %>/batch-infak">
         <div class="muzakki-list-infak" id="muzakkiList">
-          <% 
-          // Debug: Tampilkan semua data muzakki untuk analisis
-          console.log('=== MODAL DEBUG ===');
-          console.log('Total muzakki:', muzakki.length);
-          muzakki.forEach((m, idx) => {
-            console.log(`Muzakki ${idx + 1}:`, {
-              id: m.id,
-              nama: m.nama_muzakki_list,
-              kembalian: m.kembalian,
-              kembalian_type: typeof m.kembalian,
-              infak_id: m.infak_id,
-              jumlah_bayar: m.jumlah_bayar
-            });
-          });
-          
-          // Filter muzakki: kembalian harus ada (tidak null, tidak 0) DAN belum ada infak
-          const muzakkiWithKembalian = muzakki.filter(m => {
-            // Cek kembalian dengan berbagai cara untuk memastikan
+          <%
+          // Filter muzakki: kembalian > 0 DAN belum ada infak
+          const muzakkiForInfak = muzakki.filter(m => {
             const kembalianValue = parseFloat(m.kembalian || 0);
-            const hasKembalian = kembalianValue > 0;
-            const noInfak = !m.infak_id || m.infak_id === null || m.infak_id === undefined;
-            
-            console.log(`Filter ${m.nama_muzakki_list}:`, { 
-              kembalianValue, 
-              hasKembalian, 
-              noInfak,
-              passed: hasKembalian && noInfak 
-            });
-            
-            return hasKembalian && noInfak;
+            const hasInfak = m.infak_id && m.infak_id !== null;
+            return kembalianValue > 0 && !hasInfak;
           });
-          
-          console.log('Filtered muzakki with kembalian:', muzakkiWithKembalian.length);
-          
-          if (muzakkiWithKembalian.length === 0) { 
+
+          if (muzakkiForInfak.length === 0) {
           %>
             <div class="empty-state-infak">
               <i class="fas fa-inbox"></i>
-              <p>Tidak ada muzakki dengan kembalian yang belum disedekahkan</p>
-              <small style="color: #9ca3af; margin-top: 8px; display: block;">
-                Total muzakki: <%= muzakki.length %><br>
-                Debug: Cek browser console untuk detail
-              </small>
+              <p>Tidak ada muzakki dengan kembalian yang belum di-infak-kan</p>
             </div>
-          <% } else { 
-            muzakkiWithKembalian.forEach((item, index) => { 
+          <% } else {
+            muzakkiForInfak.forEach((item, index) => {
           %>
             <div class="muzakki-card-infak" data-nama="<%= item.nama_muzakki_list ? item.nama_muzakki_list.toLowerCase() : '' %>">
               <label class="muzakki-checkbox-label">
-                <input 
-                  type="checkbox" 
-                  name="muzakki_ids[]" 
-                  value="<%= item.id %>" 
+                <input
+                  type="checkbox"
+                  name="muzakki_ids[]"
+                  value="<%= item.id %>"
                   class="muzakki-checkbox"
                   data-kembalian="<%= item.kembalian %>"
                   onchange="updateSelectedCount()"
                 />
                 <span class="checkbox-custom-card"></span>
-                
+
                 <div class="muzakki-info-card">
-                  <div class="muzakki-header-row">
-                    <div class="muzakki-avatar">
-                      <i class="fas fa-user"></i>
+                  <div class="card-top">
+                    <div class="card-name-section">
+                      <h4 class="muzakki-name"><%= item.nama_muzakki_list || '-' %></h4>
+                      <p class="card-subtitle">
+                        <%= item.jumlah_muzakki %> jiwa • <%= new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) %>
+                      </p>
                     </div>
-                    <div class="muzakki-details">
-                      <div class="muzakki-name-row">
-                        <h4 class="muzakki-name"><%= item.nama_muzakki_list || '-' %></h4>
-                        <div class="muzakki-badge-count">
-                          <i class="fas fa-users"></i>
-                          <%= item.jumlah_muzakki %> jiwa
-                        </div>
-                      </div>
-                      <div class="muzakki-meta-row">
-                        <span class="meta-item">
-                          <i class="fas fa-calendar"></i>
-                          <%= new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) %>
-                        </span>
-                        <span class="meta-item">
-                          <i class="fas fa-user-tie"></i>
-                          <%= item.pencatat_name %>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="muzakki-financial-info">
-                    <div class="financial-row">
-                      <div class="financial-item">
-                        <span class="financial-label">Jumlah Bayar</span>
-                        <span class="financial-value">
-                          Rp <%= Math.floor(item.jumlah_bayar || 0).toLocaleString('id-ID') %>
-                        </span>
-                      </div>
-                      <div class="financial-item">
-                        <span class="financial-label">Jumlah Jiwa</span>
-                        <span class="financial-value">
-                          <%= item.jumlah_jiwa || 0 %> jiwa
-                        </span>
-                      </div>
-                    </div>
-                    <div class="kembalian-highlight">
-                      <span class="kembalian-label">
-                        <i class="fas fa-money-bill-wave"></i>
-                        Kembalian
-                      </span>
-                      <span class="kembalian-amount">
-                        Rp <%= Math.floor(item.kembalian || 0).toLocaleString('id-ID') %>
-                      </span>
+                    <div class="card-amount">
+                      <div class="amount-label">Kembalian</div>
+                      <div class="amount-value">Rp <%= Math.floor(item.kembalian || 0).toLocaleString('id-ID') %></div>
                     </div>
                   </div>
 
-                  <!-- Keterangan Input -->
-                  <div class="keterangan-input-box">
-                    <label class="keterangan-label">
-                      <i class="fas fa-comment-dots"></i>
-                      Keterangan (opsional)
-                    </label>
-                    <input 
-                      type="text" 
-                      name="keterangan_<%= item.id %>" 
-                      class="keterangan-input"
-                      placeholder="Tambahkan catatan untuk infak ini..."
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    name="keterangan_<%= item.id %>"
+                    class="keterangan-input"
+                    placeholder="Tambah keterangan..."
+                  />
                 </div>
               </label>
             </div>
-          <% 
+          <%
             });
-          } 
+          }
           %>
         </div>
 
@@ -487,6 +412,34 @@
   box-shadow: 0 4px 12px rgba(30, 175, 47, 0.1);
 }
 
+/* Card yang sudah punya infak */
+.muzakki-card-infak.card-already-infak {
+  border-color: #d1d5db;
+  background: #f9fafb;
+  opacity: 0.75;
+}
+
+.muzakki-card-infak.card-already-infak:hover {
+  border-color: #d1d5db;
+  box-shadow: none;
+}
+
+.badge-already-infak {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  color: #065f46;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  z-index: 1;
+}
+
 .muzakki-checkbox-label {
   display: block;
   cursor: pointer;
@@ -533,181 +486,93 @@
 }
 
 .muzakki-info-card {
-  background: #fafafa;
+  background: white;
   border-radius: 12px;
-  padding: 16px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
   border-left: 4px solid transparent;
   transition: all 0.3s ease;
   position: relative;
   padding-right: 56px;
-}
-
-/* Muzakki Header */
-.muzakki-header-row {
   display: flex;
+  flex-direction: column;
   gap: 14px;
-  margin-bottom: 16px;
 }
 
-.muzakki-avatar {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #1EAF2F, #16a127);
-  border-radius: 12px;
+/* Card Top Section */
+.card-top {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 20px;
-  flex-shrink: 0;
+  gap: 16px;
+  align-items: flex-start;
 }
 
-.muzakki-details {
+.card-name-section {
   flex: 1;
   min-width: 0;
 }
 
-.muzakki-name-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 6px;
-  flex-wrap: wrap;
-}
-
 .muzakki-name {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: #111827;
-  margin: 0;
+  margin: 0 0 4px 0;
+  line-height: 1.4;
 }
 
-.muzakki-badge-count {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-  color: #1e40af;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.muzakki-meta-row {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.meta-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.card-subtitle {
   font-size: 12px;
   color: #6b7280;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.meta-item i {
-  font-size: 11px;
-  color: #9ca3af;
-}
-
-/* Financial Info */
-.muzakki-financial-info {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 2px solid #e5e7eb;
-}
-
-.financial-row {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.financial-item {
+.card-amount {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.financial-label {
-  font-size: 11px;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.financial-value {
-  font-size: 14px;
-  color: #111827;
-  font-weight: 600;
-}
-
-.kembalian-highlight {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 8px 12px;
   background: linear-gradient(135deg, #fef3c7, #fde68a);
-  border-radius: 10px;
-  border: 2px solid #fbbf24;
+  border-radius: 8px;
+  min-width: 120px;
 }
 
-.kembalian-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
+.amount-label {
+  font-size: 10px;
   font-weight: 600;
   color: #92400e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.kembalian-label i {
-  color: #f59e0b;
-}
-
-.kembalian-amount {
-  font-size: 16px;
+.amount-value {
+  font-size: 14px;
   font-weight: 700;
   color: #92400e;
 }
 
 /* Keterangan Input */
-.keterangan-input-box {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 2px solid #e5e7eb;
-}
-
-.keterangan-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #4b5563;
-  margin-bottom: 8px;
-}
-
-.keterangan-label i {
-  color: #1EAF2F;
-}
-
 .keterangan-input {
   width: 100%;
-  padding: 10px 14px;
-  border: 2px solid #e5e7eb;
+  padding: 9px 12px;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 13px;
   transition: all 0.3s ease;
+  background: #fafafa;
 }
 
 .keterangan-input:focus {
   outline: none;
   border-color: #1EAF2F;
-  box-shadow: 0 0 0 3px rgba(30, 175, 47, 0.1);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(30, 175, 47, 0.08);
+}
+
+.keterangan-input::placeholder {
+  color: #9ca3af;
 }
 
 /* Modal Footer */
@@ -879,22 +744,36 @@
   }
 
   .muzakki-info-card {
-    padding: 12px;
-    padding-right: 48px;
+    padding: 14px;
+    padding-right: 50px;
+    gap: 12px;
   }
 
-  .muzakki-header-row {
-    gap: 10px;
+  .card-top {
+    flex-direction: column;
+    gap: 12px;
   }
 
-  .muzakki-avatar {
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
+  .card-amount {
+    align-items: flex-start;
+    width: 100%;
   }
 
   .muzakki-name {
     font-size: 14px;
+  }
+
+  .card-subtitle {
+    font-size: 11px;
+  }
+
+  .amount-value {
+    font-size: 13px;
+  }
+
+  .keterangan-input {
+    font-size: 12px;
+    padding: 8px 10px;
   }
 
   .kembalian-highlight {
@@ -916,25 +795,12 @@
 </style>
 
 <script>
-// Debug: Log muzakki data saat modal script dimuat
-console.log('=== DEBUG MODAL INFAK ===');
-console.log('Total muzakki:', <%= muzakki.length %>);
-console.log('Muzakki data:', <%- JSON.stringify(muzakki.map(m => ({ 
-  id: m.id, 
-  nama: m.nama_muzakki_list, 
-  kembalian: m.kembalian, 
-  infak_id: m.infak_id 
-}))) %>);
-
 // Open Modal
 function openInfakModal() {
   document.getElementById('tambahInfakModal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
   updateSelectedCount();
   updateTotalCount();
-  
-  // Debug saat modal dibuka
-  console.log('Modal dibuka, total cards:', document.querySelectorAll('.muzakki-card-infak').length);
 }
 
 // Close Modal
@@ -976,19 +842,18 @@ function filterMuzakki() {
   });
 }
 
-// Toggle Select All
+// Toggle Select All (hanya untuk yang visible)
 function toggleSelectAll(checkbox) {
-  const checkboxes = document.querySelectorAll('.muzakki-checkbox');
   const visibleCards = Array.from(document.querySelectorAll('.muzakki-card-infak'))
     .filter(card => card.style.display !== 'none');
-  
+
   visibleCards.forEach(card => {
     const cb = card.querySelector('.muzakki-checkbox');
     if (cb) {
       cb.checked = checkbox.checked;
     }
   });
-  
+
   updateSelectedCount();
 }
 

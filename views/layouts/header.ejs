@@ -95,16 +95,33 @@
       }
 
       .header-icon-box {
-        width: var(--icon-lg);
-        height: var(--icon-lg);
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        border-radius: 10px;
+        width: 64px;
+        height: 64px;
+        background: white;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 16px;
         color: white;
+        flex-shrink: 0;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        padding: 8px;
+        overflow: hidden;
+      }
+
+      .header-icon-box i {
+        font-size: 28px;
+        background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .header-logo {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
       }
 
       .header-title-text {
