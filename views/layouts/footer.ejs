@@ -16,14 +16,16 @@
     <script>
       function toggleDropdown() {
         const dropdown = document.getElementById("dropdown-menu");
-        dropdown.classList.toggle("hidden");
+        if (dropdown) {
+          dropdown.classList.toggle("hidden");
+        }
       }
 
       // Close dropdown when clicking outside
       document.addEventListener("click", function (event) {
         const dropdown = document.getElementById("dropdown-menu");
         const button = event.target.closest("button");
-        if (!button || !button.onclick) {
+        if (dropdown && (!button || !button.onclick)) {
           dropdown.classList.add("hidden");
         }
       });

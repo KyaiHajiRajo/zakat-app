@@ -4,6 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title || 'Zakat Fitrah' %></title>
+    <script>
+      (function () {
+        const storageKey = "app-theme";
+        let theme = null;
+
+        try {
+          theme = localStorage.getItem(storageKey);
+        } catch (error) {
+          theme = null;
+        }
+
+        const prefersDark =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const useDark = theme === "dark" || (!theme && prefersDark);
+
+        if (useDark) {
+          document.documentElement.classList.add("dark-mode");
+        }
+      })();
+    </script>
     <link rel="shortcut icon" href="/public/images/logo.png" type="image/x-icon">
     <link href="/css/output.css" rel="stylesheet" />
     <link
@@ -1088,6 +1109,231 @@
           padding: 9px;
         }
       }
+
+      .theme-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #d1d5db;
+        background: #f8fafc;
+        color: #0f172a;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+      }
+
+      .theme-toggle-btn:hover {
+        transform: translateY(-1px);
+        border-color: #a7f3d0;
+        background: #ecfdf5;
+      }
+
+      .theme-toggle-btn:focus-visible {
+        outline: 2px solid rgba(16, 185, 129, 0.5);
+        outline-offset: 2px;
+      }
+
+      .theme-toggle-btn .theme-label {
+        line-height: 1;
+      }
+
+      @media (max-width: 768px) {
+        .theme-toggle-btn {
+          padding: 8px 10px;
+          border-radius: 12px;
+        }
+
+        .theme-toggle-btn .theme-label {
+          display: none;
+        }
+      }
+
+      html.dark-mode {
+        color-scheme: dark;
+      }
+
+      body {
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+
+      html.dark-mode body {
+        background: radial-gradient(
+            circle at 0% 0%,
+            rgba(16, 185, 129, 0.14),
+            transparent 28%
+          ),
+          linear-gradient(145deg, #020617 0%, #0b1220 50%, #111827 100%) !important;
+        color: #e5e7eb;
+      }
+
+      html.dark-mode .sidebar {
+        background: #0f172a;
+        border-right-color: #1f2937;
+      }
+
+      html.dark-mode .sidebar-logo-name {
+        color: #f8fafc;
+      }
+
+      html.dark-mode .sidebar-logo-tagline,
+      html.dark-mode .nav-group-title,
+      html.dark-mode .sidebar-footer {
+        color: #94a3b8;
+      }
+
+      html.dark-mode .nav-link {
+        color: #cbd5e1;
+      }
+
+      html.dark-mode .nav-link:hover {
+        background: #111827;
+        color: #6ee7b7;
+      }
+
+      html.dark-mode .nav-link.active {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(45, 212, 191, 0.12) 100%);
+        color: #6ee7b7;
+      }
+
+      html.dark-mode .top-navbar {
+        background: rgba(2, 6, 23, 0.92);
+        border-bottom: 1px solid #1f2937;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      html.dark-mode .hamburger-btn,
+      html.dark-mode .navbar-brand {
+        color: #6ee7b7;
+      }
+
+      html.dark-mode .user-dropdown-btn {
+        background: #111827;
+        color: #e5e7eb;
+        border: 1px solid #1f2937;
+      }
+
+      html.dark-mode .user-dropdown-btn:hover {
+        background: #1f2937;
+      }
+
+      html.dark-mode .user-name {
+        color: #e5e7eb;
+      }
+
+      html.dark-mode .user-dropdown {
+        background: #0f172a;
+        border: 1px solid #1f2937;
+      }
+
+      html.dark-mode .user-dropdown-header {
+        border-bottom-color: #1f2937;
+      }
+
+      html.dark-mode .user-dropdown-name {
+        color: #f8fafc;
+      }
+
+      html.dark-mode .user-dropdown-phone {
+        color: #94a3b8;
+      }
+
+      html.dark-mode .user-dropdown-item {
+        color: #cbd5e1;
+      }
+
+      html.dark-mode .user-dropdown-item:hover {
+        background: #111827;
+        color: #6ee7b7;
+      }
+
+      html.dark-mode .user-dropdown-item.logout:hover {
+        background: rgba(239, 68, 68, 0.14);
+      }
+
+      html.dark-mode .main-content {
+        background: transparent;
+      }
+
+      html.dark-mode .sidebar-overlay {
+        background: rgba(2, 6, 23, 0.7);
+      }
+
+      html.dark-mode .theme-toggle-btn {
+        background: #111827;
+        border-color: #1f2937;
+        color: #6ee7b7;
+      }
+
+      html.dark-mode .theme-toggle-btn:hover {
+        background: #1f2937;
+        border-color: #2dd4bf;
+      }
+
+      html.dark-mode .bg-white {
+        background-color: #0f172a !important;
+      }
+
+      html.dark-mode .bg-gray-50,
+      html.dark-mode .bg-gray-100 {
+        background-color: #0b1220 !important;
+      }
+
+      html.dark-mode .text-gray-900,
+      html.dark-mode .text-gray-800 {
+        color: #f8fafc !important;
+      }
+
+      html.dark-mode .text-gray-700,
+      html.dark-mode .text-gray-600 {
+        color: #cbd5e1 !important;
+      }
+
+      html.dark-mode .text-gray-500,
+      html.dark-mode .text-gray-400 {
+        color: #94a3b8 !important;
+      }
+
+      html.dark-mode .border-gray-100,
+      html.dark-mode .border-gray-200,
+      html.dark-mode .border-gray-300 {
+        border-color: #1f2937 !important;
+      }
+
+      html.dark-mode .stat-box,
+      html.dark-mode .filter-section,
+      html.dark-mode .table-section,
+      html.dark-mode .mobile-card {
+        background: #0f172a;
+        border-color: #1f2937;
+      }
+
+      html.dark-mode .filter-header,
+      html.dark-mode .table-header-wrapper,
+      html.dark-mode .data-table thead tr {
+        background: #111827;
+        border-color: #1f2937;
+      }
+
+      html.dark-mode .data-table tbody tr {
+        border-bottom-color: #1f2937;
+      }
+
+      html.dark-mode .data-table tbody tr:hover {
+        background: rgba(16, 185, 129, 0.12);
+      }
+
+      html.dark-mode .table-badge {
+        background: rgba(16, 185, 129, 0.18);
+        color: #6ee7b7;
+      }
+
+      html.dark-mode footer {
+        background: #020617 !important;
+        border-top-color: #1f2937 !important;
+      }
       
       /* Smooth scrolling */
       html {
@@ -1310,8 +1556,19 @@
       </div>
       
 
-      <!-- Right section with user dropdown -->
-      <div style="margin-left: auto;">
+      <!-- Right section with theme toggle + user dropdown -->
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
+        <button
+          type="button"
+          id="themeToggleAdmin"
+          class="theme-toggle-btn"
+          aria-label="Toggle dark mode"
+          title="Toggle dark mode"
+        >
+          <i id="themeToggleAdminIcon" class="fas fa-moon"></i>
+          <span id="themeToggleAdminLabel" class="theme-label">Dark</span>
+        </button>
+
         <div class="user-dropdown-container">
           <button class="user-dropdown-btn" onclick="toggleUserDropdown()">
             <div class="user-avatar">
@@ -1365,58 +1622,146 @@
     <% } %>
 
     <script>
-      // Toggle Sidebar (Mobile)
+      const THEME_STORAGE_KEY = "app-theme";
+
+      function getStoredTheme() {
+        try {
+          const saved = localStorage.getItem(THEME_STORAGE_KEY);
+          if (saved === "dark" || saved === "light") {
+            return saved;
+          }
+        } catch (error) {
+          return null;
+        }
+        return null;
+      }
+
+      function getPreferredTheme() {
+        const stored = getStoredTheme();
+        if (stored) {
+          return stored;
+        }
+
+        return window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+      }
+
+      function updateThemeToggleUI(theme) {
+        const icon = document.getElementById("themeToggleAdminIcon");
+        const label = document.getElementById("themeToggleAdminLabel");
+        const isDark = theme === "dark";
+
+        if (icon) {
+          icon.classList.toggle("fa-sun", isDark);
+          icon.classList.toggle("fa-moon", !isDark);
+        }
+
+        if (label) {
+          label.textContent = isDark ? "Light" : "Dark";
+        }
+      }
+
+      function applyTheme(theme) {
+        const isDark = theme === "dark";
+        document.documentElement.classList.toggle("dark-mode", isDark);
+        document.body.classList.toggle("dark-mode", isDark);
+        updateThemeToggleUI(theme);
+      }
+
+      function saveTheme(theme) {
+        try {
+          localStorage.setItem(THEME_STORAGE_KEY, theme);
+        } catch (error) {
+          // Ignore storage failures.
+        }
+      }
+
+      function toggleTheme() {
+        const nextTheme = document.documentElement.classList.contains("dark-mode")
+          ? "light"
+          : "dark";
+        applyTheme(nextTheme);
+        saveTheme(nextTheme);
+      }
+
+      window.toggleTheme = toggleTheme;
+
       function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("sidebarOverlay");
+
         if (sidebar && overlay) {
-          sidebar.classList.toggle('show');
-          overlay.classList.toggle('show');
+          sidebar.classList.toggle("show");
+          overlay.classList.toggle("show");
         }
       }
 
-      // Toggle User Dropdown
+      window.toggleSidebar = toggleSidebar;
+
       function toggleUserDropdown() {
-        const dropdown = document.getElementById('userDropdown');
+        const dropdown = document.getElementById("userDropdown");
         if (dropdown) {
-          dropdown.classList.toggle('show');
+          dropdown.classList.toggle("show");
         }
       }
 
-      // Close dropdown when clicking outside
-      document.addEventListener('click', function(event) {
-        const userDropdownContainer = event.target.closest('.user-dropdown-container');
-        const userDropdown = document.getElementById('userDropdown');
-        
-        if (!userDropdownContainer && userDropdown && userDropdown.classList.contains('show')) {
-          userDropdown.classList.remove('show');
+      window.toggleUserDropdown = toggleUserDropdown;
+
+      document.addEventListener("click", function (event) {
+        const userDropdownContainer = event.target.closest(".user-dropdown-container");
+        const userDropdown = document.getElementById("userDropdown");
+
+        if (!userDropdownContainer && userDropdown && userDropdown.classList.contains("show")) {
+          userDropdown.classList.remove("show");
         }
       });
 
-      // Close sidebar when resizing to desktop
-      window.addEventListener('resize', function() {
+      window.addEventListener("resize", function () {
         if (window.innerWidth > 768) {
-          const sidebar = document.getElementById('sidebar');
-          const overlay = document.getElementById('sidebarOverlay');
-          if (sidebar && sidebar.classList.contains('show')) {
-            sidebar.classList.remove('show');
-            overlay.classList.remove('show');
+          const sidebar = document.getElementById("sidebar");
+          const overlay = document.getElementById("sidebarOverlay");
+          if (sidebar && sidebar.classList.contains("show")) {
+            sidebar.classList.remove("show");
+            overlay.classList.remove("show");
           }
         }
       });
 
-      // Auto hide flash messages after 5 seconds
-      document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-          const flashMessages = document.querySelectorAll('.bg-green-100, .bg-red-100');
-          flashMessages.forEach(function(message) {
-            message.style.transition = 'opacity 0.5s';
-            message.style.opacity = '0';
+      document.addEventListener("DOMContentLoaded", function () {
+        applyTheme(getPreferredTheme());
+
+        const toggleButton = document.getElementById("themeToggleAdmin");
+        if (toggleButton) {
+          toggleButton.addEventListener("click", toggleTheme);
+        }
+
+        setTimeout(function () {
+          const flashMessages = document.querySelectorAll(".bg-green-100, .bg-red-100");
+          flashMessages.forEach(function (message) {
+            message.style.transition = "opacity 0.5s";
+            message.style.opacity = "0";
             setTimeout(() => message.remove(), 500);
           });
         }, 5000);
       });
+
+      if (window.matchMedia) {
+        const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+        const handleThemeChange = function () {
+          if (getStoredTheme()) {
+            return;
+          }
+          applyTheme(mediaQuery.matches ? "dark" : "light");
+        };
+
+        if (mediaQuery.addEventListener) {
+          mediaQuery.addEventListener("change", handleThemeChange);
+        } else if (mediaQuery.addListener) {
+          mediaQuery.addListener(handleThemeChange);
+        }
+      }
     </script>
   </body>
 </html>
