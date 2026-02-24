@@ -404,6 +404,13 @@
         padding: 14px;
       }
 
+      .table-header-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
       /* ============================================
          GLOBAL DATA TABLE
          ============================================ */
@@ -633,6 +640,88 @@
           flex: 1;
           justify-content: center;
         }
+
+        .table-header-wrapper {
+          align-items: flex-start;
+        }
+
+        .table-header-right {
+          width: 100%;
+          justify-content: flex-start;
+        }
+
+        /* Convert all data tables to vertical cards on mobile */
+        table.responsive-stack-table {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0;
+        }
+
+        table.responsive-stack-table thead {
+          border: 0;
+          clip: rect(0 0 0 0);
+          height: 1px;
+          margin: -1px;
+          overflow: hidden;
+          padding: 0;
+          position: absolute;
+          width: 1px;
+        }
+
+        table.responsive-stack-table tbody,
+        table.responsive-stack-table tr,
+        table.responsive-stack-table td {
+          display: block;
+          width: 100%;
+        }
+
+        table.responsive-stack-table tbody tr {
+          background: #ffffff;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          margin-bottom: 12px;
+          overflow: hidden;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        table.responsive-stack-table tbody tr:hover {
+          background: #ffffff;
+        }
+
+        table.responsive-stack-table td {
+          align-items: flex-start;
+          border-bottom: 1px solid #f3f4f6;
+          display: flex;
+          gap: 10px;
+          justify-content: space-between;
+          padding: 10px 12px;
+          text-align: right;
+        }
+
+        table.responsive-stack-table td:last-child {
+          border-bottom: 0;
+        }
+
+        table.responsive-stack-table td::before {
+          color: #6b7280;
+          content: attr(data-label);
+          flex: 1;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.4px;
+          min-width: 110px;
+          text-align: left;
+          text-transform: uppercase;
+        }
+
+        table.responsive-stack-table td[data-label=""]::before {
+          content: "Kolom";
+        }
+
+        table.responsive-stack-table .action-buttons-group {
+          justify-content: flex-end;
+          margin-left: auto;
+        }
       }
 
       @media (max-width: 480px) {
@@ -643,6 +732,16 @@
 
         .mobile-card-body {
           grid-template-columns: 1fr;
+        }
+
+        table.responsive-stack-table td {
+          flex-direction: column;
+          gap: 6px;
+          text-align: left;
+        }
+
+        table.responsive-stack-table td::before {
+          min-width: 0;
         }
       }
 
@@ -852,6 +951,8 @@
         justify-content: space-between;
         padding: 0 30px;
         transition: left 0.3s ease;
+        gap: 12px;
+        overflow: visible;
       }
       
       .top-navbar-mobile {
@@ -864,12 +965,20 @@
         color: #1eaf2f;
         font-size: 1.25rem;
         font-weight: 700;
+        min-width: 0;
       }
       
       .navbar-brand-logo {
         width: 40px;
         height: 40px;
         margin-right: 10px;
+        flex-shrink: 0;
+      }
+
+      .navbar-brand-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       
       /* Hamburger Menu */
@@ -889,8 +998,18 @@
       }
       
       /* User Dropdown */
+      .top-navbar-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        flex-shrink: 0;
+      }
+
       .user-dropdown-container {
         position: relative;
+        flex-shrink: 0;
       }
       
       .user-dropdown-btn {
@@ -1000,13 +1119,17 @@
       .main-content {
         margin-left: 260px;
         margin-top: 70px;
-        padding: 30px;
+        padding: 18px;
         min-height: calc(100vh - 70px);
         transition: margin-left 0.3s ease;
+        width: calc(100% - 260px);
+        max-width: 100%;
+        overflow-x: hidden;
       }
       
       .main-content-full {
         margin-left: 0;
+        width: 100%;
       }
       
       /* Sidebar Overlay for Mobile */
@@ -1033,6 +1156,7 @@
         .sidebar {
           transform: translateX(-100%);
           box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
+          width: min(82vw, 280px);
         }
         
         .sidebar.show {
@@ -1041,22 +1165,70 @@
         
         .top-navbar {
           left: 0;
+          height: 64px;
+          padding: 0 10px;
+          gap: 8px;
         }
         
         .navbar-brand {
           display: flex;
+          flex: 1;
+          min-width: 0;
+          font-size: 1rem;
+        }
+
+        .navbar-brand-logo {
+          width: 34px;
+          height: 34px;
+          margin-right: 8px;
+        }
+
+        .navbar-brand-text {
+          font-size: 0.95rem;
         }
         
         .hamburger-btn {
           display: block;
+          font-size: 1.25rem;
+          padding: 6px;
+          border-radius: 10px;
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
         }
         
         .main-content {
           margin-left: 0;
+          margin-top: 64px;
+          width: 100%;
+          padding: 14px 10px;
         }
         
+        .top-navbar-right {
+          gap: 6px;
+        }
+
+        .user-dropdown-btn {
+          padding: 6px 10px;
+        }
+
+        .user-avatar {
+          width: 31px;
+          height: 31px;
+          margin-right: 0;
+          font-size: 0.82rem;
+        }
+
+        .user-dropdown-btn .fa-chevron-down {
+          font-size: 0.75rem;
+          margin-left: 6px;
+        }
+
         .user-name {
           display: none;
+        }
+
+        .user-dropdown {
+          width: min(92vw, 300px);
         }
 
         .sidebar-logo {
@@ -1088,7 +1260,56 @@
 
       @media (max-width: 480px) {
         .sidebar {
-          width: 250px;
+          width: min(82vw, 250px);
+        }
+
+        .top-navbar {
+          height: 60px;
+          padding: 0 8px;
+          gap: 6px;
+        }
+
+        .navbar-brand-logo {
+          width: 30px;
+          height: 30px;
+          margin-right: 0;
+        }
+
+        .navbar-brand-text {
+          display: none;
+        }
+
+        .top-navbar-right {
+          gap: 4px;
+        }
+
+        .theme-toggle-btn {
+          padding: 7px 8px;
+          border-radius: 10px;
+        }
+
+        .user-dropdown-btn {
+          padding: 5px 7px;
+        }
+
+        .user-avatar {
+          width: 28px;
+          height: 28px;
+          font-size: 0.74rem;
+        }
+
+        .user-dropdown-btn .fa-chevron-down {
+          display: none;
+        }
+
+        .user-dropdown {
+          right: -2px;
+          width: min(94vw, 290px);
+        }
+
+        .main-content {
+          margin-top: 60px;
+          padding: 8px;
         }
 
         .sidebar-logo {
@@ -1209,6 +1430,11 @@
         color: #6ee7b7;
       }
 
+      html.dark-mode .hamburger-btn {
+        background: #111827;
+        border-color: #1f2937;
+      }
+
       html.dark-mode .user-dropdown-btn {
         background: #111827;
         color: #e5e7eb;
@@ -1325,6 +1551,22 @@
         background: rgba(16, 185, 129, 0.12);
       }
 
+      @media (max-width: 768px) {
+        html.dark-mode table.responsive-stack-table tbody tr {
+          background: #0f172a;
+          border-color: #1f2937;
+          box-shadow: none;
+        }
+
+        html.dark-mode table.responsive-stack-table td {
+          border-bottom-color: #1f2937;
+        }
+
+        html.dark-mode table.responsive-stack-table td::before {
+          color: #94a3b8;
+        }
+      }
+
       html.dark-mode .table-badge {
         background: rgba(16, 185, 129, 0.18);
         color: #6ee7b7;
@@ -1333,6 +1575,10 @@
       html.dark-mode footer {
         background: #020617 !important;
         border-top-color: #1f2937 !important;
+      }
+
+      body.sidebar-open {
+        overflow: hidden;
       }
       
       /* Smooth scrolling */
@@ -1552,12 +1798,12 @@
       <!-- Logo for Mobile -->
       <div class="navbar-brand">
         <img src="/images/logo.png" alt="Logo" class="navbar-brand-logo">
-        <span>Zakat - App</span>
+        <span class="navbar-brand-text">Zakat - App</span>
       </div>
       
 
       <!-- Right section with theme toggle + user dropdown -->
-      <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
+      <div class="top-navbar-right">
         <button
           type="button"
           id="themeToggleAdmin"
@@ -1691,10 +1937,16 @@
       function toggleSidebar() {
         const sidebar = document.getElementById("sidebar");
         const overlay = document.getElementById("sidebarOverlay");
+        const isMobile = window.innerWidth <= 768;
 
         if (sidebar && overlay) {
           sidebar.classList.toggle("show");
           overlay.classList.toggle("show");
+
+          if (isMobile) {
+            const willOpen = sidebar.classList.contains("show");
+            document.body.classList.toggle("sidebar-open", willOpen);
+          }
         }
       }
 
@@ -1726,6 +1978,7 @@
             sidebar.classList.remove("show");
             overlay.classList.remove("show");
           }
+          document.body.classList.remove("sidebar-open");
         }
       });
 
@@ -1745,6 +1998,25 @@
             setTimeout(() => message.remove(), 500);
           });
         }, 5000);
+
+        const sidebarLinks = document.querySelectorAll("#sidebar .nav-link");
+        sidebarLinks.forEach(function (link) {
+          link.addEventListener("click", function () {
+            if (window.innerWidth > 768) {
+              return;
+            }
+
+            const sidebar = document.getElementById("sidebar");
+            const overlay = document.getElementById("sidebarOverlay");
+            if (sidebar) {
+              sidebar.classList.remove("show");
+            }
+            if (overlay) {
+              overlay.classList.remove("show");
+            }
+            document.body.classList.remove("sidebar-open");
+          });
+        });
       });
 
       if (window.matchMedia) {

@@ -74,6 +74,93 @@
         rupiah = split[1] != undefined ? rupiah + "," + split[1] : rupiah;
         return rupiah;
       }
+
+      function normalizeTableHeaderText(element) {
+        if (!element) return "";
+        const cloned = element.cloneNode(true);
+        const hiddenElements = cloned.querySelectorAll("script, style");
+        hiddenElements.forEach(function (node) {
+          node.remove();
+        });
+        return cloned.textContent.replace(/\s+/g, " ").trim();
+      }
+
+      function applyResponsiveTableStack(table) {
+        if (!table || table.dataset.noStackMobile === "true") {
+          return;
+        }
+
+        const headerCells = Array.from(table.querySelectorAll("thead th"));
+        const bodyRows = table.querySelectorAll("tbody tr");
+
+        if (!headerCells.length || !bodyRows.length) {
+          return;
+        }
+
+        const headers = headerCells.map(function (headerCell, index) {
+          const label = normalizeTableHeaderText(headerCell);
+          return label || "Kolom " + (index + 1);
+        });
+
+        bodyRows.forEach(function (row) {
+          let currentColIndex = 0;
+          const dataCells = row.querySelectorAll("td");
+
+          dataCells.forEach(function (cell, fallbackIndex) {
+            const span = Number(cell.getAttribute("colspan") || 1);
+            const label =
+              headers[currentColIndex] ||
+              headers[fallbackIndex] ||
+              "Kolom " + (fallbackIndex + 1);
+
+            cell.setAttribute("data-label", label);
+            currentColIndex += span;
+          });
+        });
+
+        table.classList.add("responsive-stack-table");
+      }
+
+      function refreshResponsiveTableStack() {
+        const tables = document.querySelectorAll("table");
+        tables.forEach(function (table) {
+          applyResponsiveTableStack(table);
+        });
+      }
+
+      let responsiveTableRefreshQueued = false;
+      function queueResponsiveTableStackRefresh() {
+        if (responsiveTableRefreshQueued) {
+          return;
+        }
+
+        responsiveTableRefreshQueued = true;
+        window.requestAnimationFrame(function () {
+          refreshResponsiveTableStack();
+          responsiveTableRefreshQueued = false;
+        });
+      }
+
+      window.refreshResponsiveTableStack = refreshResponsiveTableStack;
+
+      document.addEventListener("DOMContentLoaded", function () {
+        queueResponsiveTableStackRefresh();
+
+        if (!window.__responsiveTableObserver) {
+          const observer = new MutationObserver(function (mutations) {
+            const shouldRefresh = mutations.some(function (mutation) {
+              return mutation.addedNodes && mutation.addedNodes.length > 0;
+            });
+
+            if (shouldRefresh) {
+              queueResponsiveTableStackRefresh();
+            }
+          });
+
+          observer.observe(document.body, { childList: true, subtree: true });
+          window.__responsiveTableObserver = observer;
+        }
+      });
     </script>
   </body>
 </html>

@@ -313,10 +313,12 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
   /* Dashboard Wrapper */
   .dashboard-wrapper {
     margin: 0 auto;
-    padding: 12px;
+    width: 100%;
+    max-width: 100%;
+    padding: 6px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
   /* Modern Header */
@@ -354,6 +356,11 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     display: flex;
     align-items: center;
     gap: 20px;
+    min-width: 0;
+  }
+
+  .header-text {
+    min-width: 0;
   }
 
   .header-icon-wrapper {
@@ -381,6 +388,8 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     font-weight: 700;
     color: white;
     margin: 0;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
   }
 
   .header-subtitle {
@@ -388,6 +397,8 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     color: rgba(255, 255, 255, 0.95);
     margin: 0;
     margin-top: 4px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
   }
 
   .header-name {
@@ -406,12 +417,14 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     color: white;
     font-weight: 500;
     font-size: 14px;
+    max-width: 100%;
+    flex-wrap: wrap;
   }
 
   /* Stats Grid */
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
     gap: 10px;
   }
 
@@ -435,6 +448,7 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid #e5e7eb;
+    min-width: 0;
   }
 
   .stat-card:hover {
@@ -527,7 +541,8 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     font-weight: 700;
     color: #111827;
     margin-bottom: 4px;
-    line-height: 1;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
   }
 
   .stat-label {
@@ -644,6 +659,7 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     transition: all 0.3s ease;
     text-decoration: none;
     border: 2px solid transparent;
+    min-width: 0;
   }
 
   .action-primary {
@@ -678,6 +694,7 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
 
   .action-content {
     flex: 1;
+    min-width: 0;
   }
 
   .action-title {
@@ -685,12 +702,14 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     font-weight: 600;
     color: white;
     margin: 0 0 2px 0;
+    overflow-wrap: anywhere;
   }
 
   .action-desc {
     font-size: 10px;
     color: rgba(255, 255, 255, 0.9);
     margin: 0;
+    overflow-wrap: anywhere;
   }
 
   .action-arrow {
@@ -707,7 +726,7 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
   /* Two Column Layout */
   .two-column-layout {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
     gap: 12px;
   }
 
@@ -740,7 +759,7 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
 
   .data-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     padding: 8px 10px;
     background: linear-gradient(to right, #f9fafb, #ffffff);
@@ -826,6 +845,8 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     display: flex;
     align-items: center;
     gap: 3px;
+    flex-wrap: wrap;
+    line-height: 1.4;
   }
 
   .separator {
@@ -863,6 +884,7 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
   .rt-status-badges {
     display: flex;
     gap: 6px;
+    flex-wrap: wrap;
   }
 
   /* Section Footer */
@@ -962,64 +984,265 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
 
   @media (max-width: 768px) {
     .dashboard-wrapper {
-      padding: 8px;
-      gap: 10px;
+      padding: 10px;
+      gap: 12px;
     }
 
     .dashboard-header {
-      padding: 12px 14px;
+      padding: 16px 14px;
+      border-radius: 14px;
     }
 
     .header-content {
       flex-direction: column;
-      align-items: flex-start;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .header-left {
+      width: 100%;
+      gap: 12px;
+    }
+
+    .header-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      padding: 8px;
+    }
+
+    .header-right {
+      width: 100%;
     }
 
     .header-title {
-      font-size: 18px;
+      font-size: 22px;
+    }
+
+    .header-subtitle {
+      font-size: 13px;
     }
 
     .date-badge {
       width: 100%;
-      justify-content: center;
+      justify-content: flex-start;
+      font-size: 12px;
+      padding: 9px 12px;
     }
 
     .stats-grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .stat-card {
+      padding: 12px;
+    }
+
+    .stat-value {
+      font-size: clamp(16px, 3.8vw, 20px);
+    }
+
+    .stat-label {
+      font-size: 12px;
+    }
+
+    .stat-description {
+      font-size: 10px;
+    }
+
+    .quick-actions-section {
+      padding: 12px;
     }
 
     .quick-actions-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .action-card {
+      padding: 10px;
+      gap: 8px;
+    }
+
+    .action-title {
+      font-size: 11px;
+    }
+
+    .action-desc {
+      font-size: 10px;
     }
 
     .two-column-layout {
       grid-template-columns: 1fr;
     }
 
-    .stat-value {
-      font-size: 18px;
+    .section-title {
+      font-size: 13px;
+    }
+
+    .section-subtitle {
+      font-size: 10px;
     }
 
     .data-item {
-      flex-direction: column;
-      align-items: flex-start;
+      padding: 10px;
+      gap: 8px;
     }
 
     .data-item-header {
-      flex-direction: column;
+      flex-wrap: wrap;
+      justify-content: space-between;
       align-items: flex-start;
       width: 100%;
+      gap: 6px;
+    }
+
+    .data-item-name {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      line-height: 1.35;
+    }
+
+    .data-item-amount {
+      white-space: normal;
+      text-align: left;
+    }
+
+    .data-item-footer {
+      width: 100%;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .data-content {
+      padding: 10px;
     }
   }
 
   @media (max-width: 640px) {
+    .dashboard-wrapper {
+      padding: 8px;
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .quick-actions-grid {
+      grid-template-columns: 1fr;
+    }
+
     .section-header {
-      flex-direction: column;
+      flex-direction: row;
+      flex-wrap: wrap;
       align-items: flex-start;
+      gap: 6px;
     }
 
     .section-badge {
       align-self: flex-start;
+    }
+
+    .header-icon-wrapper {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      padding: 7px;
+    }
+
+    .header-title {
+      font-size: 20px;
+    }
+
+    .header-subtitle {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .dashboard-wrapper {
+      padding: 8px 6px;
+      gap: 10px;
+    }
+
+    .dashboard-header {
+      padding: 12px 10px;
+      border-radius: 12px;
+    }
+
+    .header-left {
+      gap: 8px;
+    }
+
+    .header-icon-wrapper {
+      width: 44px;
+      height: 44px;
+      padding: 6px;
+    }
+
+    .header-title {
+      font-size: 17px;
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    .date-badge {
+      font-size: 11px;
+      padding: 8px 10px;
+      gap: 6px;
+    }
+
+    .stat-card {
+      padding: 10px;
+    }
+
+    .stat-value {
+      font-size: 16px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+    }
+
+    .action-card {
+      padding: 9px 10px;
+    }
+
+    .action-icon {
+      width: 28px;
+      height: 28px;
+    }
+
+    .data-item-name {
+      font-size: 11px;
+    }
+
+    .data-item-info {
+      font-size: 9px;
+    }
+
+    .status-badge {
+      font-size: 8px;
+      padding: 2px 5px;
+    }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    .stat-card:hover,
+    .action-card:hover,
+    .data-item:hover,
+    .btn-view-all:hover,
+    .btn-empty-action:hover {
+      transform: none;
+    }
+
+    .action-card:hover .action-arrow {
+      transform: none;
     }
   }
 </style>
