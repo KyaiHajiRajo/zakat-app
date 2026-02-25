@@ -229,8 +229,14 @@
   <style>
     /* Page Wrapper */
     .page-wrapper {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 0 1rem;
       display: flex;
+      flex-direction: column;
       gap: 16px;
+      min-width: 0;
     }
 
     /* Page Header */
@@ -283,6 +289,11 @@
       display: flex;
       align-items: center;
       gap: 20px;
+      min-width: 0;
+    }
+
+    .header-text-box {
+      min-width: 0;
     }
 
     .header-icon-box {
@@ -311,12 +322,16 @@
       font-weight: 700;
       margin: 0 0 6px 0;
       color: white;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
     }
 
     .header-subtitle-text {
       font-size: 16px;
       margin: 0;
       color: rgba(255, 255, 255, 0.95);
+      line-height: 1.45;
+      overflow-wrap: anywhere;
     }
 
     .header-actions {
@@ -380,6 +395,7 @@
       position: relative;
       overflow: hidden;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      min-width: 0;
     }
 
     .stat-box:hover {
@@ -505,6 +521,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
     }
 
     .btn-export-excel {
@@ -560,6 +577,7 @@
 
     .table-content-wrapper {
       padding: 16px;
+      min-width: 0;
     }
 
     /* Empty State */
@@ -617,6 +635,8 @@
     /* Data Table */
     .table-responsive-wrapper {
       overflow-x: auto;
+      width: 100%;
+      -webkit-overflow-scrolling: touch;
     }
 
     .data-table {
@@ -667,6 +687,12 @@
     .data-table td {
       padding: 16px;
       font-size: 14px;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+
+    .data-table th {
+      vertical-align: top;
     }
 
     /* Table Cell Content */
@@ -767,6 +793,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     .ki-label {
@@ -795,6 +822,7 @@
       gap: 8px;
       align-items: center;
       justify-content: center;
+      flex-wrap: wrap;
     }
 
     .btn-icon {
@@ -832,7 +860,7 @@
 
     @media (max-width: 768px) {
       .page-wrapper {
-        padding: 16px;
+        padding: 0.75rem;
       }
 
       .page-header {
@@ -842,6 +870,11 @@
       .header-content-wrapper {
         flex-direction: column;
         align-items: flex-start;
+      }
+
+      .header-left-section {
+        width: 100%;
+        gap: 12px;
       }
 
       .header-title-text {
@@ -855,14 +888,16 @@
       .btn-action {
         flex: 1;
         justify-content: center;
+        min-width: 0;
       }
 
       .stats-container {
         grid-template-columns: 1fr;
+        gap: 12px;
       }
 
       .table-content-wrapper {
-        padding: 16px;
+        padding: 12px;
       }
 
       .data-table {
@@ -880,7 +915,7 @@
 
       .ki-label {
         font-size: 12px;
-        min-width: 70px;
+        min-width: 64px;
       }
 
       .ki-value {
@@ -897,6 +932,7 @@
       .table-header-right {
         width: 100%;
         flex-wrap: wrap;
+        justify-content: flex-start;
       }
 
       .btn-export-excel {
@@ -913,6 +949,22 @@
       .table-badge {
         flex: 1;
         justify-content: center;
+      }
+
+      .header-title-text {
+        font-size: 22px;
+      }
+
+      .header-subtitle-text {
+        font-size: 14px;
+      }
+
+      .header-actions {
+        flex-direction: column;
+      }
+
+      .btn-action {
+        width: 100%;
       }
 
       .kembalian-infak-simple {
@@ -941,6 +993,40 @@
         width: 32px;
         height: 32px;
         font-size: 12px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .page-wrapper {
+        padding: 0.5rem;
+        gap: 12px;
+      }
+
+      .page-header {
+        padding: 14px;
+      }
+
+      .header-icon-box {
+        width: 48px;
+        height: 48px;
+      }
+
+      .table-content-wrapper {
+        padding: 10px;
+      }
+
+      .ki-label {
+        min-width: 56px;
+      }
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      .stat-box:hover,
+      .data-table tbody tr:hover,
+      .btn-action:hover,
+      .btn-export-excel:hover,
+      .btn-icon-info:hover {
+        transform: none;
       }
     }
 

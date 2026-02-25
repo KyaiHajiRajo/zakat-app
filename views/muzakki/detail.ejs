@@ -6,9 +6,6 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   <div class="page-header">
     <div class="header-content-wrapper">
       <div class="header-left-section">
-        <a href="/muzakki/rt/<%= muzakki.rt_id %>" class="btn-back" title="Kembali ke RT">
-          <i class="fas fa-arrow-left"></i>
-        </a>
         <div class="header-icon-box">
           <img src="/images/logo-dkm.png" alt="Logo DKM" class="header-logo">
         </div>
@@ -23,7 +20,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
           <span>Edit Data</span>
         </a>
         <a href="/muzakki/rt/<%= muzakki.rt_id %>" class="btn-action btn-action-secondary">
-          <i class="fas fa-list mr-2"></i>
+          <i class="fas fa-arrow-left mr-2"></i>
           <span>Kembali</span>
         </a>
       </div>
@@ -112,24 +109,9 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
           <div class="muzakki-list">
             <% muzakkiDetails.forEach(function(detail, index) { %>
               <div class="muzakki-item">
-                <div class="muzakki-number"><%= index + 1 %></div>
-                <div class="muzakki-info">
-                  <div class="muzakki-name"><%= detail.nama_muzakki %></div>
-                  <div class="muzakki-meta">
-                    <% if (detail.bin_binti) { %>
-                      <span class="badge-gender <%= detail.bin_binti === 'bin' ? 'badge-male' : 'badge-female' %>">
-                        <i class="fas <%= detail.bin_binti === 'bin' ? 'fa-mars' : 'fa-venus' %>"></i>
-                        <%= detail.bin_binti === 'bin' ? 'Bin' : 'Binti' %>
-                      </span>
-                    <% } %>
-                    <% if (detail.nama_orang_tua) { %>
-                      <span class="parent-name">
-                        <i class="fas fa-user-friends"></i>
-                        <%= detail.nama_orang_tua %>
-                      </span>
-                    <% } %>
-                  </div>
-                </div>
+                <% const relation = detail.bin_binti ? String(detail.bin_binti).toLowerCase() : ''; %>
+                <% const fullName = [detail.nama_muzakki, relation, detail.nama_orang_tua].filter(Boolean).join(' '); %>
+                <div class="muzakki-line"><%= index + 1 %>. <%= fullName || '-' %></div>
               </div>
             <% }); %>
           </div>
@@ -390,14 +372,15 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   .header-icon-box {
     width: 52px;
     height: 52px;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
+    background: #ffffff;
     border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 22px;
     color: white;
+    padding: 6px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
   }
 
   .header-text-box { color: white; }
@@ -538,9 +521,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   .muzakki-list { display: flex; flex-direction: column; gap: 10px; }
 
   .muzakki-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    display: block;
     padding: 12px;
     background: #f9fafb;
     border-radius: 10px;
@@ -549,6 +530,14 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   }
 
   .muzakki-item:hover { background: #f0fdf4; border-color: #1EAF2F; }
+
+  .muzakki-line {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
 
   .muzakki-number {
     width: 28px;
@@ -728,6 +717,129 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     .stat-icon-wrapper { width: 36px; height: 36px; font-size: 14px; }
     .stat-value-text { font-size: 16px; }
     .muzakki-meta { flex-direction: column; align-items: flex-start; gap: 4px; }
+  }
+
+  /* Responsive Polish */
+  .page-wrapper {
+    width: 100%;
+    max-width: 1200px;
+    min-width: 0;
+  }
+
+  .header-left-section,
+  .header-text-box,
+  .header-actions,
+  .section-header-text,
+  .section-content,
+  .info-content,
+  .sistem-content,
+  .muzakki-info {
+    min-width: 0;
+  }
+
+  .header-title-text,
+  .header-subtitle-text,
+  .section-title,
+  .section-subtitle,
+  .info-value,
+  .sistem-value,
+  .muzakki-name,
+  .catatan-box p {
+    overflow-wrap: anywhere;
+  }
+
+  .stats-container,
+  .content-grid,
+  .info-grid,
+  .sistem-grid {
+    min-width: 0;
+  }
+
+  .stat-box,
+  .info-item,
+  .muzakki-item,
+  .sistem-item {
+    min-width: 0;
+  }
+
+  @media (max-width: 768px) {
+    .page-wrapper {
+      padding: 0.75rem;
+      gap: 14px;
+    }
+
+    .page-header {
+      padding: 16px;
+    }
+
+    .header-left-section {
+      width: 100%;
+      gap: 10px;
+    }
+
+    .header-actions {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .btn-action {
+      width: 100%;
+    }
+
+    .section-header-box,
+    .section-content {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+
+    .info-item {
+      padding: 10px;
+    }
+
+    .sistem-item {
+      align-items: flex-start;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .page-wrapper {
+      padding: 0.5rem;
+      gap: 12px;
+    }
+
+    .header-title-text {
+      font-size: 18px;
+    }
+
+    .header-subtitle-text {
+      font-size: 12px;
+    }
+
+    .stats-container {
+      gap: 8px;
+    }
+
+    .stat-box {
+      padding: 10px;
+      gap: 8px;
+    }
+
+    .section-title {
+      font-size: 15px;
+    }
+
+    .section-subtitle {
+      font-size: 11px;
+    }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    .stat-box:hover,
+    .muzakki-item:hover,
+    .btn-action:hover,
+    .btn-sedekah-full:hover {
+      transform: none;
+    }
   }
 
   /* Utility Classes */

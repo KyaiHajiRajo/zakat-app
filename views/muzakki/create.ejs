@@ -925,6 +925,180 @@
       }
     }
 
+    /* Responsive Polish */
+    .page-wrapper {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    .header-left-section,
+    .header-text-box,
+    .header-actions,
+    .card-header-text,
+    .form-container,
+    .form-card,
+    .card-body,
+    .preview-content,
+    .info-card-content,
+    .muzakki-section {
+      min-width: 0;
+    }
+
+    .header-title-text,
+    .header-subtitle-text,
+    .card-title,
+    .card-subtitle,
+    .preview-value,
+    .info-card-title,
+    .info-card-list li {
+      overflow-wrap: anywhere;
+    }
+
+    .form-select,
+    .form-input,
+    .form-textarea {
+      min-width: 0;
+    }
+
+    .muzakki-section-header {
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn-remove-muzakki {
+      max-width: 100%;
+    }
+
+    .preview-container,
+    .info-grid {
+      min-width: 0;
+    }
+
+    @media (max-width: 768px) {
+      .page-wrapper {
+        padding: 0.75rem;
+        gap: 14px;
+      }
+
+      .page-header {
+        padding: 16px;
+      }
+
+      .header-left-section {
+        width: 100%;
+        gap: 10px;
+      }
+
+      .back-button {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
+
+      .header-icon-box {
+        width: 48px;
+        height: 48px;
+      }
+
+      .header-title-text {
+        font-size: 22px;
+      }
+
+      .header-subtitle-text {
+        font-size: 13px;
+      }
+
+      .header-actions {
+        width: 100%;
+      }
+
+      .info-badge {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .card-header,
+      .card-body {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .card-header {
+        align-items: flex-start;
+      }
+
+      .preview-container {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .preview-box {
+        padding: 12px;
+      }
+
+      .form-actions {
+        gap: 8px;
+        padding-top: 16px;
+      }
+
+      .btn-primary,
+      .btn-secondary {
+        padding: 12px 14px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .page-wrapper {
+        padding: 0.5rem;
+        gap: 12px;
+      }
+
+      .page-header {
+        padding: 14px 12px;
+      }
+
+      .header-title-text {
+        font-size: 19px;
+      }
+
+      .header-subtitle-text {
+        font-size: 12px;
+      }
+
+      .card-header-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
+
+      .card-title {
+        font-size: 17px;
+      }
+
+      .card-subtitle {
+        font-size: 12px;
+      }
+
+      .muzakki-section {
+        padding: 12px;
+      }
+
+      .info-card {
+        padding: 14px;
+      }
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      .btn-primary:hover,
+      .btn-secondary:hover,
+      .btn-add-muzakki:hover,
+      .btn-remove-muzakki:hover,
+      .preview-box:hover {
+        transform: none;
+      }
+    }
+
     /* Utility Classes */
     .mr-1 {
       margin-right: 4px;

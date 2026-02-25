@@ -1,8 +1,8 @@
 <%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'mustahik' }) %>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="max-w-full mx-auto px-1 sm:px-2 lg:px-3 mustahik-detail-page">
   <!-- Header -->
-  <div class="mb-8">
+  <div class="mb-8 detail-hero">
     <div class="flex items-center">
       <a href="/mustahik" class="text-gray-500 hover:text-gray-700 mr-4">
         <i class="fas fa-arrow-left text-lg"></i>
@@ -17,11 +17,11 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 detail-layout">
     <!-- Main Info -->
-    <div class="lg:col-span-2">
+    <div class="lg:col-span-2 detail-main">
       <!-- Basic Information -->
-      <div class="bg-white shadow-sm rounded-lg mb-6">
+      <div class="bg-white shadow-sm rounded-lg mb-6 detail-card detail-card-primary">
         <div class="px-6 py-4 border-b border-gray-200">
           <h2 class="text-lg font-semibold text-gray-900">
             <i class="fas fa-info-circle mr-2 text-primary-600"></i>Informasi
@@ -98,7 +98,7 @@
       </div>
 
       <!-- Distribution History -->
-      <div class="bg-white shadow-sm rounded-lg">
+      <div class="bg-white shadow-sm rounded-lg detail-card detail-card-secondary">
         <div class="px-6 py-4 border-b border-gray-200">
           <h2 class="text-lg font-semibold text-gray-900">
             <i class="fas fa-history mr-2 text-primary-600"></i>Riwayat
@@ -123,8 +123,8 @@
           </a>
         </div>
         <% } else { %>
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
+        <div class="overflow-x-auto detail-table-wrap">
+          <table class="min-w-full divide-y divide-gray-200 detail-table">
             <thead class="bg-gray-50">
               <tr>
                 <th
@@ -186,9 +186,9 @@
     </div>
 
     <!-- Sidebar -->
-    <div class="lg:col-span-1">
+    <div class="lg:col-span-1 detail-side">
       <!-- Quick Actions -->
-      <div class="bg-white shadow-sm rounded-lg mb-6">
+      <div class="bg-white shadow-sm rounded-lg mb-6 detail-card detail-card-actions">
         <div class="px-6 py-4 border-b border-gray-200">
           <h3 class="text-lg font-semibold text-gray-900">
             <i class="fas fa-bolt mr-2 text-primary-600"></i>Aksi Cepat
@@ -220,7 +220,7 @@
       </div>
 
       <!-- Statistics -->
-      <div class="bg-white shadow-sm rounded-lg">
+      <div class="bg-white shadow-sm rounded-lg detail-card detail-card-stats">
         <div class="px-6 py-4 border-b border-gray-200">
           <h3 class="text-lg font-semibold text-gray-900">
             <i class="fas fa-chart-pie mr-2 text-primary-600"></i>Statistik
@@ -265,6 +265,350 @@
     </div>
   </div>
 </div>
+
+<style>
+  .mustahik-detail-page {
+    width: 100%;
+    max-width: 100%;
+    padding-top: 0.75rem;
+    padding-bottom: 1.5rem;
+    padding-left: 0.1rem;
+    padding-right: 0.1rem;
+    position: relative;
+  }
+
+  .mustahik-detail-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 8% 8%, rgba(16, 185, 129, 0.08), transparent 33%),
+      radial-gradient(circle at 92% 18%, rgba(59, 130, 246, 0.08), transparent 32%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .mustahik-detail-page > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .mustahik-detail-page .detail-hero {
+    position: relative;
+    margin-bottom: 1.25rem;
+    padding: 1.25rem 1.35rem;
+    border-radius: 1rem;
+    background:
+      radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.26), transparent 34%),
+      linear-gradient(130deg, #0f9f2f 0%, #16a34a 45%, #0d9488 100%);
+    box-shadow: 0 14px 34px rgba(22, 163, 74, 0.24);
+    overflow: hidden;
+  }
+
+  .mustahik-detail-page .detail-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    pointer-events: none;
+  }
+
+  .mustahik-detail-page .detail-hero h1,
+  .mustahik-detail-page .detail-hero p,
+  .mustahik-detail-page .detail-hero a,
+  .mustahik-detail-page .detail-hero i {
+    color: #ffffff !important;
+  }
+
+  .mustahik-detail-page .detail-hero a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: 0.7rem;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: 0.2s ease;
+  }
+
+  .mustahik-detail-page .detail-hero a:hover {
+    transform: translateX(-2px);
+    background: rgba(255, 255, 255, 0.24);
+  }
+
+  .mustahik-detail-page .detail-layout {
+    gap: 1.25rem;
+  }
+
+  .mustahik-detail-page .detail-card {
+    border: 1px solid #e7edf6;
+    border-radius: 1rem;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+    overflow: hidden;
+    transition: transform 0.26s ease, box-shadow 0.26s ease, border-color 0.26s ease;
+    animation: mustahikFadeUp 0.45s ease both;
+  }
+
+  .mustahik-detail-page .detail-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
+    border-color: #d9e3ef;
+  }
+
+  .mustahik-detail-page .detail-card > .px-6.py-4.border-b.border-gray-200 {
+    background: linear-gradient(180deg, #f9fbff 0%, #f3f7fb 100%);
+    border-bottom-color: #e5edf5 !important;
+  }
+
+  .mustahik-detail-page .detail-main .detail-card + .detail-card {
+    margin-top: 0;
+  }
+
+  .mustahik-detail-page .detail-card-primary .h-20.w-20 > div {
+    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.26);
+    border: 2px solid rgba(255, 255, 255, 0.75);
+  }
+
+  .mustahik-detail-page .detail-card-primary .inline-flex.items-center.px-3.py-1.rounded-full {
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+
+  .mustahik-detail-page .detail-table-wrap {
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mustahik-detail-page .detail-table thead tr {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  }
+
+  .mustahik-detail-page .detail-table {
+    border-collapse: separate;
+    border-spacing: 0 0.5rem;
+  }
+
+  .mustahik-detail-page .detail-table thead th {
+    border: 0;
+  }
+
+  .mustahik-detail-page .detail-table tbody td {
+    background: #ffffff;
+    border-top: 1px solid #edf2f7;
+    border-bottom: 1px solid #edf2f7;
+  }
+
+  .mustahik-detail-page .detail-table tbody td:first-child {
+    border-left: 1px solid #edf2f7;
+    border-top-left-radius: 0.65rem;
+    border-bottom-left-radius: 0.65rem;
+  }
+
+  .mustahik-detail-page .detail-table tbody td:last-child {
+    border-right: 1px solid #edf2f7;
+    border-top-right-radius: 0.65rem;
+    border-bottom-right-radius: 0.65rem;
+  }
+
+  .mustahik-detail-page .detail-table tbody tr {
+    transition: background-color 0.25s ease;
+  }
+
+  .mustahik-detail-page .detail-table tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  .mustahik-detail-page .detail-table td,
+  .mustahik-detail-page .detail-table th {
+    vertical-align: top;
+  }
+
+  .mustahik-detail-page .detail-side .detail-card {
+    position: sticky;
+    top: 86px;
+  }
+
+  .mustahik-detail-page .detail-side .detail-card + .detail-card {
+    position: static;
+  }
+
+  .mustahik-detail-page .detail-card-actions .btn-primary,
+  .mustahik-detail-page .detail-card-actions .btn-secondary,
+  .mustahik-detail-page .detail-card-actions .btn-danger {
+    border-radius: 0.75rem;
+    font-weight: 700;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .mustahik-detail-page .detail-card-actions .btn-primary {
+    background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
+    color: #ffffff !important;
+    border: none;
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.25);
+  }
+
+  .mustahik-detail-page .detail-card-actions .btn-secondary {
+    border: 1px solid #d8e3ee;
+    background: #f8fafc;
+    color: #0f172a !important;
+  }
+
+  .mustahik-detail-page .detail-card-actions .btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff !important;
+    border: none;
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.22);
+  }
+
+  .mustahik-detail-page .detail-card-actions .btn-primary:hover,
+  .mustahik-detail-page .detail-card-actions .btn-secondary:hover,
+  .mustahik-detail-page .detail-card-actions .btn-danger:hover {
+    transform: translateY(-2px);
+  }
+
+  .mustahik-detail-page .detail-card-stats .space-y-4 > div {
+    padding-bottom: 0.55rem;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+
+  .mustahik-detail-page .detail-card-stats .space-y-4 > div:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .mustahik-detail-page .detail-card-stats .text-sm.font-medium.text-gray-900 {
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .mustahik-detail-page .detail-card:nth-of-type(1) { animation-delay: 0.02s; }
+  .mustahik-detail-page .detail-card:nth-of-type(2) { animation-delay: 0.08s; }
+  .mustahik-detail-page .detail-side .detail-card:nth-of-type(1) { animation-delay: 0.1s; }
+  .mustahik-detail-page .detail-side .detail-card:nth-of-type(2) { animation-delay: 0.14s; }
+
+  @keyframes mustahikFadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .mustahik-detail-page .detail-side .detail-card {
+      position: static;
+      top: auto;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .mustahik-detail-page {
+      padding-top: 0.5rem;
+      padding-bottom: 1rem;
+      padding-left: 0.08rem;
+      padding-right: 0.08rem;
+    }
+
+    .mustahik-detail-page .detail-hero {
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .mustahik-detail-page .detail-hero .flex.items-center {
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .mustahik-detail-page .detail-hero h1 {
+      font-size: 1.5rem !important;
+      line-height: 1.2;
+    }
+
+    .mustahik-detail-page .detail-layout {
+      gap: 1rem;
+    }
+
+    .mustahik-detail-page .detail-card {
+      border-radius: 0.9rem;
+    }
+
+    .mustahik-detail-page .detail-card .p-6,
+    .mustahik-detail-page .detail-card .px-6.py-4 {
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+
+    .mustahik-detail-page .detail-card .px-6.py-4 {
+      padding-top: 0.9rem !important;
+      padding-bottom: 0.9rem !important;
+    }
+
+    .mustahik-detail-page .detail-main .p-6 > .flex.items-center.mb-6 {
+      align-items: flex-start;
+      gap: 0.8rem;
+    }
+
+    .mustahik-detail-page .detail-main .p-6 > .flex.items-center.mb-6 .ml-6 {
+      margin-left: 0 !important;
+      min-width: 0;
+    }
+
+    .mustahik-detail-page .detail-main .p-6 > .flex.items-center.mb-6 h3 {
+      font-size: 1.35rem !important;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .mustahik-detail-page .detail-main .p-6 > .flex.items-center.mb-6 .h-20.w-20,
+    .mustahik-detail-page .detail-main .p-6 > .flex.items-center.mb-6 .h-20.w-20 > div {
+      width: 3.6rem !important;
+      height: 3.6rem !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .mustahik-detail-page .detail-hero {
+      padding: 0.85rem 0.8rem;
+    }
+
+    .mustahik-detail-page .detail-hero h1 {
+      font-size: 1.25rem !important;
+    }
+
+    .mustahik-detail-page .detail-hero p {
+      font-size: 0.86rem !important;
+    }
+
+    .mustahik-detail-page .detail-card .p-6,
+    .mustahik-detail-page .detail-card .px-6.py-4 {
+      padding-left: 0.8rem !important;
+      padding-right: 0.8rem !important;
+    }
+
+    .mustahik-detail-page .detail-table {
+      border-spacing: 0 0.35rem;
+    }
+
+    .mustahik-detail-page .detail-table td.whitespace-nowrap,
+    .mustahik-detail-page .detail-table th.whitespace-nowrap {
+      white-space: normal !important;
+    }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    .mustahik-detail-page .detail-card:hover,
+    .mustahik-detail-page .detail-card-actions .btn-primary:hover,
+    .mustahik-detail-page .detail-card-actions .btn-secondary:hover,
+    .mustahik-detail-page .detail-card-actions .btn-danger:hover {
+      transform: none;
+    }
+  }
+</style>
 
 <script>
   // Handle delete form submission with SweetAlert2

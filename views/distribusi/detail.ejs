@@ -1,8 +1,8 @@
 <%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'distribusi' }) %>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="max-w-full mx-auto px-1 sm:px-2 lg:px-3 distribusi-detail-page">
   <!-- Header -->
-  <div class="mb-8">
+  <div class="mb-8 detail-hero">
     <div class="flex items-center">
       <a href="/distribusi" class="text-gray-500 hover:text-gray-700 mr-4">
         <i class="fas fa-arrow-left text-lg"></i>
@@ -17,11 +17,11 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 detail-layout">
     <!-- Main Content -->
-    <div class="lg:col-span-2">
+    <div class="lg:col-span-2 detail-main">
       <!-- Distribution Info -->
-      <div class="bg-white shadow-sm rounded-lg mb-6">
+      <div class="bg-white shadow-sm rounded-lg mb-6 detail-card detail-card-info">
         <div class="px-6 py-4 border-b border-gray-200">
           <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold text-gray-900">
@@ -29,7 +29,7 @@
               Distribusi
             </h2>
             <span
-              class="inline-flex px-3 py-1 text-sm font-semibold rounded-full <% if (distribusi.status === 'diterima') { %>bg-green-100 text-green-800<% } else if (distribusi.status === 'disalurkan') { %>bg-blue-100 text-blue-800<% } else if (distribusi.status === 'pending') { %>bg-yellow-100 text-yellow-800<% } else { %>bg-red-100 text-red-800<% } %>"
+              class="status-chip inline-flex px-3 py-1 text-sm font-semibold rounded-full <% if (distribusi.status === 'diterima') { %>bg-green-100 text-green-800<% } else if (distribusi.status === 'disalurkan') { %>bg-blue-100 text-blue-800<% } else if (distribusi.status === 'pending') { %>bg-yellow-100 text-yellow-800<% } else { %>bg-red-100 text-red-800<% } %>"
             >
               <% if (distribusi.status === 'diterima') { %>
               <i class="fas fa-check mr-1"></i>
@@ -45,7 +45,7 @@
           </div>
         </div>
         <div class="p-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 detail-grid">
             <div>
               <label class="block text-sm font-medium text-gray-500 mb-1"
                 >ID Distribusi</label
@@ -129,11 +129,11 @@
               <label class="block text-sm font-medium text-gray-500 mb-2">
                 <i class="fas fa-camera mr-2"></i>Bukti Foto Distribusi
               </label>
-              <div class="relative group">
+              <div class="relative group foto-preview-wrap">
                 <img 
                   src="<%= distribusi.bukti_foto %>" 
                   alt="Bukti Distribusi" 
-                  class="w-full h-auto max-h-96 object-contain rounded-lg border-2 border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer"
+                  class="w-full h-auto object-contain rounded-lg border-2 border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer"
                   onclick="openImageModal('<%= distribusi.bukti_foto %>')"
                 >
                 <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded-lg transition-all flex items-center justify-center">
@@ -152,7 +152,7 @@
       </div>
 
       <!-- Mustahik Info -->
-      <div class="bg-white shadow-sm rounded-lg">
+      <div class="bg-white shadow-sm rounded-lg detail-card detail-card-mustahik">
         <div class="px-6 py-4 border-b border-gray-200">
           <h2 class="text-lg font-semibold text-gray-900">
             <i class="fas fa-user-friends mr-2 text-primary-600"></i>Informasi
@@ -253,9 +253,9 @@
     </div>
 
     <!-- Sidebar -->
-    <div class="lg:col-span-1">
+    <div class="lg:col-span-1 detail-side">
       <!-- Quick Actions -->
-      <div class="bg-white shadow-sm rounded-lg mb-6">
+      <div class="bg-white shadow-sm rounded-lg mb-6 detail-card detail-card-actions">
         <div class="px-6 py-4 border-b border-gray-200">
           <h3 class="text-lg font-semibold text-gray-900">
             <i class="fas fa-bolt mr-2 text-primary-600"></i>Aksi Cepat
@@ -327,7 +327,7 @@
       </div>
 
       <!-- Timeline -->
-      <div class="bg-white shadow-sm rounded-lg">
+      <div class="bg-white shadow-sm rounded-lg detail-card detail-card-timeline">
         <div class="px-6 py-4 border-b border-gray-200">
           <h3 class="text-lg font-semibold text-gray-900">
             <i class="fas fa-history mr-2 text-primary-600"></i>Timeline
@@ -498,6 +498,389 @@
   </div>
 </div>
 
+<style>
+  .distribusi-detail-page {
+    width: 100%;
+    max-width: 100%;
+    padding-top: 0.75rem;
+    padding-bottom: 1.5rem;
+    padding-left: 0.1rem;
+    padding-right: 0.1rem;
+    position: relative;
+  }
+
+  .distribusi-detail-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 8% 8%, rgba(16, 185, 129, 0.08), transparent 33%),
+      radial-gradient(circle at 92% 18%, rgba(59, 130, 246, 0.08), transparent 32%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .distribusi-detail-page > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .distribusi-detail-page .detail-hero {
+    position: relative;
+    margin-bottom: 1.25rem;
+    padding: 1.2rem 1.35rem;
+    border-radius: 1rem;
+    background:
+      radial-gradient(circle at 88% 18%, rgba(255, 255, 255, 0.28), transparent 34%),
+      linear-gradient(130deg, #0f9f2f 0%, #16a34a 45%, #0d9488 100%);
+    box-shadow: 0 14px 34px rgba(22, 163, 74, 0.24);
+    overflow: hidden;
+  }
+
+  .distribusi-detail-page .detail-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    pointer-events: none;
+  }
+
+  .distribusi-detail-page .detail-hero h1,
+  .distribusi-detail-page .detail-hero p,
+  .distribusi-detail-page .detail-hero a,
+  .distribusi-detail-page .detail-hero i {
+    color: #ffffff !important;
+  }
+
+  .distribusi-detail-page .detail-hero a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: 0.7rem;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: 0.2s ease;
+  }
+
+  .distribusi-detail-page .detail-hero a:hover {
+    transform: translateX(-2px);
+    background: rgba(255, 255, 255, 0.24);
+  }
+
+  .distribusi-detail-page .detail-layout {
+    gap: 1.25rem;
+  }
+
+  .distribusi-detail-page .detail-card {
+    border: 1px solid #e7edf6;
+    border-radius: 1rem;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+    overflow: hidden;
+    transition: transform 0.26s ease, box-shadow 0.26s ease, border-color 0.26s ease;
+    animation: distribusiFadeUp 0.45s ease both;
+  }
+
+  .distribusi-detail-page .detail-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
+    border-color: #d9e3ef;
+  }
+
+  .distribusi-detail-page .detail-card > .px-6.py-4.border-b.border-gray-200 {
+    background: linear-gradient(180deg, #f9fbff 0%, #f3f7fb 100%);
+    border-bottom-color: #e5edf5 !important;
+  }
+
+  .distribusi-detail-page .status-chip {
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  }
+
+  .distribusi-detail-page .detail-grid > div,
+  .distribusi-detail-page .detail-main .bg-gray-50.rounded-lg.p-4,
+  .distribusi-detail-page .detail-main .space-y-2 > div {
+    min-width: 0;
+  }
+
+  .distribusi-detail-page .detail-grid p,
+  .distribusi-detail-page .detail-grid span,
+  .distribusi-detail-page .detail-main h3,
+  .distribusi-detail-page .detail-main h4 {
+    overflow-wrap: anywhere;
+  }
+
+  .distribusi-detail-page .detail-main .relative.group img {
+    border-radius: 0.9rem;
+    border-color: #dbe4ef !important;
+  }
+
+  .distribusi-detail-page .foto-preview-wrap {
+    max-width: min(100%, 560px);
+    margin: 0 auto;
+  }
+
+  .distribusi-detail-page .foto-preview-wrap img {
+    width: 100%;
+    object-fit: contain;
+    max-height: 14rem !important;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    padding: 0.35rem;
+  }
+
+  .distribusi-detail-page .detail-main .bg-gray-50.rounded-lg.p-4 {
+    border: 1px solid #e6edf5;
+    background: linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%);
+  }
+
+  .distribusi-detail-page .detail-main .space-y-2 > div {
+    border: 1px solid #edf2f8;
+    border-radius: 0.6rem;
+  }
+
+  .distribusi-detail-page .detail-main .w-8.h-8 {
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.14);
+  }
+
+  .distribusi-detail-page .detail-side .detail-card {
+    position: sticky;
+    top: 86px;
+  }
+
+  .distribusi-detail-page .detail-side .detail-card + .detail-card {
+    position: static;
+  }
+
+  .distribusi-detail-page .detail-card-actions .btn-primary,
+  .distribusi-detail-page .detail-card-actions .btn-secondary,
+  .distribusi-detail-page .detail-card-actions .btn-success,
+  .distribusi-detail-page .detail-card-actions .btn-danger {
+    border-radius: 0.75rem;
+    font-weight: 700;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .distribusi-detail-page .detail-card-actions .btn-primary,
+  .distribusi-detail-page .detail-card-actions .btn-success {
+    background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
+    color: #ffffff !important;
+    border: none;
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.24);
+  }
+
+  .distribusi-detail-page .detail-card-actions .btn-secondary {
+    border: 1px solid #d8e3ee;
+    background: #f8fafc;
+    color: #0f172a !important;
+  }
+
+  .distribusi-detail-page .detail-card-actions .btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff !important;
+    border: none;
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.22);
+  }
+
+  .distribusi-detail-page .detail-card-actions .btn-primary:hover,
+  .distribusi-detail-page .detail-card-actions .btn-secondary:hover,
+  .distribusi-detail-page .detail-card-actions .btn-success:hover,
+  .distribusi-detail-page .detail-card-actions .btn-danger:hover {
+    transform: translateY(-2px);
+  }
+
+  .distribusi-detail-page .detail-card-timeline .text-sm.text-gray-500 {
+    color: #475569 !important;
+  }
+
+  .distribusi-detail-page .detail-card-timeline ul.-mb-8 {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .distribusi-detail-page .detail-card-timeline li > .relative {
+    padding-bottom: 0 !important;
+  }
+
+  .distribusi-detail-page .detail-card-timeline li .absolute.top-4.left-4 {
+    display: none;
+  }
+
+  .distribusi-detail-page .detail-card-timeline li .relative.flex.space-x-3 {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e5edf5;
+    border-radius: 0.8rem;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .distribusi-detail-page .detail-card-timeline li .h-8.w-8 {
+    width: 2rem !important;
+    height: 2rem !important;
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.14);
+  }
+
+  .distribusi-detail-page .detail-card-timeline li .ring-8 {
+    box-shadow: 0 0 0 4px #ffffff;
+  }
+
+  .distribusi-detail-page .detail-card:nth-of-type(1) { animation-delay: 0.02s; }
+  .distribusi-detail-page .detail-card:nth-of-type(2) { animation-delay: 0.08s; }
+  .distribusi-detail-page .detail-side .detail-card:nth-of-type(1) { animation-delay: 0.1s; }
+  .distribusi-detail-page .detail-side .detail-card:nth-of-type(2) { animation-delay: 0.14s; }
+
+  @keyframes distribusiFadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .distribusi-detail-page .detail-side .detail-card {
+      position: static;
+      top: auto;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .distribusi-detail-page {
+      padding-top: 0.5rem;
+      padding-bottom: 1rem;
+      padding-left: 0.08rem;
+      padding-right: 0.08rem;
+    }
+
+    .distribusi-detail-page .detail-hero {
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .distribusi-detail-page .detail-hero .flex.items-center {
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .distribusi-detail-page .detail-hero h1 {
+      font-size: 1.5rem !important;
+      line-height: 1.2;
+    }
+
+    .distribusi-detail-page .detail-layout {
+      gap: 1rem;
+    }
+
+    .distribusi-detail-page .detail-card {
+      border-radius: 0.9rem;
+    }
+
+    .distribusi-detail-page .detail-card .p-6,
+    .distribusi-detail-page .detail-card .px-6.py-4 {
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+
+    .distribusi-detail-page .detail-card .px-6.py-4 {
+      padding-top: 0.9rem !important;
+      padding-bottom: 0.9rem !important;
+    }
+
+    .distribusi-detail-page .detail-main .flex.items-center.justify-between {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .distribusi-detail-page .detail-main .flex.items-center.mb-4 {
+      align-items: flex-start;
+      gap: 0.8rem;
+    }
+
+    .distribusi-detail-page .detail-main .flex.items-center.mb-4 .ml-4 {
+      margin-left: 0 !important;
+      min-width: 0;
+    }
+
+    .distribusi-detail-page .detail-main .flex.items-center.mb-4 .h-16.w-16,
+    .distribusi-detail-page .detail-main .flex.items-center.mb-4 .h-16.w-16 > div {
+      width: 3rem !important;
+      height: 3rem !important;
+    }
+
+    .distribusi-detail-page .detail-main .flex.items-center.mb-4 h3 {
+      font-size: 1rem !important;
+      line-height: 1.25;
+    }
+
+    .distribusi-detail-page .detail-main .flex.items-center.space-x-3.mt-1 {
+      gap: 0.35rem !important;
+      flex-wrap: wrap;
+    }
+
+    .distribusi-detail-page .detail-main .space-y-2 > div {
+      align-items: flex-start;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .distribusi-detail-page .foto-preview-wrap img {
+      max-height: 11rem !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .distribusi-detail-page .detail-hero {
+      padding: 0.85rem 0.8rem;
+    }
+
+    .distribusi-detail-page .detail-hero h1 {
+      font-size: 1.25rem !important;
+    }
+
+    .distribusi-detail-page .detail-hero p {
+      font-size: 0.86rem !important;
+    }
+
+    .distribusi-detail-page .detail-card .p-6,
+    .distribusi-detail-page .detail-card .px-6.py-4 {
+      padding-left: 0.8rem !important;
+      padding-right: 0.8rem !important;
+    }
+
+    .distribusi-detail-page .status-chip {
+      font-size: 0.75rem !important;
+      padding: 0.35rem 0.65rem;
+    }
+
+    .distribusi-detail-page .detail-card-timeline li .relative.flex.space-x-3 {
+      padding: 0.5rem 0.6rem;
+    }
+
+    .distribusi-detail-page .foto-preview-wrap img {
+      max-height: 9rem !important;
+    }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    .distribusi-detail-page .detail-card:hover,
+    .distribusi-detail-page .detail-card-actions .btn-primary:hover,
+    .distribusi-detail-page .detail-card-actions .btn-secondary:hover,
+    .distribusi-detail-page .detail-card-actions .btn-success:hover,
+    .distribusi-detail-page .detail-card-actions .btn-danger:hover {
+      transform: none;
+    }
+  }
+</style>
+
 <!-- Image Modal for Full View -->
 <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4" onclick="closeImageModal()">
   <div class="relative max-w-5xl max-h-full" onclick="event.stopPropagation()">
@@ -540,9 +923,9 @@
   });
 
   // Handle cancel form submission with SweetAlert2
-  document
-    .getElementById("cancelForm")
-    .addEventListener("submit", function (e) {
+  const cancelForm = document.getElementById("cancelForm");
+  if (cancelForm) {
+    cancelForm.addEventListener("submit", function (e) {
       e.preventDefault();
 
       showConfirm(
@@ -560,11 +943,12 @@
         }
       });
     });
+  }
 
   // Handle delete form submission with SweetAlert2
-  document
-    .getElementById("deleteForm")
-    .addEventListener("submit", function (e) {
+  const deleteForm = document.getElementById("deleteForm");
+  if (deleteForm) {
+    deleteForm.addEventListener("submit", function (e) {
       e.preventDefault();
 
       showDeleteConfirm(
@@ -576,6 +960,7 @@
         }
       });
     });
+  }
 </script>
 
 <%- include('../layouts/footer') %>

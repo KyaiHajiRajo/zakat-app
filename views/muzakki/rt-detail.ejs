@@ -1309,6 +1309,153 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     }
   }
 
+  /* Responsive Polish */
+  .page-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .header-left-section,
+  .header-text-box,
+  .table-header-left,
+  .table-header-text,
+  .table-header-right,
+  .mobile-card,
+  .mobile-card-title,
+  .mobile-card-name-wrapper {
+    min-width: 0;
+  }
+
+  .header-title-text,
+  .header-subtitle-text,
+  .table-title,
+  .table-subtitle,
+  .mobile-card-name,
+  .mobile-card-subtitle {
+    overflow-wrap: anywhere;
+  }
+
+  .filter-grid-row {
+    align-items: stretch;
+  }
+
+  .filter-actions-wrapper {
+    width: 100%;
+  }
+
+  .table-content-wrapper {
+    min-width: 0;
+  }
+
+  .table-responsive-wrapper {
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table td,
+  .data-table th {
+    vertical-align: top;
+    overflow-wrap: anywhere;
+  }
+
+  .mobile-card-header {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .mobile-card-title {
+    flex: 1;
+  }
+
+  .mobile-card-footer {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .mobile-card-actions {
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 768px) {
+    .page-wrapper {
+      padding: 0.75rem;
+    }
+
+    .header-left-section {
+      width: 100%;
+      gap: 12px;
+    }
+
+    .header-actions {
+      flex-direction: column;
+    }
+
+    .btn-action {
+      width: 100%;
+    }
+
+    .filter-header,
+    .filter-body,
+    .table-header-wrapper,
+    .table-content-wrapper {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+
+    .table-header-right {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .btn-tambah-infak {
+      min-width: 42px;
+    }
+
+    .mobile-card {
+      padding: 12px;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .page-wrapper {
+      padding: 0.5rem;
+      gap: 12px;
+    }
+
+    .page-header {
+      padding: 14px;
+    }
+
+    .header-title-text {
+      font-size: 20px;
+    }
+
+    .header-subtitle-text {
+      font-size: 12px;
+    }
+
+    .mobile-card {
+      padding: 10px;
+      border-radius: 12px;
+    }
+
+    .mobile-card-row {
+      gap: 6px;
+    }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    .stat-box:hover,
+    .btn-action:hover,
+    .btn-tambah-infak:hover,
+    .btn-filter-primary:hover,
+    .btn-filter-secondary:hover,
+    .btn-icon:hover {
+      transform: none;
+    }
+  }
+
   /* Utility Classes */
   .mr-2 { margin-right: 8px; }
 </style>
