@@ -426,7 +426,24 @@
 
       /* Mobile menu button animation */
       #mobile-menu-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0 !important;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(16, 185, 129, 0.18);
+        background: rgba(16, 185, 129, 0.08);
+        color: #065f46;
+        line-height: 1;
+        box-shadow: 0 6px 18px rgba(15, 118, 110, 0.12);
         transition: all 0.2s ease;
+      }
+
+      #mobile-menu-btn:hover {
+        background: rgba(16, 185, 129, 0.14);
+        transform: translateY(-1px);
       }
 
       #mobile-menu-btn:active {
@@ -435,6 +452,12 @@
 
       /* Icon rotation animation */
       #mobile-menu-btn i {
+        width: 1rem;
+        height: 1rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
@@ -468,14 +491,39 @@
       .theme-toggle-btn {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 0.45rem;
-        padding: 0.55rem 0.85rem;
+        height: 2.5rem;
+        padding: 0 0.85rem;
         border-radius: 0.75rem;
         border: 1px solid rgba(16, 185, 129, 0.18);
         background: rgba(16, 185, 129, 0.08);
         color: #065f46;
         font-weight: 700;
+        line-height: 1;
+        box-shadow: 0 6px 18px rgba(15, 118, 110, 0.12);
         transition: all 0.25s ease;
+      }
+
+      .theme-toggle-btn i {
+        width: 1rem;
+        height: 1rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+      }
+
+      #theme-toggle-desktop {
+        min-width: 5.5rem;
+      }
+
+      #theme-toggle-mobile {
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0 !important;
+        border-radius: 0.75rem;
+        flex-shrink: 0;
       }
 
       .theme-toggle-btn:hover {
@@ -519,6 +567,15 @@
       html.dark-mode #navbar .text-gray-700,
       html.dark-mode #mobile-menu .text-gray-700 {
         color: #e2e8f0 !important;
+      }
+
+      html.dark-mode #navbar .brand-title {
+        background: none !important;
+        -webkit-background-clip: initial !important;
+        background-clip: border-box !important;
+        -webkit-text-fill-color: #f8fafc !important;
+        color: #f8fafc !important;
+        text-shadow: 0 1px 2px rgba(2, 6, 23, 0.45);
       }
 
       html.dark-mode #navbar a:hover,
@@ -716,7 +773,7 @@
               id="theme-toggle-mobile"
               type="button"
               data-theme-toggle
-              class="theme-toggle-btn mobile-icon-btn md:hidden p-2.5"
+              class="theme-toggle-btn md:hidden"
               aria-label="Toggle dark mode"
               title="Toggle dark mode"
             >
@@ -727,7 +784,7 @@
             <div class="md:hidden">
               <button
                 id="mobile-menu-btn"
-                class="mobile-icon-btn p-2 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all duration-200"
+                class="mobile-icon-btn transition-all duration-200"
               >
                 <i class="fas fa-bars text-lg"></i>
               </button>
@@ -790,106 +847,85 @@
     <!-- Hero Section -->
     <section
       id="home"
-      class="min-h-screen flex items-center justify-center gradient-bg relative overflow-hidden pt-20 md:pt-24"
+      class="relative min-h-screen flex items-center justify-center overflow-hidden py-28 md:py-32 bg-gradient-to-br from-emerald-600 via-teal-600 to-green-600"
     >
+      <div
+        class="absolute -top-24 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-white/20 blur-3xl"
+      ></div>
+      <div
+        class="absolute -bottom-24 -right-12 h-72 w-72 rounded-full bg-emerald-300/20 blur-3xl"
+      ></div>
+      <div
+        class="absolute -bottom-24 -left-14 h-64 w-64 rounded-full bg-teal-200/20 blur-3xl"
+      ></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/15"
+      ></div>
 
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="text-center fade-in">
-          <!-- Main Content Section -->
-          <div class="mb-8 md:mb-12">
-            <!-- Enhanced Logo -->
-            <div class="flex justify-center mb-8">
-              <div class="relative">
-                <div
-                  class="absolute inset-0 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 rounded-full blur-md opacity-30 animate-pulse"
-                ></div>
-                <div
-                  class="relative bg-white/95 rounded-full shadow-xl p-3 md:p-4 backdrop-blur-sm border border-white/30"
-                >
-                  <img
-                    src="/images/logo-dkm.png"
-                    alt="Logo Musholla Nurul Fitrah"
-                    class="w-12 h-12 md:w-16 md:h-16 object-contain"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- Enhanced Title -->
-            <div class="space-y-4 md:space-y-6">
-              <h1
-                class="text-3xl md:text-5xl lg:text-6xl font-bold text-white leading-tight"
-              >
-                <span class="block">Berkah Ramadhan</span>
-                <span
-                  class="block mt-2 bg-gradient-to-r from-yellow-300 via-amber-300 to-orange-300 bg-clip-text text-transparent"
-                >
-                  🌙 Zakat Fitrah ⭐
-                </span>
-              </h1>
-
-              <!-- Quranic Verse -->
-              <div
-                class="bg-white/15 backdrop-blur-sm rounded-xl p-4 md:p-6 mx-auto max-w-3xl border border-white/25"
-              >
-                <p
-                  class="text-lg md:text-xl lg:text-2xl text-white/95 mb-3 font-arabic leading-relaxed"
-                >
-                  "وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ"
-                </p>
-                <div
-                  class="w-12 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent mx-auto mb-3 opacity-60"
-                ></div>
-                <p
-                  class="text-sm md:text-base lg:text-lg text-white/85 leading-relaxed"
-                >
-                  "Dan dirikanlah shalat, tunaikanlah zakat" -
-                  <span class="font-semibold">Al-Baqarah: 43</span>
-                </p>
-              </div>
-
-              <!-- Description -->
-              <p
-                class="text-base md:text-lg lg:text-xl text-white/90 max-w-4xl mx-auto leading-relaxed px-4"
-              >
-                Tunaikan zakat fitrah Anda dengan mudah dan transparan dalam
-                sistem digital yang berkah.
-                <span class="block mt-2 text-white/80 text-sm md:text-base">
-                  Platform terpercaya untuk mengelola zakat fitrah dengan
-                  transparansi dan kemudahan.
-                </span>
-              </p>
-            </div>
-
-            <!-- Enhanced CTA Buttons -->
-            <div
-              class="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8 md:mt-12 px-4"
-            >
-              <a
-                href="/auth/login"
-                class="group w-full sm:w-auto bg-white/95 text-emerald-700 px-6 md:px-8 py-3 md:py-4 rounded-2xl font-bold hover:bg-white transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105 islamic-glow text-center"
-              >
-                <i
-                  class="fas fa-hands-praying mr-2 group-hover:animate-bounce"
-                ></i>
-                <span class="text-sm md:text-base">🕌 Kelola Zakat Fitrah</span>
-              </a>
-              <a
-                href="#features"
-                class="glass-effect text-white px-8 py-4 rounded-xl font-semibold hover:bg-white/20 transition-all duration-300"
-              >
-                <i class="fas fa-star-and-crescent mr-2"></i>✨ Lihat Fitur
-              </a>
-            </div>
+      <div class="relative z-10 w-full px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto text-center fade-in">
+          <div
+            class="mx-auto mb-6 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs sm:text-sm text-emerald-50/90 backdrop-blur-sm"
+          >
+            Platform Zakat Fitrah Modern
           </div>
+
+          <h1
+            class="text-5xl md:text-6xl font-bold tracking-tight text-white leading-tight"
+          >
+            <span
+              class="block mt-2 bg-gradient-to-r from-emerald-100 via-white to-teal-100 bg-clip-text text-transparent"
+            >
+              Zakat Fitrah Digital
+            </span>
+          </h1>
+
+          <p class="mt-6 text-lg text-gray-100 opacity-80">
+            Tunaikan zakat fitrah lebih mudah, transparan, dan aman dalam satu platform digital.
+          </p>
+
+          <div
+            class="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4"
+          >
+            <a
+              href="/auth/login"
+              class="group inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 rounded-xl bg-emerald-500 text-white font-semibold shadow-lg shadow-emerald-950/30 hover:bg-emerald-400 hover:-translate-y-0.5 transition-all duration-300"
+            >
+              Kelola Zakat Fitrah
+              <i class="fas fa-arrow-right ml-2 text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
+            </a>
+            <a
+              href="#features"
+              class="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 rounded-xl border border-white/50 bg-white/10 backdrop-blur-sm text-white font-semibold shadow-md hover:bg-white/20 hover:-translate-y-0.5 transition-all duration-300"
+            >
+              Lihat Fitur
+            </a>
+          </div>
+
+          <div
+            class="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs sm:text-sm text-emerald-50/85"
+          >
+            <span>Transparan</span>
+            <span class="h-1 w-1 rounded-full bg-emerald-100/80"></span>
+            <span>Amanah</span>
+            <span class="h-1 w-1 rounded-full bg-emerald-100/80"></span>
+            <span>Real-time</span>
+          </div>
+
+          <p class="mt-6 text-xs sm:text-sm italic text-emerald-100/80">
+            "Dan dirikanlah salat, tunaikanlah zakat." (Al-Baqarah: 43)
+          </p>
         </div>
       </div>
 
-      <!-- Scroll indicator -->
       <div
-        class="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white animate-bounce"
+        class="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/80 animate-bounce"
       >
-        <i class="fas fa-chevron-down text-2xl"></i>
+        <div
+          class="h-10 w-10 rounded-full border border-white/30 bg-white/10 backdrop-blur-sm flex items-center justify-center"
+        >
+          <i class="fas fa-chevron-down text-sm"></i>
+        </div>
       </div>
     </section>
 
