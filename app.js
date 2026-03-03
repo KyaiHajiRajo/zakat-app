@@ -122,6 +122,7 @@ app.use("/muzakki", isAuthenticated, muzakkiRoutes);
 app.use("/infak", isAuthenticated, infakRoutes);
 app.use("/laporan", isAuthenticated, laporanRoutes);
 app.use("/rt-rw", isAuthenticated, rtRoutes);
+app.use("/rt", isAuthenticated, rtRoutes);
 app.use("/rw", isAuthenticated, rwRoutes);
 app.use("/mustahik", isAuthenticated, mustahikRoutes);
 app.use("/distribusi", isAuthenticated, distribusiRoutes);
@@ -133,7 +134,12 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
     // Get statistics
     const [statsResult] = await db.execute(`
       SELECT
-        COUNT(DISTINCT m.id) as total_muzakki,
+        (
+          SELECT COUNT(*)
+          FROM muzakki_details md
+          WHERE md.nama_muzakki IS NOT NULL
+            AND TRIM(md.nama_muzakki) <> ''
+        ) as total_muzakki,
         COALESCE(SUM(CASE 
           WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
           ELSE m.jumlah_beras_kg * 12000 

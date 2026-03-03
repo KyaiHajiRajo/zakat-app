@@ -3,16 +3,28 @@
 <div class="max-w-full mx-auto px-1 sm:px-2 lg:px-3 mustahik-detail-page">
   <!-- Header -->
   <div class="mb-8 detail-hero">
-    <div class="flex items-center">
-      <a href="/mustahik" class="text-gray-500 hover:text-gray-700 mr-4">
-        <i class="fas fa-arrow-left text-lg"></i>
-      </a>
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">
-          <i class="fas fa-user-friends mr-2 text-primary-600"></i>Detail
-          Mustahik
-        </h1>
-        <p class="text-gray-600 mt-1">Informasi lengkap penerima zakat</p>
+    <div class="detail-hero-content">
+      <div class="detail-hero-title">
+        <a href="/mustahik" class="text-gray-500 hover:text-gray-700 mr-4">
+          <i class="fas fa-arrow-left text-lg"></i>
+        </a>
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            <i class="fas fa-user-friends mr-2 text-primary-600"></i>Detail
+            Mustahik
+          </h1>
+          <p class="text-gray-600 mt-1">Informasi lengkap penerima zakat</p>
+        </div>
+      </div>
+      <div class="detail-hero-kpis">
+        <div class="detail-hero-kpi">
+          <span>Total Distribusi</span>
+          <strong><%= distributions.length %></strong>
+        </div>
+        <div class="detail-hero-kpi">
+          <span>Kategori</span>
+          <strong><%= (mustahik.kategori || '-').replace(/_/g, ' ') %></strong>
+        </div>
       </div>
     </div>
   </div>
@@ -29,21 +41,21 @@
           </h2>
         </div>
         <div class="p-6">
-          <div class="flex items-center mb-6">
-            <div class="flex-shrink-0 h-20 w-20">
+          <div class="flex items-center mb-6 detail-profile-row">
+            <div class="flex-shrink-0 h-20 w-20 detail-profile-avatar">
               <div
-                class="h-20 w-20 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center"
+                class="h-20 w-20 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center detail-profile-avatar-inner"
               >
                 <span class="text-2xl font-bold text-white">
                   <%= mustahik.nama.charAt(0).toUpperCase() %>
                 </span>
               </div>
             </div>
-            <div class="ml-6">
-              <h3 class="text-2xl font-bold text-gray-900">
+            <div class="ml-6 detail-profile-content">
+              <h3 class="text-2xl font-bold text-gray-900 detail-profile-name">
                 <%= mustahik.nama %>
               </h3>
-              <p class="text-gray-500">
+              <p class="text-gray-500 detail-profile-rt">
                 <% if (mustahik.rt_nama) { %>
                 <i class="fas fa-home mr-1"></i>RT <%= mustahik.rt_nama %> <% }
                 else { %> <i class="fas fa-minus mr-1"></i>Tidak terdaftar di RT
@@ -52,12 +64,12 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm font-medium text-gray-500 mb-1"
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 detail-meta-grid">
+            <div class="detail-meta-item">
+              <label class="block text-sm font-medium text-gray-500 mb-1 detail-meta-label"
                 >Kategori Mustahik</label
               >
-              <div class="flex items-center">
+              <div class="flex items-center detail-meta-value">
                 <span
                   class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium <% if (mustahik.kategori === 'fakir') { %>bg-red-100 text-red-800<% } else if (mustahik.kategori === 'miskin') { %>bg-orange-100 text-orange-800<% } else if (mustahik.kategori === 'amil') { %>bg-green-100 text-green-800<% } else if (mustahik.kategori === 'mualaf') { %>bg-blue-100 text-blue-800<% } else if (mustahik.kategori === 'fisabilillah') { %>bg-purple-100 text-purple-800<% } else { %>bg-gray-100 text-gray-800<% } %>"
                 >
@@ -83,11 +95,11 @@
               </div>
             </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-500 mb-1"
+            <div class="detail-meta-item">
+              <label class="block text-sm font-medium text-gray-500 mb-1 detail-meta-label"
                 >Tanggal Daftar</label
               >
-              <p class="text-sm text-gray-900">
+              <p class="text-sm text-gray-900 detail-meta-date">
                 <i class="fas fa-calendar mr-2"></i>
                 <%= new Date(mustahik.created_at).toLocaleDateString('id-ID', {
                 day: 'numeric', month: 'long', year: 'numeric' }) %>
@@ -123,6 +135,18 @@
           </a>
         </div>
         <% } else { %>
+        <div class="detail-history-summary">
+          <div class="detail-history-summary-item">
+            <i class="fas fa-list"></i>
+            <span><%= distributions.length %> riwayat distribusi</span>
+          </div>
+          <div class="detail-history-summary-item">
+            <i class="fas fa-user-check"></i>
+            <span>Status terakhir:
+              <strong><%= distributions[0].status.charAt(0).toUpperCase() + distributions[0].status.slice(1) %></strong>
+            </span>
+          </div>
+        </div>
         <div class="overflow-x-auto detail-table-wrap">
           <table class="min-w-full divide-y divide-gray-200 detail-table">
             <thead class="bg-gray-50">
@@ -151,12 +175,12 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <% distributions.forEach(d => { %>
-              <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <tr class="hover:bg-gray-50 detail-history-row">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 detail-history-date">
                   <%= new Date(d.created_at).toLocaleDateString('id-ID') %>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">
+                <td class="px-6 py-4 whitespace-nowrap detail-history-amount-cell">
+                  <div class="text-sm text-gray-900 detail-history-amount">
                     <% if (d.jenis_zakat === 'beras') { %>
                     <i class="fas fa-seedling text-green-600 mr-1"></i>
                     <%= parseFloat(d.jumlah).toLocaleString('id-ID') %> kg Beras
@@ -168,12 +192,12 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
-                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full <% if (d.status === 'diterima') { %>bg-green-100 text-green-800<% } else if (d.status === 'disalurkan') { %>bg-blue-100 text-blue-800<% } else if (d.status === 'pending') { %>bg-yellow-100 text-yellow-800<% } else { %>bg-red-100 text-red-800<% } %>"
+                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full detail-status-badge status-<%= d.status %> <% if (d.status === 'diterima') { %>bg-green-100 text-green-800<% } else if (d.status === 'disalurkan') { %>bg-blue-100 text-blue-800<% } else if (d.status === 'pending') { %>bg-yellow-100 text-yellow-800<% } else { %>bg-red-100 text-red-800<% } %>"
                   >
                     <%= d.status.charAt(0).toUpperCase() + d.status.slice(1) %>
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 detail-history-pic">
                   <%= d.user_nama || 'System' %>
                 </td>
               </tr>
@@ -194,7 +218,7 @@
             <i class="fas fa-bolt mr-2 text-primary-600"></i>Aksi Cepat
           </h3>
         </div>
-        <div class="p-6 space-y-3">
+        <div class="p-6 space-y-3 detail-actions-list">
           <a
             href="/mustahik/edit/<%= mustahik.id %>"
             class="btn-secondary w-full text-center"
@@ -227,14 +251,14 @@
           </h3>
         </div>
         <div class="p-6">
-          <div class="space-y-4">
-            <div class="flex justify-between">
+          <div class="space-y-4 detail-stat-list">
+            <div class="flex justify-between detail-stat-item">
               <span class="text-sm text-gray-500">Total Distribusi</span>
               <span class="text-sm font-medium text-gray-900"
                 ><%= distributions.length %></span
               >
             </div>
-            <div class="flex justify-between">
+            <div class="flex justify-between detail-stat-item">
               <span class="text-sm text-gray-500">Beras Diterima</span>
               <span class="text-sm font-medium text-gray-900">
                 <%= distributions .filter(d => d.jenis_zakat === 'beras' &&
@@ -242,7 +266,7 @@
                 parseFloat(d.jumlah), 0) .toLocaleString('id-ID') %> kg
               </span>
             </div>
-            <div class="flex justify-between">
+            <div class="flex justify-between detail-stat-item">
               <span class="text-sm text-gray-500">Uang Diterima</span>
               <span class="text-sm font-medium text-gray-900">
                 Rp <%= distributions .filter(d => d.jenis_zakat === 'uang' &&
@@ -250,7 +274,7 @@
                 parseFloat(d.jumlah), 0) .toLocaleString('id-ID') %>
               </span>
             </div>
-            <div class="flex justify-between">
+            <div class="flex justify-between detail-stat-item">
               <span class="text-sm text-gray-500">Status Terakhir</span>
               <span class="text-sm font-medium text-gray-900">
                 <% if (distributions.length > 0) { %> <%=
@@ -379,50 +403,105 @@
   .mustahik-detail-page .detail-table-wrap {
     width: 100%;
     -webkit-overflow-scrolling: touch;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.9rem;
+    padding: 0.55rem;
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
   }
 
   .mustahik-detail-page .detail-table thead tr {
-    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    background: transparent;
   }
 
   .mustahik-detail-page .detail-table {
+    width: 100%;
+    min-width: 640px;
     border-collapse: separate;
     border-spacing: 0 0.5rem;
   }
 
   .mustahik-detail-page .detail-table thead th {
     border: 0;
+    padding: 0 0.85rem 0.6rem !important;
+    font-size: 0.66rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.62px !important;
+    color: #64748b !important;
+    text-transform: uppercase;
   }
 
   .mustahik-detail-page .detail-table tbody td {
     background: #ffffff;
-    border-top: 1px solid #edf2f7;
-    border-bottom: 1px solid #edf2f7;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+    padding-top: 0.82rem !important;
+    padding-bottom: 0.82rem !important;
+    font-size: 0.86rem !important;
+    color: #0f172a;
+    transition: background 0.24s ease, border-color 0.24s ease;
   }
 
   .mustahik-detail-page .detail-table tbody td:first-child {
-    border-left: 1px solid #edf2f7;
+    border-left: 1px solid #e2e8f0;
     border-top-left-radius: 0.65rem;
     border-bottom-left-radius: 0.65rem;
   }
 
   .mustahik-detail-page .detail-table tbody td:last-child {
-    border-right: 1px solid #edf2f7;
+    border-right: 1px solid #e2e8f0;
     border-top-right-radius: 0.65rem;
     border-bottom-right-radius: 0.65rem;
   }
 
   .mustahik-detail-page .detail-table tbody tr {
-    transition: background-color 0.25s ease;
+    transition: transform 0.25s ease;
   }
 
   .mustahik-detail-page .detail-table tbody tr:hover {
-    background: #f8fafc;
+    transform: translateY(-2px);
+  }
+
+  .mustahik-detail-page .detail-table tbody tr:hover td {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
   }
 
   .mustahik-detail-page .detail-table td,
   .mustahik-detail-page .detail-table th {
     vertical-align: top;
+  }
+
+  .mustahik-detail-page .detail-table tbody td span.inline-flex {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 999px;
+    letter-spacing: 0.2px;
+    font-weight: 700;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-table-wrap {
+    border-color: #1f2937;
+    background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-table thead th {
+    color: #94a3b8 !important;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-table tbody td {
+    background: #0f172a;
+    border-color: #1f2937;
+    color: #e2e8f0;
+    box-shadow: none;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-table tbody tr:hover td {
+    background: #0b2a1b;
+    border-color: #14532d;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-table tbody td span.inline-flex {
+    border-color: rgba(148, 163, 184, 0.25);
   }
 
   .mustahik-detail-page .detail-side .detail-card {
@@ -483,6 +562,291 @@
     color: #0f172a;
   }
 
+  /* Visual Refresh */
+  .mustahik-detail-page .detail-hero-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .mustahik-detail-page .detail-hero-title {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .mustahik-detail-page .detail-hero-title > div {
+    min-width: 0;
+  }
+
+  .mustahik-detail-page .detail-hero-title h1 {
+    letter-spacing: 0.2px;
+    line-height: 1.2;
+    text-shadow: 0 3px 16px rgba(15, 23, 42, 0.24);
+  }
+
+  .mustahik-detail-page .detail-hero-title p {
+    font-size: 0.92rem;
+    opacity: 0.95;
+  }
+
+  .mustahik-detail-page .detail-hero-kpis {
+    display: flex;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+
+  .mustahik-detail-page .detail-hero-kpi {
+    min-width: 145px;
+    padding: 0.52rem 0.72rem;
+    border-radius: 0.72rem;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(4px);
+  }
+
+  .mustahik-detail-page .detail-hero-kpi span {
+    display: block;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.45px;
+    text-transform: uppercase;
+    opacity: 0.92;
+    color: #dcfce7;
+  }
+
+  .mustahik-detail-page .detail-hero-kpi strong {
+    display: block;
+    margin-top: 0.12rem;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-transform: capitalize;
+    overflow-wrap: anywhere;
+  }
+
+  .mustahik-detail-page .detail-profile-row {
+    padding: 0.86rem;
+    border-radius: 0.95rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 1rem !important;
+  }
+
+  .mustahik-detail-page .detail-profile-avatar-inner {
+    border: 3px solid rgba(255, 255, 255, 0.82);
+  }
+
+  .mustahik-detail-page .detail-profile-name {
+    line-height: 1.25;
+    letter-spacing: 0.12px;
+    overflow-wrap: anywhere;
+  }
+
+  .mustahik-detail-page .detail-profile-rt {
+    margin-top: 0.2rem;
+    font-size: 0.86rem;
+    color: #475569 !important;
+  }
+
+  .mustahik-detail-page .detail-meta-grid {
+    gap: 0.9rem;
+  }
+
+  .mustahik-detail-page .detail-meta-item {
+    padding: 0.75rem 0.85rem;
+    border-radius: 0.82rem;
+    border: 1px solid #e5edf5;
+    background: #ffffff;
+  }
+
+  .mustahik-detail-page .detail-meta-label {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.66rem !important;
+    font-weight: 700 !important;
+    color: #64748b !important;
+  }
+
+  .mustahik-detail-page .detail-meta-value .inline-flex {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+  }
+
+  .mustahik-detail-page .detail-meta-date {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 0.46rem 0.62rem;
+    border-radius: 0.68rem;
+    background: #f8fafc;
+    border: 1px solid #dbeafe;
+    color: #334155 !important;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .mustahik-detail-page .detail-history-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin: 0.9rem 1.05rem 0.55rem;
+  }
+
+  .mustahik-detail-page .detail-history-summary-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.42rem 0.62rem;
+    border-radius: 999px;
+    border: 1px solid #dbeafe;
+    background: #f8fafc;
+    color: #334155;
+    font-size: 0.73rem;
+    font-weight: 600;
+  }
+
+  .mustahik-detail-page .detail-history-summary-item i {
+    color: #2563eb;
+  }
+
+  .mustahik-detail-page .detail-history-summary-item strong {
+    color: #0f172a;
+  }
+
+  .mustahik-detail-page .detail-history-date {
+    white-space: normal !important;
+    color: #0f172a !important;
+    font-weight: 600;
+    font-size: 0.82rem !important;
+  }
+
+  .mustahik-detail-page .detail-history-amount {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.38rem 0.56rem;
+    border-radius: 0.62rem;
+    border: 1px solid #dbeafe;
+    background: #f8fafc;
+    font-weight: 700;
+    color: #0f172a !important;
+    white-space: normal;
+    line-height: 1.35;
+  }
+
+  .mustahik-detail-page .detail-status-badge {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 999px !important;
+    padding: 0.27rem 0.62rem !important;
+    letter-spacing: 0.2px;
+  }
+
+  .mustahik-detail-page .detail-status-badge.status-diterima { border-color: #86efac; }
+  .mustahik-detail-page .detail-status-badge.status-disalurkan { border-color: #93c5fd; }
+  .mustahik-detail-page .detail-status-badge.status-pending { border-color: #fcd34d; }
+  .mustahik-detail-page .detail-status-badge.status-batal { border-color: #fca5a5; }
+
+  .mustahik-detail-page .detail-history-pic {
+    color: #475569 !important;
+    font-weight: 600;
+  }
+
+  .mustahik-detail-page .detail-actions-list a,
+  .mustahik-detail-page .detail-actions-list button {
+    border-radius: 0.78rem !important;
+    font-size: 0.92rem;
+    letter-spacing: 0.1px;
+  }
+
+  .mustahik-detail-page .detail-stat-item {
+    padding: 0.56rem 0;
+    border-bottom: 1px dashed #dbe7f3;
+  }
+
+  .mustahik-detail-page .detail-stat-item:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  html.dark-mode .mustahik-detail-page::before {
+    background:
+      radial-gradient(circle at 8% 8%, rgba(16, 185, 129, 0.12), transparent 35%),
+      radial-gradient(circle at 92% 18%, rgba(59, 130, 246, 0.12), transparent 35%);
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-card {
+    border-color: #1f2937;
+    box-shadow: none;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-card > .px-6.py-4.border-b.border-gray-200 {
+    background: #111827;
+    border-bottom-color: #1f2937 !important;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-card h2,
+  html.dark-mode .mustahik-detail-page .detail-card h3 {
+    color: #f1f5f9 !important;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-profile-row {
+    background: #111827;
+    border-color: #1f2937;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-profile-rt {
+    color: #94a3b8 !important;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-meta-item {
+    background: #0f172a;
+    border-color: #1f2937;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-meta-date {
+    background: #111827;
+    border-color: #334155;
+    color: #cbd5e1 !important;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-history-summary-item {
+    background: #111827;
+    border-color: #1f2937;
+    color: #cbd5e1;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-history-summary-item i {
+    color: #60a5fa;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-history-summary-item strong {
+    color: #f1f5f9;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-history-date,
+  html.dark-mode .mustahik-detail-page .detail-history-pic {
+    color: #e2e8f0 !important;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-history-amount {
+    background: #111827;
+    border-color: #1f2937;
+    color: #e2e8f0 !important;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-stat-item {
+    border-bottom-color: #1f2937;
+  }
+
+  html.dark-mode .mustahik-detail-page .detail-card-stats .text-sm.text-gray-500 {
+    color: #94a3b8 !important;
+  }
+
   .mustahik-detail-page .detail-card:nth-of-type(1) { animation-delay: 0.02s; }
   .mustahik-detail-page .detail-card:nth-of-type(2) { animation-delay: 0.08s; }
   .mustahik-detail-page .detail-side .detail-card:nth-of-type(1) { animation-delay: 0.1s; }
@@ -519,9 +883,19 @@
       margin-bottom: 1rem;
     }
 
-    .mustahik-detail-page .detail-hero .flex.items-center {
+    .mustahik-detail-page .detail-hero-content {
       align-items: flex-start;
       gap: 0.75rem;
+    }
+
+    .mustahik-detail-page .detail-hero-kpis {
+      width: 100%;
+      margin-left: 0;
+    }
+
+    .mustahik-detail-page .detail-hero-kpi {
+      flex: 1;
+      min-width: 130px;
     }
 
     .mustahik-detail-page .detail-hero h1 {
@@ -569,6 +943,61 @@
       width: 3.6rem !important;
       height: 3.6rem !important;
     }
+
+    .mustahik-detail-page .detail-history-summary {
+      margin: 0.75rem 0.8rem 0.45rem;
+    }
+
+    .mustahik-detail-page .detail-table-wrap {
+      padding: 0.4rem;
+      border-radius: 0.8rem;
+    }
+
+    .mustahik-detail-page table.responsive-stack-table.detail-table {
+      min-width: 0 !important;
+      border-spacing: 0;
+    }
+
+    .mustahik-detail-page table.responsive-stack-table.detail-table tbody tr {
+      border: 1px solid #e2e8f0;
+      border-radius: 0.75rem;
+      margin-bottom: 0.6rem;
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+    }
+
+    .mustahik-detail-page table.responsive-stack-table.detail-table td {
+      padding: 0.56rem 0.68rem;
+      border-bottom: 1px dashed #e2e8f0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .mustahik-detail-page table.responsive-stack-table.detail-table td::before {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.45px;
+      color: #64748b;
+    }
+
+    .mustahik-detail-page table.responsive-stack-table.detail-table td:last-child {
+      border-bottom: 0;
+    }
+
+    html.dark-mode .mustahik-detail-page table.responsive-stack-table.detail-table tbody tr {
+      border-color: #1f2937;
+      background: #0f172a;
+      box-shadow: none;
+    }
+
+    html.dark-mode .mustahik-detail-page table.responsive-stack-table.detail-table td {
+      border-bottom-color: #1f2937;
+    }
+
+    html.dark-mode .mustahik-detail-page table.responsive-stack-table.detail-table td::before {
+      color: #94a3b8;
+    }
   }
 
   @media (max-width: 480px) {
@@ -588,6 +1017,15 @@
     .mustahik-detail-page .detail-card .px-6.py-4 {
       padding-left: 0.8rem !important;
       padding-right: 0.8rem !important;
+    }
+
+    .mustahik-detail-page .detail-hero-title {
+      width: 100%;
+    }
+
+    .mustahik-detail-page .detail-hero-kpi {
+      width: 100%;
+      min-width: 100%;
     }
 
     .mustahik-detail-page .detail-table {

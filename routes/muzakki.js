@@ -5,6 +5,64 @@ const router = express.Router();
 const ZAKAT_BERAS_PER_JIWA = 2.5; // kg per jiwa
 const ZAKAT_UANG_PER_JIWA = 45000; // Rp per jiwa
 
+function sanitizeForExcel(value) {
+  if (value === null || value === undefined) return "";
+  let safe = String(value);
+  safe = safe.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+
+  if (safe.length > 30000) {
+    safe = `${safe.substring(0, 30000)}... (truncated)`;
+  }
+
+  return safe;
+}
+
+function normalizeExcelSheetName(name) {
+  let sheetName = sanitizeForExcel(name).trim();
+
+  if (!sheetName) {
+    sheetName = "Sheet1";
+  }
+
+  sheetName = sheetName.replace(/[\/\\\?\*\[\]\:]/g, "_");
+
+  if (sheetName.length > 31) {
+    sheetName = sheetName.substring(0, 31);
+  }
+
+  return sheetName;
+}
+
+function formatDateForExcel(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("id-ID");
+}
+
+function safeRtForFileName(value) {
+  const safe = sanitizeForExcel(value)
+    .replace(/[^a-zA-Z0-9_-]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  return safe || "unknown";
+}
+
+const EXCEL_NUMFMT = {
+  INTEGER: "#,##0",
+  WEIGHT: "#,##0.00",
+  CURRENCY_RP: '[$Rp-421] #,##0',
+};
+
+function applyMuzakkiExcelNumberFormat(row) {
+  row.getCell(3).numFmt = EXCEL_NUMFMT.INTEGER; // Jumlah jiwa
+  row.getCell(5).numFmt = EXCEL_NUMFMT.WEIGHT; // Beras (kg)
+  row.getCell(6).numFmt = EXCEL_NUMFMT.CURRENCY_RP; // Jumlah uang
+  row.getCell(7).numFmt = EXCEL_NUMFMT.CURRENCY_RP; // Jumlah bayar
+  row.getCell(8).numFmt = EXCEL_NUMFMT.CURRENCY_RP; // Kembalian
+}
+
 // GET /muzakki - List all muzakki grouped by RT
 router.get("/", async (req, res) => {
   try {
@@ -120,6 +178,297 @@ router.get("/rt/:rt_id", async (req, res) => {
     console.error("Error fetching RT detail:", error);
     req.flash("error_msg", "Terjadi kesalahan saat mengambil detail RT");
     res.redirect("/muzakki");
+  }
+});
+
+// GET /muzakki/rt/:rt_id/export-excel - Export data muzakki khusus RT tertentu
+router.get("/rt/:rt_id/export-excel", async (req, res) => {
+  let ExcelJS;
+
+  try {
+    ExcelJS = require("exceljs");
+  } catch (error) {
+    console.error("ExcelJS not installed:", error);
+    return res.status(500).json({
+      success: false,
+      message:
+        "ExcelJS library tidak tersedia. Silakan install dengan: npm install exceljs",
+    });
+  }
+
+  try {
+    const db = req.app.locals.db;
+    const rtId = req.params.rt_id;
+
+    const [rtRows] = await db.execute(
+      `
+      SELECT id, nomor_rt, ketua_rt
+      FROM rt
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [rtId]
+    );
+
+    if (rtRows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Data RT tidak ditemukan",
+      });
+    }
+
+    const rt = rtRows[0];
+    const [muzakkiData] = await db.execute(
+      `
+      SELECT
+        m.id,
+        m.jumlah_jiwa,
+        m.jenis_zakat,
+        m.jumlah_beras_kg,
+        m.jumlah_uang,
+        m.jumlah_bayar,
+        m.kembalian,
+        m.created_at,
+        u.name as pencatat_name,
+        (
+          SELECT GROUP_CONCAT(nama_muzakki SEPARATOR ', ')
+          FROM muzakki_details
+          WHERE muzakki_id = m.id
+        ) as nama_muzakki_list
+      FROM muzakki m
+      LEFT JOIN users u ON m.user_id = u.id
+      WHERE m.rt_id = ?
+      ORDER BY m.created_at DESC
+      `,
+      [rtId]
+    );
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = "Zakat Fitrah App";
+    workbook.lastModifiedBy = "System";
+    workbook.created = new Date();
+    workbook.modified = new Date();
+
+    const worksheet = workbook.addWorksheet(
+      normalizeExcelSheetName(`RT ${rt.nomor_rt}`)
+    );
+
+    worksheet.mergeCells("A1:J1");
+    const titleCell = worksheet.getCell("A1");
+    titleCell.value = `DATA MUZAKKI RT ${sanitizeForExcel(rt.nomor_rt)}`;
+    titleCell.font = { bold: true, size: 14, color: { argb: "FF1EAF2F" } };
+    titleCell.alignment = { horizontal: "center", vertical: "middle" };
+    titleCell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFE8F5E9" },
+    };
+    worksheet.getRow(1).height = 25;
+
+    worksheet.mergeCells("A2:J2");
+    const ketuaCell = worksheet.getCell("A2");
+    ketuaCell.value = `Ketua RT: ${sanitizeForExcel(rt.ketua_rt) || "-"}`;
+    ketuaCell.font = { italic: true, size: 11 };
+    ketuaCell.alignment = { horizontal: "center", vertical: "middle" };
+    ketuaCell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFF5F5F5" },
+    };
+    worksheet.getRow(2).height = 20;
+
+    worksheet.addRow([]);
+
+    const headerRow = worksheet.addRow([
+      "No",
+      "Nama Muzakki",
+      "Jumlah Jiwa",
+      "Jenis Zakat",
+      "Jumlah Beras (kg)",
+      "Jumlah Uang (Rp)",
+      "Jumlah Bayar (Rp)",
+      "Kembalian (Rp)",
+      "Pencatat",
+      "Tanggal",
+    ]);
+
+    headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    headerRow.alignment = { horizontal: "center", vertical: "middle" };
+    headerRow.height = 20;
+
+    headerRow.eachCell((cell) => {
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF1EAF2F" },
+      };
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        bottom: { style: "thin" },
+        right: { style: "thin" },
+      };
+    });
+
+    worksheet.getColumn(1).width = 5;
+    worksheet.getColumn(2).width = 35;
+    worksheet.getColumn(3).width = 12;
+    worksheet.getColumn(4).width = 12;
+    worksheet.getColumn(5).width = 18;
+    worksheet.getColumn(6).width = 18;
+    worksheet.getColumn(7).width = 18;
+    worksheet.getColumn(8).width = 18;
+    worksheet.getColumn(9).width = 20;
+    worksheet.getColumn(10).width = 15;
+    worksheet.getColumn(3).numFmt = EXCEL_NUMFMT.INTEGER;
+    worksheet.getColumn(5).numFmt = EXCEL_NUMFMT.WEIGHT;
+    worksheet.getColumn(6).numFmt = EXCEL_NUMFMT.CURRENCY_RP;
+    worksheet.getColumn(7).numFmt = EXCEL_NUMFMT.CURRENCY_RP;
+    worksheet.getColumn(8).numFmt = EXCEL_NUMFMT.CURRENCY_RP;
+
+    let totalJiwa = 0;
+    let totalBeras = 0;
+    let totalUang = 0;
+    let totalBayar = 0;
+    let totalKembalian = 0;
+
+    muzakkiData.forEach((item, index) => {
+      const jiwa = parseInt(item.jumlah_jiwa, 10) || 0;
+      const beras = parseFloat(item.jumlah_beras_kg) || 0;
+      const uang = parseFloat(item.jumlah_uang) || 0;
+      const bayar = parseFloat(item.jumlah_bayar) || 0;
+      const kembalian = parseFloat(item.kembalian) || 0;
+
+      totalJiwa += jiwa;
+      totalBeras += beras;
+      totalUang += uang;
+      totalBayar += bayar;
+      totalKembalian += kembalian;
+
+      const row = worksheet.addRow([
+        index + 1,
+        sanitizeForExcel(item.nama_muzakki_list || "-"),
+        jiwa,
+        item.jenis_zakat === "beras" ? "Beras" : "Uang",
+        beras,
+        uang,
+        bayar,
+        kembalian,
+        sanitizeForExcel(item.pencatat_name || "-"),
+        formatDateForExcel(item.created_at),
+      ]);
+
+      row.eachCell((cell, colNumber) => {
+        cell.border = {
+          top: { style: "thin", color: { argb: "FFE0E0E0" } },
+          left: { style: "thin", color: { argb: "FFE0E0E0" } },
+          bottom: { style: "thin", color: { argb: "FFE0E0E0" } },
+          right: { style: "thin", color: { argb: "FFE0E0E0" } },
+        };
+
+        if ([1, 3, 4, 5, 6, 7, 8, 10].includes(colNumber)) {
+          cell.alignment = { horizontal: "center", vertical: "middle" };
+        } else {
+          cell.alignment = { vertical: "middle" };
+        }
+
+        if (index % 2 === 0) {
+          cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFF9FAFB" },
+          };
+        }
+      });
+
+      applyMuzakkiExcelNumberFormat(row);
+    });
+
+    if (muzakkiData.length > 0) {
+      worksheet.addRow([]);
+      const totalRow = worksheet.addRow([
+        "",
+        "TOTAL",
+        totalJiwa,
+        "",
+        Math.round(totalBeras * 100) / 100,
+        Math.round(totalUang),
+        Math.round(totalBayar),
+        Math.round(totalKembalian),
+        "",
+        "",
+      ]);
+
+      totalRow.font = { bold: true, color: { argb: "FF1EAF2F" } };
+      totalRow.height = 22;
+
+      totalRow.eachCell((cell) => {
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FFE8F5E9" },
+        };
+        cell.border = {
+          top: { style: "double", color: { argb: "FF1EAF2F" } },
+          left: { style: "thin" },
+          bottom: { style: "double", color: { argb: "FF1EAF2F" } },
+          right: { style: "thin" },
+        };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+      });
+
+      applyMuzakkiExcelNumberFormat(totalRow);
+    } else {
+      const noDataRow = worksheet.addRow([
+        "",
+        "Belum ada data muzakki untuk RT ini",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+      ]);
+      worksheet.mergeCells(`B${noDataRow.number}:J${noDataRow.number}`);
+      const noDataCell = worksheet.getCell(`B${noDataRow.number}`);
+      noDataCell.font = { italic: true, color: { argb: "FF9CA3AF" } };
+      noDataCell.alignment = { horizontal: "center", vertical: "middle" };
+    }
+
+    const rawBuffer = await workbook.xlsx.writeBuffer();
+    const nodeBuffer = Buffer.from(rawBuffer);
+
+    if (!nodeBuffer || nodeBuffer.length === 0) {
+      throw new Error("Buffer generation failed: empty buffer");
+    }
+
+    const dateString = new Date().toISOString().split("T")[0];
+    const safeRt = safeRtForFileName(rt.nomor_rt);
+    const filename = `Data_Muzakki_RT_${safeRt}_${dateString}.xlsx`;
+
+    res.status(200);
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Length", nodeBuffer.length);
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+
+    return res.end(nodeBuffer);
+  } catch (error) {
+    console.error("Error exporting RT to Excel:", error);
+
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan saat export data RT ke Excel",
+        error: error.message,
+      });
+    }
   }
 });
 
@@ -897,6 +1246,11 @@ router.get("/export-excel", async (req, res) => {
       worksheet.getColumn(8).width = 18;
       worksheet.getColumn(9).width = 20;
       worksheet.getColumn(10).width = 15;
+      worksheet.getColumn(3).numFmt = EXCEL_NUMFMT.INTEGER;
+      worksheet.getColumn(5).numFmt = EXCEL_NUMFMT.WEIGHT;
+      worksheet.getColumn(6).numFmt = EXCEL_NUMFMT.CURRENCY_RP;
+      worksheet.getColumn(7).numFmt = EXCEL_NUMFMT.CURRENCY_RP;
+      worksheet.getColumn(8).numFmt = EXCEL_NUMFMT.CURRENCY_RP;
 
       let totalJiwa = 0;
       let totalBeras = 0;
@@ -905,7 +1259,7 @@ router.get("/export-excel", async (req, res) => {
       let totalKembalian = 0;
 
       muzakkiData.forEach((item, index) => {
-        const jiwa = parseInt(item.jumlah_jiwa) || 0;
+        const jiwa = parseInt(item.jumlah_jiwa, 10) || 0;
         const beras = parseFloat(item.jumlah_beras_kg) || 0;
         const uang = parseFloat(item.jumlah_uang) || 0;
         const bayar = parseFloat(item.jumlah_bayar) || 0;
@@ -917,18 +1271,6 @@ router.get("/export-excel", async (req, res) => {
         totalBayar += bayar;
         totalKembalian += kembalian;
 
-        let dateStr = '-';
-        if (item.created_at) {
-          try {
-             const date = new Date(item.created_at);
-             if (!isNaN(date.getTime())) {
-                dateStr = date.toLocaleDateString('id-ID');
-             }
-          } catch (e) {
-             dateStr = '-';
-          }
-        }
-
         const dataRow = worksheet.addRow([
           index + 1,
           sanitizeForExcel(item.nama_muzakki_list || '-'),
@@ -939,7 +1281,7 @@ router.get("/export-excel", async (req, res) => {
           bayar,
           kembalian,
           sanitizeForExcel(item.pencatat_name || '-'),
-          dateStr
+          formatDateForExcel(item.created_at)
         ]);
 
         dataRow.eachCell((cell, colNumber) => {
@@ -964,6 +1306,8 @@ router.get("/export-excel", async (req, res) => {
             };
           }
         });
+
+        applyMuzakkiExcelNumberFormat(dataRow);
       });
 
       if (muzakkiData.length > 0) {
@@ -998,6 +1342,8 @@ router.get("/export-excel", async (req, res) => {
           };
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
         });
+
+        applyMuzakkiExcelNumberFormat(totalRow);
       } else {
         const noDataRow = worksheet.addRow(['', 'Belum ada data muzakki untuk RT ini', '', '', '', '', '', '', '', '']);
         worksheet.mergeCells(`B${noDataRow.number}:J${noDataRow.number}`);

@@ -18,9 +18,18 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
         </div>
       </div>
       <div class="header-right">
-        <div class="date-badge">
-          <i class="fas fa-calendar-alt"></i>
-          <span id="current-date">Loading...</span>
+        <div class="calendar-combined-card" data-tooltip="Tanggal Masehi dan Hijriyah">
+          <div class="calendar-row">
+            <div class="calendar-row-label">
+            </div>
+            <div class="calendar-row-value" id="current-date">Loading...</div>
+          </div>
+          <div class="calendar-row">
+            <div class="calendar-row-label">
+            </div>
+            <div class="calendar-row-value" id="current-hijri-date">Memuat tanggal Hijriyah...</div>
+            <div class="calendar-row-subvalue" id="current-hijri-detail"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -406,6 +415,65 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     color: #fbbf24;
   }
 
+  .header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    max-width: 100%;
+  }
+
+  .calendar-combined-card {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: #ffffff;
+    width: 100%;
+    max-width: 330px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .calendar-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .calendar-row-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.32px;
+    color: #dcfce7;
+    text-transform: uppercase;
+  }
+
+  .calendar-row-value {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .calendar-row-subvalue {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.92);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .calendar-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.24);
+  }
+
   .date-badge {
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
@@ -419,6 +487,42 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     font-size: 14px;
     max-width: 100%;
     flex-wrap: wrap;
+  }
+
+  .hijri-calendar-card {
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #ffffff;
+    width: 100%;
+    max-width: 320px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  }
+
+  .hijri-calendar-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    margin-bottom: 6px;
+    color: #dcfce7;
+  }
+
+  .hijri-calendar-date {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .hijri-calendar-subdate {
+    margin-top: 3px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.92);
   }
 
   /* Stats Grid */
@@ -1030,6 +1134,10 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
       padding: 9px 12px;
     }
 
+    .hijri-calendar-card {
+      max-width: 100%;
+    }
+
     .stats-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
@@ -1197,6 +1305,14 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
       gap: 6px;
     }
 
+    .hijri-calendar-card {
+      padding: 8px 10px;
+    }
+
+    .hijri-calendar-date {
+      font-size: 13px;
+    }
+
     .stat-card {
       padding: 10px;
     }
@@ -1245,6 +1361,731 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
       transform: none;
     }
   }
+
+  /* Dashboard UI Refresh */
+  .dashboard-wrapper {
+    padding: 0.7rem 0.34rem 1.15rem;
+    gap: 14px;
+  }
+
+  .dashboard-header {
+    border-radius: 18px;
+    padding: 22px 22px;
+    background: linear-gradient(135deg, #169b2a 0%, #11853a 52%, #0d6e3c 100%);
+    box-shadow: 0 12px 34px rgba(21, 128, 61, 0.28);
+  }
+
+  .header-content {
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .header-left {
+    gap: 14px;
+  }
+
+  .header-icon-wrapper {
+    width: 62px;
+    height: 62px;
+    border-radius: 14px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+  }
+
+  .header-title {
+    font-size: clamp(1.3rem, 2.5vw, 1.75rem);
+    letter-spacing: 0.15px;
+  }
+
+  .header-subtitle {
+    font-size: 0.87rem;
+    line-height: 1.5;
+  }
+
+  .header-right {
+    margin-left: auto;
+    align-items: flex-start;
+    width: min(330px, 100%);
+  }
+
+  .date-badge {
+    width: 100%;
+    border-radius: 11px;
+    padding: 9px 12px;
+    font-size: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+  }
+
+  .hijri-calendar-card {
+    border-radius: 11px;
+    padding: 10px 12px;
+    max-width: 100%;
+  }
+
+  .stats-grid {
+    gap: 12px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .stat-card {
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    padding: 13px 13px 11px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.07);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 3px;
+    opacity: 0.9;
+  }
+
+  .stat-card-blue::before { background: linear-gradient(90deg, #16a34a, #22c55e); }
+  .stat-card-green::before { background: linear-gradient(90deg, #059669, #34d399); }
+  .stat-card-purple::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+  .stat-card-red::before { background: linear-gradient(90deg, #dc2626, #fb7185); }
+  .stat-card-orange::before { background: linear-gradient(90deg, #d97706, #fbbf24); }
+
+  .stat-card-header {
+    margin-bottom: 10px;
+  }
+
+  .stat-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 13px;
+  }
+
+  .stat-badge {
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.35px;
+  }
+
+  .stat-value {
+    font-size: clamp(1rem, 2.1vw, 1.32rem);
+    line-height: 1.25;
+    margin-bottom: 3px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
+
+  .stat-description {
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  .stat-footer {
+    margin-top: 8px;
+    padding-top: 8px;
+    font-size: 10px;
+  }
+
+  .quick-actions-section,
+  .data-section {
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+  }
+
+  .quick-actions-section {
+    padding: 14px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  }
+
+  .data-section {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  }
+
+  .section-header {
+    gap: 10px;
+  }
+
+  .data-section .section-header {
+    background: linear-gradient(130deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 14px;
+  }
+
+  .section-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  .section-title {
+    font-size: 14px;
+  }
+
+  .section-subtitle {
+    font-size: 11px;
+  }
+
+  .section-badge {
+    border-radius: 999px;
+    padding: 4px 8px;
+    font-size: 9px;
+  }
+
+  .quick-actions-grid {
+    gap: 10px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .action-card {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 12px;
+    padding: 10px 11px;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  }
+
+  .action-primary {
+    border-color: #86efac;
+    background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
+  }
+
+  .action-indigo {
+    border-color: #93c5fd;
+    background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+  }
+
+  .action-green {
+    border-color: #a7f3d0;
+    background: linear-gradient(180deg, #ffffff 0%, #ecfdf5 100%);
+  }
+
+  .action-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    font-size: 12px;
+  }
+
+  .action-primary .action-icon {
+    background: #16a34a;
+  }
+
+  .action-indigo .action-icon {
+    background: #2563eb;
+  }
+
+  .action-green .action-icon {
+    background: #059669;
+  }
+
+  .action-title {
+    color: #0f172a;
+    font-size: 12px;
+  }
+
+  .action-desc {
+    color: #64748b;
+    font-size: 10px;
+  }
+
+  .action-arrow {
+    color: #334155;
+  }
+
+  .two-column-layout {
+    gap: 14px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .data-content {
+    padding: 13px;
+  }
+
+  .data-list {
+    gap: 8px;
+  }
+
+  .data-item {
+    padding: 9px 10px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+  }
+
+  .data-item:hover {
+    transform: translateY(-2px);
+    background: #f8fafc;
+    border-color: #cbd5e1;
+  }
+
+  .data-item-number,
+  .data-item-rt-icon {
+    width: 25px;
+    height: 25px;
+    border-radius: 7px;
+    font-size: 10px;
+  }
+
+  .data-item-header {
+    gap: 6px;
+  }
+
+  .data-item-name {
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .data-item-amount {
+    font-size: 11px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 2px 7px;
+  }
+
+  .data-item-info {
+    font-size: 10px;
+    color: #64748b;
+  }
+
+  .status-badge {
+    border-radius: 999px;
+    border: 1px solid transparent;
+    padding: 2px 7px;
+  }
+
+  .status-success {
+    border-color: #86efac;
+  }
+
+  .status-warning {
+    border-color: #fcd34d;
+  }
+
+  .section-footer {
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+
+  .btn-view-all,
+  .btn-empty-action {
+    border-radius: 10px;
+    font-size: 11px;
+    padding: 8px 14px;
+  }
+
+  .empty-state {
+    padding: 26px 14px;
+  }
+
+  /* Dark Mode */
+  html.dark-mode .dashboard-wrapper {
+    background: transparent;
+  }
+
+  html.dark-mode .dashboard-header {
+    background: linear-gradient(135deg, #166534 0%, #14532d 50%, #134e4a 100%);
+    box-shadow: none;
+  }
+
+  html.dark-mode .date-badge,
+  html.dark-mode .hijri-calendar-card {
+    border-color: rgba(148, 163, 184, 0.25);
+  }
+
+  html.dark-mode .stat-card,
+  html.dark-mode .quick-actions-section,
+  html.dark-mode .data-section {
+    background: #0f172a;
+    border-color: #1f2937;
+    box-shadow: none;
+  }
+
+  html.dark-mode .data-section .section-header {
+    background: #111827;
+    border-bottom-color: #1f2937;
+  }
+
+  html.dark-mode .stat-value,
+  html.dark-mode .stat-label,
+  html.dark-mode .section-title,
+  html.dark-mode .data-item-name,
+  html.dark-mode .empty-title {
+    color: #f1f5f9;
+  }
+
+  html.dark-mode .stat-description,
+  html.dark-mode .stat-footer,
+  html.dark-mode .section-subtitle,
+  html.dark-mode .data-item-info,
+  html.dark-mode .empty-desc,
+  html.dark-mode .action-desc {
+    color: #94a3b8;
+  }
+
+  html.dark-mode .quick-actions-section {
+    background: #0f172a;
+  }
+
+  html.dark-mode .action-card {
+    background: #111827;
+    border-color: #1f2937;
+  }
+
+  html.dark-mode .action-title {
+    color: #e2e8f0;
+  }
+
+  html.dark-mode .action-arrow {
+    color: #cbd5e1;
+  }
+
+  html.dark-mode .data-item {
+    background: #111827;
+    border-color: #1f2937;
+  }
+
+  html.dark-mode .data-item:hover {
+    background: #17202f;
+    border-color: #334155;
+  }
+
+  html.dark-mode .data-item-amount {
+    background: #0f172a;
+    border-color: #1f2937;
+    color: #e2e8f0;
+  }
+
+  html.dark-mode .empty-icon {
+    background: #111827;
+    color: #94a3b8;
+  }
+
+  /* Responsive Refresh */
+  @media (max-width: 1200px) {
+    .stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 992px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .quick-actions-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .two-column-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .header-right {
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dashboard-wrapper {
+      padding: 0.58rem 0.28rem 0.96rem;
+      gap: 12px;
+    }
+
+    .dashboard-header {
+      padding: 14px 12px;
+      border-radius: 14px;
+    }
+
+    .header-left {
+      gap: 10px;
+    }
+
+    .header-icon-wrapper {
+      width: 50px;
+      height: 50px;
+      border-radius: 11px;
+      padding: 7px;
+    }
+
+    .header-title {
+      font-size: 1.12rem;
+    }
+
+    .header-subtitle {
+      font-size: 0.76rem;
+    }
+
+    .stats-grid,
+    .quick-actions-grid {
+      grid-template-columns: 1fr;
+      gap: 9px;
+    }
+
+    .stat-card,
+    .quick-actions-section,
+    .data-content {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+
+    .data-section .section-header {
+      padding: 10px;
+    }
+  }
+
+  /* Dashboard Variant: Minimal Enterprise */
+  .dashboard-wrapper {
+    max-width: 1680px;
+    margin: 0 auto;
+    padding: 0.62rem 0.32rem 1.06rem;
+    gap: 12px;
+  }
+
+  .dashboard-header {
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: linear-gradient(132deg, #17803a 0%, #0f6c36 56%, #0f766e 100%);
+    box-shadow: 0 10px 28px rgba(15, 118, 110, 0.22);
+  }
+
+  .header-decoration {
+    opacity: 0.55;
+  }
+
+  .header-right {
+    width: min(350px, 100%);
+  }
+
+  .calendar-combined-card {
+    max-width: 100%;
+    border-radius: 12px;
+    padding: 10px 12px;
+    gap: 9px;
+  }
+
+  .calendar-row-label {
+    font-size: 10px;
+  }
+
+  .calendar-row-value {
+    font-size: 13px;
+  }
+
+  .calendar-row-subvalue {
+    font-size: 10px;
+  }
+
+  .date-badge,
+  .hijri-calendar-card {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .stats-grid {
+    gap: 10px;
+  }
+
+  .stat-card {
+    border: 1px solid #dbe3ee;
+    border-radius: 13px;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+  }
+
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+  }
+
+  .stat-value {
+    letter-spacing: 0.1px;
+  }
+
+  .stat-badge {
+    border: 1px solid rgba(15, 23, 42, 0.06);
+  }
+
+  .quick-actions-section,
+  .data-section {
+    border-radius: 14px;
+    border: 1px solid #dde6f0;
+  }
+
+  .quick-actions-grid {
+    gap: 9px;
+  }
+
+  .action-card {
+    border-radius: 11px;
+    padding: 10px 10px;
+  }
+
+  .action-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .action-title {
+    font-weight: 700;
+  }
+
+  .two-column-layout {
+    gap: 12px;
+  }
+
+  .data-content {
+    padding: 11px;
+  }
+
+  .data-item {
+    padding: 8px 9px;
+    border-radius: 9px;
+  }
+
+  .data-item-footer {
+    gap: 8px;
+  }
+
+  .section-footer {
+    margin-top: 9px;
+    padding-top: 9px;
+  }
+
+  html.dark-mode .dashboard-header {
+    border-color: rgba(148, 163, 184, 0.28);
+    background: linear-gradient(132deg, #14532d 0%, #14532d 56%, #115e59 100%);
+    box-shadow: none;
+  }
+
+  html.dark-mode .date-badge,
+  html.dark-mode .hijri-calendar-card {
+    background: rgba(15, 23, 42, 0.26);
+    border-color: rgba(148, 163, 184, 0.24);
+  }
+
+  html.dark-mode .calendar-combined-card {
+    background: rgba(15, 23, 42, 0.26);
+    border-color: rgba(148, 163, 184, 0.24);
+  }
+
+  html.dark-mode .calendar-row-label {
+    color: #a7f3d0;
+  }
+
+  html.dark-mode .calendar-row-value {
+    color: #f8fafc;
+  }
+
+  html.dark-mode .calendar-row-subvalue {
+    color: #cbd5e1;
+  }
+
+  html.dark-mode .calendar-divider {
+    background: rgba(148, 163, 184, 0.24);
+  }
+
+  html.dark-mode .stat-card,
+  html.dark-mode .quick-actions-section,
+  html.dark-mode .data-section {
+    border-color: #243244;
+  }
+
+  html.dark-mode .stat-badge {
+    border-color: rgba(148, 163, 184, 0.2);
+  }
+
+  @media (max-width: 900px) {
+    .header-content {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .header-right {
+      width: 100%;
+      margin-left: 0;
+    }
+
+    .calendar-combined-card {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .quick-actions-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .two-column-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .dashboard-wrapper {
+      padding: 0.54rem 0.24rem 0.9rem;
+      gap: 10px;
+    }
+
+    .dashboard-header {
+      padding: 13px 11px;
+      border-radius: 13px;
+    }
+
+    .header-left {
+      gap: 9px;
+    }
+
+    .header-title {
+      font-size: 1.06rem;
+    }
+
+    .header-subtitle {
+      font-size: 0.74rem;
+    }
+
+    .calendar-combined-card {
+      padding: 9px 10px;
+      border-radius: 10px;
+      gap: 7px;
+    }
+
+    .calendar-row-value {
+      font-size: 12px;
+    }
+
+    .calendar-row-subvalue {
+      font-size: 10px;
+    }
+
+    .stats-grid,
+    .quick-actions-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .stat-card,
+    .quick-actions-section {
+      padding: 10px;
+    }
+
+    .data-content {
+      padding: 10px;
+    }
+
+    .data-section .section-header {
+      padding: 9px 10px;
+    }
+  }
 </style>
 
 <!-- Enhanced JavaScript -->
@@ -1252,6 +2093,40 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
   // Set current date with better formatting
   document.addEventListener('DOMContentLoaded', function() {
     const dateElement = document.getElementById('current-date');
+    const hijriDateElement = document.getElementById('current-hijri-date');
+    const hijriDetailElement = document.getElementById('current-hijri-detail');
+    const HIJRI_DAY_ADJUSTMENT = -1;
+
+    function formatHijriDate(date) {
+      const adjustedDate = new Date(date);
+      adjustedDate.setDate(adjustedDate.getDate() + HIJRI_DAY_ADJUSTMENT);
+
+      const calendarFallbacks = ['islamic-umalqura', 'islamic', 'islamic-civil'];
+      for (const calendarType of calendarFallbacks) {
+        try {
+          const mainFormatter = new Intl.DateTimeFormat('id-ID', {
+            calendar: calendarType,
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+          });
+          const detailFormatter = new Intl.DateTimeFormat('id-ID', {
+            calendar: calendarType,
+            weekday: 'long'
+          });
+
+          return {
+            main: mainFormatter.format(adjustedDate),
+            detail: detailFormatter.format(adjustedDate)
+          };
+        } catch (err) {
+          // Try next Islamic calendar variant when not supported by browser.
+        }
+      }
+
+      return null;
+    }
+
     if (dateElement) {
       const now = new Date();
       const options = {
@@ -1261,6 +2136,21 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
         day: 'numeric'
       };
       dateElement.textContent = now.toLocaleDateString('id-ID', options);
+
+      if (hijriDateElement) {
+        const hijriFormatted = formatHijriDate(now);
+        if (hijriFormatted) {
+          hijriDateElement.textContent = hijriFormatted.main;
+          if (hijriDetailElement) {
+            hijriDetailElement.textContent = `${hijriFormatted.detail} (Hijriyah)`;
+          }
+        } else {
+          hijriDateElement.textContent = 'Kalender Hijriyah tidak didukung browser';
+          if (hijriDetailElement) {
+            hijriDetailElement.textContent = 'Silakan gunakan browser modern terbaru';
+          }
+        }
+      }
     }
 
     // Add entrance animations

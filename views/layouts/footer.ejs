@@ -90,8 +90,8 @@
           return;
         }
 
-        const headerCells = Array.from(table.querySelectorAll("thead th"));
-        const bodyRows = table.querySelectorAll("tbody tr");
+        const headerCells = Array.from(table.querySelectorAll("thead th, thead td"));
+        const bodyRows = table.querySelectorAll("tbody tr, tfoot tr");
 
         if (!headerCells.length || !bodyRows.length) {
           return;

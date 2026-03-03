@@ -1,277 +1,923 @@
-<%- include('../layouts/header', { title: `Detail RW ${rw.nomor_rw} - Zakat Fitrah App`,
-bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'rt' }) %>
+<%- include('../layouts/header', { title: `Detail RW ${rw.nomor_rw} - Zakat Fitrah App`, bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'rt' }) %>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-  <!-- Header -->
-  <div class="mb-6">
-    <div class="flex items-center mb-4">
-      <a href="/rw" class="text-primary-600 hover:text-primary-800 mr-4">
-        <i class="fas fa-arrow-left"></i>
-      </a>
-      <h1 class="text-3xl font-bold text-gray-900">
-        <i class="fas fa-building mr-2 text-primary-600"></i>Detail RW <%= rw.nomor_rw %>
-      </h1>
-    </div>
-    <p class="text-gray-600">Informasi lengkap RW dan daftar RT di bawahnya</p>
-  </div>
+<%
+  const rwStats = stats || {};
+  const rtData = Array.isArray(rtList) ? rtList : [];
+  const createdAtText = rw.created_at
+    ? new Date(rw.created_at).toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '-';
+%>
 
-  <!-- RW Info -->
-  <div class="bg-white shadow-sm rounded-lg overflow-hidden mb-6">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h2 class="text-lg font-semibold text-gray-900">Informasi RW</h2>
-    </div>
-    <div class="p-6">
-      <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
+<style>
+  .rw-detail-page {
+    position: relative;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0.44rem 0.16rem 1rem;
+  }
+
+  .rw-detail-shell {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: 0.84rem;
+  }
+
+  .rw-detail-orb {
+    position: absolute;
+    pointer-events: none;
+    border-radius: 9999px;
+    filter: blur(12px);
+    z-index: 1;
+  }
+
+  .rw-detail-orb-a {
+    width: 230px;
+    height: 230px;
+    top: 16px;
+    right: -76px;
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0) 72%);
+  }
+
+  .rw-detail-orb-b {
+    width: 180px;
+    height: 180px;
+    bottom: 70px;
+    left: -62px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0) 74%);
+  }
+
+  .rw-detail-hero {
+    background: linear-gradient(125deg, #0f766e 0%, #16a34a 56%, #22c55e 100%);
+    color: #fff;
+    border-radius: 17px;
+    padding: 0.74rem 0.76rem;
+    box-shadow: 0 16px 34px rgba(22, 163, 74, 0.24);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.74rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .rw-detail-hero::after {
+    content: "";
+    position: absolute;
+    width: 250px;
+    height: 250px;
+    top: -154px;
+    right: -74px;
+    border-radius: 9999px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
+  }
+
+  .rw-detail-hero-main {
+    position: relative;
+    z-index: 2;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.64rem;
+  }
+
+  .rw-detail-back {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .rw-detail-back:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-1px);
+  }
+
+  .rw-detail-title {
+    margin: 0;
+    font-size: 1.23rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .rw-detail-subtitle {
+    margin: 0.2rem 0 0;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.92);
+    line-height: 1.45;
+  }
+
+  .rw-detail-hero-actions {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.44rem;
+    flex-wrap: wrap;
+  }
+
+  .rw-detail-btn {
+    border: 0;
+    border-radius: 9px;
+    padding: 0.48rem 0.7rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.38rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    cursor: pointer;
+  }
+
+  .rw-detail-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .rw-detail-btn-light {
+    background: rgba(255, 255, 255, 0.9);
+    color: #065f46;
+  }
+
+  .rw-detail-btn-light:hover {
+    box-shadow: 0 10px 20px rgba(6, 95, 70, 0.2);
+  }
+
+  .rw-detail-info-card,
+  .rw-detail-stats,
+  .rw-detail-table-card {
+    border-radius: 16px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+  }
+
+  .rw-detail-section-head {
+    padding: 0.72rem 0.74rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.64rem;
+    flex-wrap: wrap;
+  }
+
+  .rw-detail-section-title {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  .rw-detail-section-subtitle {
+    margin: 0.18rem 0 0;
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+
+  .rw-detail-chip {
+    border-radius: 9999px;
+    padding: 0.34rem 0.6rem;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .rw-detail-info-body {
+    padding: 0.72rem 0.74rem;
+  }
+
+  .rw-detail-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.56rem;
+  }
+
+  .rw-detail-info-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 0.54rem 0.6rem;
+    min-width: 0;
+  }
+
+  .rw-detail-info-label {
+    margin: 0;
+    font-size: 0.67rem;
+    text-transform: uppercase;
+    letter-spacing: 0.28px;
+    color: #64748b;
+    font-weight: 700;
+  }
+
+  .rw-detail-info-value {
+    margin: 0.18rem 0 0;
+    font-size: 0.81rem;
+    color: #0f172a;
+    font-weight: 600;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .rw-detail-stats {
+    padding: 0.6rem;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.56rem;
+  }
+
+  .rw-detail-stat {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 0.56rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .rw-detail-stat-icon {
+    width: 33px;
+    height: 33px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+
+  .rw-detail-stat-icon-rt {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  }
+
+  .rw-detail-stat-icon-mz {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  }
+
+  .rw-detail-stat-icon-zakat {
+    background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+  }
+
+  .rw-detail-stat-icon-lunas {
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+  }
+
+  .rw-detail-stat-label {
+    margin: 0;
+    font-size: 0.68rem;
+    color: #64748b;
+    font-weight: 700;
+  }
+
+  .rw-detail-stat-value {
+    margin: 0.14rem 0 0;
+    font-size: 0.92rem;
+    color: #0f172a;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .rw-detail-table-wrap {
+    padding: 0.42rem;
+  }
+
+  .rw-detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 980px;
+  }
+
+  .rw-detail-table thead th {
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0.6rem;
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.32px;
+    color: #64748b;
+    text-align: left;
+    font-weight: 700;
+    vertical-align: top;
+  }
+
+  .rw-detail-table tbody td {
+    border-bottom: 1px solid #eef2f7;
+    padding: 0.62rem 0.6rem;
+    font-size: 0.78rem;
+    color: #0f172a;
+    vertical-align: top;
+  }
+
+  .rw-detail-table tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  .rw-detail-rt-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .rw-detail-rt-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #d1fae5 0%, #bbf7d0 100%);
+    color: #047857;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.78rem;
+  }
+
+  .rw-detail-rt-name {
+    margin: 0;
+    font-size: 0.81rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .rw-detail-rt-id {
+    margin: 0.1rem 0 0;
+    font-size: 0.68rem;
+    color: #64748b;
+  }
+
+  .rw-detail-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.34rem;
+  }
+
+  .rw-detail-badge {
+    border-radius: 9999px;
+    padding: 0.26rem 0.46rem;
+    font-size: 0.66rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.22rem;
+    white-space: nowrap;
+  }
+
+  .rw-detail-badge-blue {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .rw-detail-badge-green {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .rw-detail-badge-red {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .rw-detail-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.24rem;
+  }
+
+  .rw-detail-action {
+    width: 29px;
+    height: 29px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: #f8fafc;
+    color: #334155;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: transform 0.2s ease;
+  }
+
+  .rw-detail-action:hover {
+    transform: translateY(-1px);
+  }
+
+  .rw-detail-action-view {
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+
+  .rw-detail-action-edit {
+    background: #f3e8ff;
+    color: #7c3aed;
+  }
+
+  .rw-detail-action-delete {
+    border: 0;
+    background: #fee2e2;
+    color: #b91c1c;
+    cursor: pointer;
+  }
+
+  .rw-detail-mobile-list {
+    display: none;
+    padding: 0.42rem;
+    gap: 0.54rem;
+  }
+
+  .rw-detail-mobile-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    padding: 0.64rem;
+    display: grid;
+    gap: 0.44rem;
+  }
+
+  .rw-detail-mobile-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.56rem;
+  }
+
+  .rw-detail-mobile-name {
+    margin: 0;
+    font-size: 0.84rem;
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  .rw-detail-mobile-sub {
+    margin: 0.12rem 0 0;
+    font-size: 0.71rem;
+    color: #64748b;
+  }
+
+  .rw-detail-mobile-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.46rem;
+  }
+
+  .rw-detail-mobile-label {
+    margin: 0;
+    font-size: 0.63rem;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 0.28px;
+    font-weight: 700;
+  }
+
+  .rw-detail-mobile-value {
+    margin: 0.14rem 0 0;
+    font-size: 0.76rem;
+    color: #0f172a;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .rw-detail-empty {
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+
+  .rw-detail-empty i {
+    font-size: 2.2rem;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+  }
+
+  .rw-detail-empty h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  .rw-detail-empty p {
+    margin: 0.34rem auto 0;
+    font-size: 0.79rem;
+    color: #64748b;
+    max-width: 460px;
+  }
+
+  .rw-detail-reveal {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: rwDetailReveal 0.52s ease forwards;
+    animation-delay: var(--rw-detail-delay, 0ms);
+  }
+
+  @keyframes rwDetailReveal {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 1040px) {
+    .rw-detail-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 960px) {
+    .rw-detail-table-wrap {
+      display: none;
+    }
+
+    .rw-detail-mobile-list {
+      display: grid;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .rw-detail-page {
+      padding: 0.36rem 0.1rem 0.76rem;
+    }
+
+    .rw-detail-hero {
+      border-radius: 14px;
+      padding: 0.62rem;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .rw-detail-hero-actions {
+      width: 100%;
+    }
+
+    .rw-detail-btn-light {
+      width: 100%;
+    }
+
+    .rw-detail-info-grid,
+    .rw-detail-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .rw-detail-section-head {
+      padding: 0.62rem;
+    }
+
+    .rw-detail-info-body,
+    .rw-detail-stats {
+      padding: 0.62rem;
+    }
+  }
+
+  @media (max-width: 460px) {
+    .rw-detail-page {
+      padding: 0.28rem 0.08rem 0.64rem;
+    }
+
+    .rw-detail-title {
+      font-size: 1.05rem;
+    }
+
+    .rw-detail-subtitle {
+      font-size: 0.72rem;
+    }
+
+    .rw-detail-mobile-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  html.dark-mode .rw-detail-hero {
+    box-shadow: 0 12px 28px rgba(2, 6, 23, 0.45);
+  }
+
+  html.dark-mode .rw-detail-btn-light {
+    background: rgba(2, 6, 23, 0.9);
+    color: #86efac;
+  }
+
+  html.dark-mode .rw-detail-info-card,
+  html.dark-mode .rw-detail-stats,
+  html.dark-mode .rw-detail-table-card,
+  html.dark-mode .rw-detail-mobile-card {
+    background: #0f172a;
+    border-color: #1f2937;
+    box-shadow: none;
+  }
+
+  html.dark-mode .rw-detail-section-head {
+    background: #111827;
+    border-bottom-color: #1f2937;
+  }
+
+  html.dark-mode .rw-detail-section-title,
+  html.dark-mode .rw-detail-info-value,
+  html.dark-mode .rw-detail-stat-value,
+  html.dark-mode .rw-detail-rt-name,
+  html.dark-mode .rw-detail-mobile-name,
+  html.dark-mode .rw-detail-mobile-value,
+  html.dark-mode .rw-detail-table tbody td,
+  html.dark-mode .rw-detail-empty h3 {
+    color: #f8fafc;
+  }
+
+  html.dark-mode .rw-detail-section-subtitle,
+  html.dark-mode .rw-detail-info-label,
+  html.dark-mode .rw-detail-stat-label,
+  html.dark-mode .rw-detail-rt-id,
+  html.dark-mode .rw-detail-mobile-sub,
+  html.dark-mode .rw-detail-mobile-label,
+  html.dark-mode .rw-detail-empty p {
+    color: #94a3b8;
+  }
+
+  html.dark-mode .rw-detail-info-item,
+  html.dark-mode .rw-detail-stat {
+    background: #111827;
+    border-color: #1f2937;
+  }
+
+  html.dark-mode .rw-detail-table thead th {
+    background: #111827;
+    border-bottom-color: #1f2937;
+    color: #94a3b8;
+  }
+
+  html.dark-mode .rw-detail-table tbody td {
+    border-bottom-color: #1f2937;
+  }
+
+  html.dark-mode .rw-detail-table tbody tr:hover {
+    background: #111827;
+  }
+
+  html.dark-mode .rw-detail-action {
+    background: #111827;
+    border-color: #1f2937;
+  }
+
+  html.dark-mode .rw-detail-action-view {
+    color: #93c5fd;
+  }
+
+  html.dark-mode .rw-detail-action-edit {
+    color: #d8b4fe;
+  }
+
+  html.dark-mode .rw-detail-action-delete {
+    color: #fca5a5;
+  }
+</style>
+
+<section class="rw-detail-page">
+  <div class="rw-detail-orb rw-detail-orb-a"></div>
+  <div class="rw-detail-orb rw-detail-orb-b"></div>
+
+  <div class="rw-detail-shell">
+    <header class="rw-detail-hero rw-detail-reveal" style="--rw-detail-delay: 0ms;">
+      <div class="rw-detail-hero-main">
+        <a href="/rw" class="rw-detail-back" aria-label="Kembali ke daftar RW">
+          <i class="fas fa-arrow-left"></i>
+        </a>
         <div>
-          <dt class="text-sm font-medium text-gray-500">Nomor RW</dt>
-          <dd class="mt-1 text-sm text-gray-900"><%= rw.nomor_rw %></dd>
+          <h1 class="rw-detail-title"><i class="fas fa-building mr-1"></i>Detail <%= rw.nomor_rw %></h1>
+          <p class="rw-detail-subtitle">Informasi lengkap RW dan daftar RT di bawah wilayah ini.</p>
         </div>
-        <div>
-          <dt class="text-sm font-medium text-gray-500">Ketua RW</dt>
-          <dd class="mt-1 text-sm text-gray-900"><%= rw.ketua_rw %></dd>
-        </div>
-        <div>
-          <dt class="text-sm font-medium text-gray-500">Keterangan</dt>
-          <dd class="mt-1 text-sm text-gray-900"><%= rw.keterangan || '-' %></dd>
-        </div>
-        <div>
-          <dt class="text-sm font-medium text-gray-500">Dibuat</dt>
-          <dd class="mt-1 text-sm text-gray-900">
-            <%= new Date(rw.created_at).toLocaleDateString('id-ID', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            }) %>
-          </dd>
-        </div>
-      </dl>
-    </div>
-    <div class="px-6 py-3 bg-gray-50 border-t border-gray-200">
-      <div class="flex justify-end">
-        <a href="/rw/<%= rw.id %>/edit" class="btn-primary">
-          <i class="fas fa-edit mr-2"></i>Edit RW
+      </div>
+
+      <div class="rw-detail-hero-actions">
+        <a href="/rw/<%= rw.id %>/edit" class="rw-detail-btn rw-detail-btn-light">
+          <i class="fas fa-pen"></i>Edit RW
+        </a>
+        <a href="/rt/create" class="rw-detail-btn rw-detail-btn-light">
+          <i class="fas fa-plus"></i>Tambah RT
         </a>
       </div>
-    </div>
-  </div>
+    </header>
 
-  <!-- Stats -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-              <i class="fas fa-home text-white text-sm"></i>
-            </div>
-          </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">Total RT</dt>
-              <dd class="text-lg font-semibold text-gray-900"><%= stats.total_rt %></dd>
-            </dl>
-          </div>
+    <section class="rw-detail-info-card rw-detail-reveal" style="--rw-detail-delay: 80ms;">
+      <div class="rw-detail-section-head">
+        <div>
+          <h2 class="rw-detail-section-title">Informasi RW</h2>
+          <p class="rw-detail-section-subtitle">Data dasar wilayah RW yang sedang dipilih.</p>
+        </div>
+        <span class="rw-detail-chip"><%= rw.nomor_rw %></span>
+      </div>
+      <div class="rw-detail-info-body">
+        <div class="rw-detail-info-grid">
+          <article class="rw-detail-info-item">
+            <p class="rw-detail-info-label">Nomor RW</p>
+            <p class="rw-detail-info-value"><%= rw.nomor_rw %></p>
+          </article>
+          <article class="rw-detail-info-item">
+            <p class="rw-detail-info-label">Ketua RW</p>
+            <p class="rw-detail-info-value"><%= rw.ketua_rw %></p>
+          </article>
+          <article class="rw-detail-info-item">
+            <p class="rw-detail-info-label">Keterangan</p>
+            <p class="rw-detail-info-value"><%= rw.keterangan || '-' %></p>
+          </article>
+          <article class="rw-detail-info-item">
+            <p class="rw-detail-info-label">Dibuat</p>
+            <p class="rw-detail-info-value"><%= createdAtText %></p>
+          </article>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-              <i class="fas fa-users text-white text-sm"></i>
-            </div>
-          </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">Total Muzakki</dt>
-              <dd class="text-lg font-semibold text-gray-900"><%= stats.total_muzakki %></dd>
-            </dl>
-          </div>
+    <section class="rw-detail-stats rw-detail-reveal" style="--rw-detail-delay: 130ms;">
+      <article class="rw-detail-stat">
+        <div class="rw-detail-stat-icon rw-detail-stat-icon-rt"><i class="fas fa-home"></i></div>
+        <div>
+          <p class="rw-detail-stat-label">Total RT</p>
+          <p class="rw-detail-stat-value"><%= rwStats.total_rt || 0 %></p>
         </div>
-      </div>
-    </div>
-
-    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
-              <i class="fas fa-coins text-white text-sm"></i>
-            </div>
-          </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500">Total Zakat</dt>
-              <dd class="text-lg font-semibold text-gray-900">
-                Rp <%= Math.floor(stats.total_zakat).toLocaleString('id-ID') %>
-              </dd>
-            </dl>
-          </div>
+      </article>
+      <article class="rw-detail-stat">
+        <div class="rw-detail-stat-icon rw-detail-stat-icon-mz"><i class="fas fa-users"></i></div>
+        <div>
+          <p class="rw-detail-stat-label">Total Muzakki</p>
+          <p class="rw-detail-stat-value"><%= rwStats.total_muzakki || 0 %></p>
         </div>
-      </div>
-    </div>
-
-    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
-              <i class="fas fa-check-circle text-white text-sm"></i>
-            </div>
-          </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">Muzakki Lunas</dt>
-              <dd class="text-lg font-semibold text-gray-900"><%= stats.muzakki_lunas %></dd>
-            </dl>
-          </div>
+      </article>
+      <article class="rw-detail-stat">
+        <div class="rw-detail-stat-icon rw-detail-stat-icon-zakat"><i class="fas fa-coins"></i></div>
+        <div>
+          <p class="rw-detail-stat-label">Total Zakat</p>
+          <p class="rw-detail-stat-value">Rp <%= Math.floor(Number(rwStats.total_zakat || 0)).toLocaleString('id-ID') %></p>
         </div>
+      </article>
+      <article class="rw-detail-stat">
+        <div class="rw-detail-stat-icon rw-detail-stat-icon-lunas"><i class="fas fa-check-circle"></i></div>
+        <div>
+          <p class="rw-detail-stat-label">Muzakki Lunas</p>
+          <p class="rw-detail-stat-value"><%= rwStats.muzakki_lunas || 0 %></p>
+        </div>
+      </article>
+    </section>
+
+    <section class="rw-detail-table-card rw-detail-reveal" style="--rw-detail-delay: 180ms;">
+      <div class="rw-detail-section-head">
+        <div>
+          <h2 class="rw-detail-section-title">Daftar RT di <%= rw.nomor_rw %></h2>
+          <p class="rw-detail-section-subtitle">Kelola data RT dan pantau status muzakki per RT.</p>
+        </div>
+        <span class="rw-detail-chip"><%= rtData.length %> RT</span>
       </div>
-    </div>
-  </div>
 
-  <!-- RT List -->
-  <div class="bg-white shadow-sm rounded-lg overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-      <h2 class="text-lg font-semibold text-gray-900">Daftar RT di RW <%= rw.nomor_rw %></h2>
-      <a href="/rt/create" class="btn-primary">
-        <i class="fas fa-plus mr-2"></i>Tambah RT
-      </a>
-    </div>
-
-    <% if (rtList.length > 0) { %>
-    <div class="overflow-x-auto px-4">
-      <table class="w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50 px-4">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RT</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ketua RT</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statistik</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Zakat</th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <% rtList.forEach(function(rt) { %>
-          <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="flex items-center">
-                <div class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                  <i class="fas fa-home text-primary-600"></i>
+      <% if (rtData.length > 0) { %>
+      <div class="rw-detail-table-wrap">
+        <table class="rw-detail-table">
+          <thead>
+            <tr>
+              <th>RT</th>
+              <th>Ketua RT</th>
+              <th>Keterangan</th>
+              <th>Statistik</th>
+              <th>Total Zakat</th>
+              <th style="text-align: right;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% rtData.forEach(function(rt) { %>
+            <tr>
+              <td>
+                <div class="rw-detail-rt-cell">
+                  <div class="rw-detail-rt-icon"><i class="fas fa-home"></i></div>
+                  <div>
+                    <p class="rw-detail-rt-name"><%= rt.nomor_rt %></p>
+                    <p class="rw-detail-rt-id">ID: <%= rt.id %></p>
+                  </div>
                 </div>
-                <div class="ml-4">
-                  <div class="text-sm font-medium text-gray-900"><%= rt.nomor_rt %></div>
-                  <div class="text-sm text-gray-500">ID: <%= rt.id %></div>
-                </div>
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm font-medium text-gray-900"><%= rt.ketua_rt %></div>
-              <div class="text-sm text-gray-500">Ketua RT</div>
-            </td>
-            <td class="px-6 py-4">
-              <div class="text-sm text-gray-900"><%= rt.keterangan || '-' %></div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">
-                <div class="flex items-center space-x-4">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    <i class="fas fa-users mr-1"></i><%= rt.total_muzakki %> Muzakki
-                  </span>
-                </div>
-                <div class="flex items-center space-x-2 mt-1">
-                  <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
-                    <i class="fas fa-check mr-1"></i><%= rt.muzakki_lunas %> Lunas
-                  </span>
-                  <% if (rt.muzakki_belum_lunas > 0) { %>
-                  <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
-                    <i class="fas fa-times mr-1"></i><%= rt.muzakki_belum_lunas %> Belum
-                  </span>
+              </td>
+              <td><%= rt.ketua_rt %></td>
+              <td><%= rt.keterangan || '-' %></td>
+              <td>
+                <div class="rw-detail-badges">
+                  <span class="rw-detail-badge rw-detail-badge-blue"><i class="fas fa-users"></i><%= rt.total_muzakki || 0 %> Muzakki</span>
+                  <span class="rw-detail-badge rw-detail-badge-green"><i class="fas fa-check"></i><%= rt.muzakki_lunas || 0 %> Lunas</span>
+                  <% if (Number(rt.muzakki_belum_lunas || 0) > 0) { %>
+                  <span class="rw-detail-badge rw-detail-badge-red"><i class="fas fa-times"></i><%= rt.muzakki_belum_lunas %> Belum</span>
                   <% } %>
                 </div>
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm font-medium text-gray-900">
-                Rp <%= Math.floor(rt.total_zakat).toLocaleString('id-ID') %>
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <div class="flex items-center justify-end gap-4">
-                <a href="/rt/<%= rt.id %>/detail" class="text-blue-600 hover:text-blue-900" title="Detail RT">
-                  <i class="fas fa-eye"></i>
-                </a>
-                <a href="/rt/<%= rt.id %>/edit" class="text-indigo-600 hover:text-indigo-900" title="Edit RT">
-                  <i class="fas fa-edit"></i>
-                </a>
-                <form method="POST" action="/rt/<%= rt.id %>/delete" class="inline delete-rt-form" data-rt-id="<%= rt.id %>" data-rt-nomor="<%= rt.nomor_rt %>">
-                  <button type="button" class="text-red-600 hover:text-red-900 delete-rt-btn" title="Hapus RT">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </form>
-              </div>
-            </td>
-          </tr>
-          <% }); %>
-        </tbody>
-      </table>
-    </div>
-    <% } else { %>
-    <div class="text-center py-12">
-      <i class="fas fa-home text-gray-400 text-6xl mb-4"></i>
-      <h3 class="text-lg font-medium text-gray-900 mb-2">Belum Ada Data RT</h3>
-      <p class="text-gray-500 mb-4">RW ini belum memiliki RT. Tambahkan RT pertama.</p>
-      <a href="/rt/create" class="btn-primary">
-        <i class="fas fa-plus mr-2"></i>Tambah RT Pertama
-      </a>
-    </div>
-    <% } %>
+              </td>
+              <td>Rp <%= Math.floor(Number(rt.total_zakat || 0)).toLocaleString('id-ID') %></td>
+              <td style="text-align: right;">
+                <div class="rw-detail-actions">
+                  <a href="/rt/<%= rt.id %>/detail" class="rw-detail-action rw-detail-action-view" title="Detail RT">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <a href="/rt/<%= rt.id %>/edit" class="rw-detail-action rw-detail-action-edit" title="Edit RT">
+                    <i class="fas fa-pen"></i>
+                  </a>
+                  <form method="POST" action="/rt/<%= rt.id %>/delete" class="inline delete-rt-form" data-rt-nomor="<%= rt.nomor_rt %>">
+                    <button type="button" class="rw-detail-action rw-detail-action-delete delete-rt-btn" title="Hapus RT">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="rw-detail-mobile-list">
+        <% rtData.forEach(function(rt) { %>
+        <article class="rw-detail-mobile-card">
+          <div class="rw-detail-mobile-top">
+            <div>
+              <h3 class="rw-detail-mobile-name"><%= rt.nomor_rt %></h3>
+              <p class="rw-detail-mobile-sub">Ketua: <%= rt.ketua_rt %></p>
+            </div>
+            <div class="rw-detail-actions">
+              <a href="/rt/<%= rt.id %>/detail" class="rw-detail-action rw-detail-action-view" title="Detail RT">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a href="/rt/<%= rt.id %>/edit" class="rw-detail-action rw-detail-action-edit" title="Edit RT">
+                <i class="fas fa-pen"></i>
+              </a>
+              <form method="POST" action="/rt/<%= rt.id %>/delete" class="inline delete-rt-form" data-rt-nomor="<%= rt.nomor_rt %>">
+                <button type="button" class="rw-detail-action rw-detail-action-delete delete-rt-btn" title="Hapus RT">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="rw-detail-mobile-row">
+            <div>
+              <p class="rw-detail-mobile-label">Keterangan</p>
+              <p class="rw-detail-mobile-value"><%= rt.keterangan || '-' %></p>
+            </div>
+            <div>
+              <p class="rw-detail-mobile-label">Statistik</p>
+              <p class="rw-detail-mobile-value"><%= rt.total_muzakki || 0 %> Muzakki, <%= rt.muzakki_lunas || 0 %> Lunas</p>
+            </div>
+            <div>
+              <p class="rw-detail-mobile-label">Belum Lunas</p>
+              <p class="rw-detail-mobile-value"><%= rt.muzakki_belum_lunas || 0 %></p>
+            </div>
+            <div>
+              <p class="rw-detail-mobile-label">Total Zakat</p>
+              <p class="rw-detail-mobile-value">Rp <%= Math.floor(Number(rt.total_zakat || 0)).toLocaleString('id-ID') %></p>
+            </div>
+          </div>
+        </article>
+        <% }); %>
+      </div>
+      <% } else { %>
+      <div class="rw-detail-empty">
+        <i class="fas fa-home"></i>
+        <h3>Belum Ada Data RT</h3>
+        <p>RW ini belum memiliki RT. Tambahkan RT pertama agar data wilayah lebih lengkap.</p>
+        <a href="/rt/create" class="rw-detail-btn rw-detail-btn-light">
+          <i class="fas fa-plus"></i>Tambah RT Pertama
+        </a>
+      </div>
+      <% } %>
+    </section>
   </div>
-</div>
-
-<% if (error) { %>
-<script>
-  Swal.fire({
-    icon: 'error',
-    title: 'Error',
-    text: '<%= error %>',
-    confirmButtonText: 'OK'
-  });
-</script>
-<% } %>
-
-<% if (success) { %>
-<script>
-  Swal.fire({
-    icon: 'success',
-    title: 'Berhasil',
-    text: '<%= success %>',
-    confirmButtonText: 'OK'
-  });
-</script>
-<% } %>
+</section>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.delete-rt-btn').forEach(button => {
-      button.addEventListener('click', function() {
-        const form = this.closest('.delete-rt-form');
-        const rtNomor = form.getAttribute('data-rt-nomor');
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".delete-rt-btn").forEach((button) => {
+      button.addEventListener("click", function () {
+        const form = this.closest(".delete-rt-form");
+        const rtNomor = form.getAttribute("data-rt-nomor");
 
         Swal.fire({
-          title: 'Konfirmasi Hapus',
-          text: `Yakin ingin menghapus RT ${rtNomor}? Data ini tidak dapat dikembalikan.`,
-          icon: 'warning',
+          title: "Konfirmasi Hapus",
+          text: "Yakin ingin menghapus RT " + rtNomor + "? Data ini tidak dapat dikembalikan.",
+          icon: "warning",
           showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: 'Ya, Hapus',
-          cancelButtonText: 'Batal'
+          confirmButtonColor: "#dc2626",
+          cancelButtonColor: "#64748b",
+          confirmButtonText: "Ya, Hapus",
+          cancelButtonText: "Batal",
         }).then((result) => {
           if (result.isConfirmed) {
             form.submit();
@@ -281,5 +927,27 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'rt' }) %>
     });
   });
 </script>
+
+<% if (error) { %>
+<script>
+  Swal.fire({
+    icon: "error",
+    title: "Error",
+    text: <%- JSON.stringify(error) %>,
+    confirmButtonText: "OK",
+  });
+</script>
+<% } %>
+
+<% if (success) { %>
+<script>
+  Swal.fire({
+    icon: "success",
+    title: "Berhasil",
+    text: <%- JSON.stringify(success) %>,
+    confirmButtonText: "OK",
+  });
+</script>
+<% } %>
 
 <%- include('../layouts/footer') %>

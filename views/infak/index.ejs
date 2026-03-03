@@ -164,22 +164,17 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
               </tr>
               <% }); %>
             </tbody>
-            <tfoot>
-              <tr class="table-footer-row">
-                <td colspan="3" class="footer-label">
-                  <i class="fas fa-calculator mr-2"></i>
-                  Total Infak
-                </td>
-                <td class="text-center">
-                  <div class="footer-total-amount">
-                    Rp <%= Math.floor(infak.reduce((total, item) => total +
-                    (parseFloat(item.jumlah) || 0), 0)).toLocaleString('id-ID') %>
-                  </div>
-                </td>
-                <td></td>
-              </tr>
-            </tfoot>
           </table>
+        </div>
+        <div class="table-total-summary">
+          <div class="table-total-label">
+            <i class="fas fa-calculator mr-2"></i>
+            Total Infak
+          </div>
+          <div class="table-total-value">
+            Rp <%= Math.floor(infak.reduce((total, item) => total +
+            (parseFloat(item.jumlah) || 0), 0)).toLocaleString('id-ID') %>
+          </div>
         </div>
       <% } %>
     </div>
@@ -531,30 +526,36 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
   /* Data Table */
   .table-responsive-wrapper {
     overflow-x: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    padding: 10px;
   }
 
   .data-table {
     width: 100%;
-    border-collapse: collapse;
+    min-width: 760px;
+    border-collapse: separate;
+    border-spacing: 0 8px;
   }
 
   .data-table thead tr {
-    background: linear-gradient(to right, #f9fafb, #f3f4f6);
-    border-bottom: 2px solid #e5e7eb;
+    background: transparent;
+    border-bottom: 0;
   }
 
   .data-table th {
-    padding: 14px 16px;
+    padding: 0 14px 10px;
     text-align: left;
-    font-size: 13px;
-    font-weight: 600;
-    color: #374151;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.65px;
+    white-space: nowrap;
   }
 
   .data-table tbody tr {
-    border-bottom: 1px solid #e5e7eb;
     transition: all 0.3s ease;
     opacity: 0;
     animation: fadeInRow 0.5s ease forwards;
@@ -572,70 +573,121 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
   }
 
   .data-table tbody tr:hover {
-    background: linear-gradient(to right, #f0fdf4, #dcfce7);
-    transform: scale(1.01);
-    box-shadow: 0 2px 8px rgba(30, 175, 47, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .data-table tbody td {
+    padding: 14px;
+    font-size: 14px;
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.04);
+    transition: background 0.25s ease, border-color 0.25s ease;
+  }
+
+  .data-table tbody td:first-child {
+    border-left: 1px solid #e5e7eb;
+    border-radius: 12px 0 0 12px;
+  }
+
+  .data-table tbody td:last-child {
+    border-right: 1px solid #e5e7eb;
+    border-radius: 0 12px 12px 0;
+  }
+
+  .data-table tbody tr:hover td {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
   }
 
   .data-table td {
-    padding: 16px;
-    font-size: 14px;
+    overflow-wrap: anywhere;
   }
 
-  .data-table tfoot tr {
-    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
-    border-top: 2px solid #e5e7eb;
-  }
-
-  .table-footer-row td {
-    padding: 20px 16px;
-    font-weight: 600;
-  }
-
-  .footer-label {
-    font-size: 16px;
-    color: #111827;
+  .table-total-summary {
+    margin-top: 12px;
+    border: 1px solid #dbeafe;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 12px 14px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 10px;
   }
 
-  .footer-total-amount {
-    font-size: 20px;
+  .table-total-label {
+    font-size: 14px;
+    color: #0f172a;
+    display: inline-flex;
+    align-items: center;
     font-weight: 700;
-    color: #1EAF2F;
+    letter-spacing: 0.2px;
+  }
+
+  .table-total-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: #15803d;
+    text-align: right;
+    overflow-wrap: anywhere;
   }
 
   /* Table Cell Content */
   .cell-content-primary {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 5px;
   }
 
   .date-display {
     font-weight: 600;
-    color: #111827;
+    color: #0f172a;
     font-size: 14px;
     display: flex;
     align-items: center;
+    line-height: 1.4;
+  }
+
+  .date-display i {
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #dcfce7;
+    color: #166534;
+    margin-right: 8px;
   }
 
   .time-display {
     font-size: 12px;
-    color: #6b7280;
+    color: #64748b;
     display: flex;
     align-items: center;
+    font-weight: 500;
   }
 
   .muzakki-name {
-    font-weight: 600;
-    color: #111827;
+    font-weight: 700;
+    color: #0f172a;
     font-size: 15px;
+    line-height: 1.35;
   }
 
   .muzakki-id {
-    font-size: 12px;
-    color: #9ca3af;
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
   }
 
   .text-center {
@@ -649,30 +701,106 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
   .rt-badge-small {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
-    background: #f3f4f6;
-    color: #374151;
-    border-radius: 8px;
+    gap: 5px;
+    padding: 6px 10px;
+    background: #f1f5f9;
+    color: #334155;
+    border-radius: 999px;
+    border: 1px solid #dbeafe;
     font-weight: 600;
     font-size: 12px;
   }
 
   .amount-display-large {
-    font-weight: 700;
-    font-size: 16px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    padding: 7px 12px;
+    border-radius: 10px;
+    border: 1px solid #bbf7d0;
+    background: #f0fdf4;
+    font-weight: 700;
+    font-size: 14px;
+    white-space: nowrap;
   }
 
   .amount-primary {
-    color: #1EAF2F;
+    color: #166534;
   }
 
   .keterangan-text {
     font-size: 14px;
-    color: #6b7280;
+    color: #475569;
+    line-height: 1.5;
+  }
+
+  html.dark-mode .table-responsive-wrapper {
+    border-color: #1f2937;
+    background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+  }
+
+  html.dark-mode .data-table th {
+    color: #94a3b8;
+  }
+
+  html.dark-mode .data-table tbody td {
+    background: #0f172a;
+    border-color: #1f2937;
+    box-shadow: none;
+  }
+
+  html.dark-mode .data-table tbody tr:hover td {
+    background: #0b2a1b;
+    border-color: #14532d;
+  }
+
+  html.dark-mode .table-total-summary {
+    background: #111827;
+    border-color: #1f2937;
+  }
+
+  html.dark-mode .table-total-label {
+    color: #e2e8f0;
+  }
+
+  html.dark-mode .table-total-value {
+    color: #86efac;
+  }
+
+  html.dark-mode .date-display,
+  html.dark-mode .muzakki-name {
+    color: #f1f5f9;
+  }
+
+  html.dark-mode .date-display i {
+    background: rgba(34, 197, 94, 0.18);
+    color: #86efac;
+  }
+
+  html.dark-mode .time-display,
+  html.dark-mode .keterangan-text {
+    color: #cbd5e1;
+  }
+
+  html.dark-mode .muzakki-id {
+    color: #93c5fd;
+    background: #111827;
+    border-color: #1f2937;
+  }
+
+  html.dark-mode .rt-badge-small {
+    background: rgba(148, 163, 184, 0.12);
+    border-color: #334155;
+    color: #cbd5e1;
+  }
+
+  html.dark-mode .amount-display-large {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: rgba(74, 222, 128, 0.4);
+  }
+
+  html.dark-mode .amount-primary {
+    color: #86efac;
   }
 
   /* Information Card */
@@ -882,8 +1010,19 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
       font-size: 14px;
     }
 
-    .footer-total-amount {
+    .table-total-value {
       font-size: 16px;
+    }
+
+    .table-total-summary {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .table-total-label,
+    .table-total-value {
+      width: 100%;
     }
   }
 </style>

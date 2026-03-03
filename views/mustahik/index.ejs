@@ -355,7 +355,7 @@
   <style>
     /* Page Wrapper */
     .page-wrapper {
-      padding: 1rem;
+      padding: 0.42rem 0.14rem 0.92rem;
       display: flex;
       flex-direction: column;
       gap: 24px;
@@ -706,17 +706,17 @@
 
     /* Table Section */
     .table-section {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      border: 1px solid #e5e7eb;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border-radius: 18px;
+      box-shadow: 0 10px 32px rgba(15, 23, 42, 0.08);
+      border: 1px solid #e2e8f0;
       overflow: hidden;
     }
 
     .table-header-wrapper {
-      background: linear-gradient(to right, #f9fafb, #f3f4f6);
+      background: linear-gradient(130deg, #f8fafc 0%, #f1f5f9 60%, #ecfdf3 100%);
       padding: 24px 28px;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e2e8f0;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -764,13 +764,15 @@
     .table-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      background: #d1fae5;
-      color: #065f46;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
+      gap: 7px;
+      padding: 8px 14px;
+      background: rgba(22, 163, 74, 0.12);
+      color: #166534;
+      border: 1px solid rgba(22, 163, 74, 0.2);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
     }
 
     .table-content-wrapper {
@@ -832,6 +834,10 @@
     /* Data Table */
     .table-responsive-wrapper {
       overflow-x: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 10px;
+      background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
     }
 
     .desktop-view {
@@ -844,26 +850,28 @@
 
     .data-table {
       width: 100%;
-      border-collapse: collapse;
+      min-width: 760px;
+      border-collapse: separate;
+      border-spacing: 0 9px;
     }
 
     .data-table thead tr {
-      background: linear-gradient(to right, #f9fafb, #f3f4f6);
-      border-bottom: 2px solid #e5e7eb;
+      background: transparent;
+      border-bottom: 0;
     }
 
     .data-table th {
-      padding: 14px 16px;
+      padding: 0 14px 11px;
       text-align: left;
-      font-size: 13px;
-      font-weight: 600;
-      color: #374151;
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.65px;
+      white-space: nowrap;
     }
 
     .data-table tbody tr {
-      border-bottom: 1px solid #e5e7eb;
       transition: all 0.3s ease;
       opacity: 0;
       animation: fadeInRow 0.5s ease forwards;
@@ -882,32 +890,63 @@
     }
 
     .data-table tbody tr:hover {
-      background: linear-gradient(to right, #f0fdf4, #dcfce7);
-      transform: scale(1.01);
-      box-shadow: 0 2px 8px rgba(30, 175, 47, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .data-table tbody td {
+      padding: 14px;
+      font-size: 14px;
+      vertical-align: middle;
+      background: #ffffff;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+      transition: background 0.24s ease, border-color 0.24s ease;
+    }
+
+    .data-table tbody td:first-child {
+      border-left: 1px solid #e2e8f0;
+      border-top-left-radius: 12px;
+      border-bottom-left-radius: 12px;
+    }
+
+    .data-table tbody td:last-child {
+      border-right: 1px solid #e2e8f0;
+      border-top-right-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+
+    .data-table tbody tr:hover td {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
     }
 
     .data-table td {
-      padding: 16px;
-      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .data-table th:last-child,
+    .data-table td:last-child {
+      text-align: right;
     }
 
     /* Cell Mustahik */
     .cell-mustahik {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 13px;
     }
 
     .mustahik-avatar {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-      border-radius: 12px;
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(140deg, #7c3aed 0%, #db2777 100%);
+      border-radius: 13px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      box-shadow: 0 6px 14px rgba(124, 58, 237, 0.26);
     }
 
     .mustahik-avatar span {
@@ -923,14 +962,23 @@
     }
 
     .mustahik-name {
-      font-weight: 600;
-      color: #111827;
+      font-weight: 700;
+      color: #0f172a;
       font-size: 14px;
+      line-height: 1.35;
     }
 
     .mustahik-rt {
-      font-size: 12px;
-      color: #6b7280;
+      font-size: 11px;
+      color: #64748b;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      width: fit-content;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
     }
 
     /* Category Badge */
@@ -939,59 +987,80 @@
       align-items: center;
       gap: 6px;
       padding: 6px 12px;
-      border-radius: 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
+      letter-spacing: 0.15px;
+      white-space: nowrap;
     }
 
     .category-fakir {
       background: #fee2e2;
       color: #991b1b;
+      border-color: #fecaca;
     }
 
     .category-miskin {
       background: #fed7aa;
       color: #9a3412;
+      border-color: #fdba74;
     }
 
     .category-amil {
       background: #d1fae5;
       color: #065f46;
+      border-color: #86efac;
     }
 
     .category-mualaf {
       background: #dbeafe;
       color: #1e40af;
+      border-color: #93c5fd;
     }
 
     .category-fisabilillah {
       background: #e9d5ff;
       color: #6b21a8;
+      border-color: #d8b4fe;
     }
 
     .category-ibnu_sabil {
       background: #fef3c7;
       color: #92400e;
+      border-color: #fcd34d;
     }
 
     .category-gharimin {
       background: #fce7f3;
       color: #831843;
+      border-color: #f9a8d4;
     }
 
     .category-riqab {
       background: #e0e7ff;
       color: #3730a3;
+      border-color: #a5b4fc;
     }
 
     /* Cell Date */
     .cell-date {
-      font-size: 14px;
-      color: #6b7280;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid #dbeafe;
+      background: #f8fafc;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
     }
 
     .cell-date i {
-      margin-right: 6px;
+      margin-right: 0;
+      color: #2563eb;
     }
 
     /* Action Buttons */
@@ -999,6 +1068,7 @@
       display: flex;
       gap: 8px;
       align-items: center;
+      justify-content: flex-end;
     }
 
     .inline-form {
@@ -1008,11 +1078,11 @@
     .btn-icon {
       width: 36px;
       height: 36px;
-      border-radius: 10px;
+      border-radius: 11px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border: none;
+      border: 1px solid transparent;
       cursor: pointer;
       transition: all 0.3s ease;
       font-size: 14px;
@@ -1020,8 +1090,9 @@
     }
 
     .btn-icon-info {
-      background: #dbeafe;
-      color: #1e40af;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
     }
 
     .btn-icon-info:hover {
@@ -1032,8 +1103,9 @@
     }
 
     .btn-icon-primary {
-      background: #d1fae5;
-      color: #065f46;
+      background: #ecfdf5;
+      color: #047857;
+      border-color: #a7f3d0;
     }
 
     .btn-icon-primary:hover {
@@ -1044,8 +1116,9 @@
     }
 
     .btn-icon-danger {
-      background: #fee2e2;
-      color: #991b1b;
+      background: #fef2f2;
+      color: #b91c1c;
+      border-color: #fecaca;
     }
 
     .btn-icon-danger:hover {
@@ -1054,6 +1127,98 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
     }
+
+    html.dark-mode .table-section {
+      background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+      border-color: #1f2937;
+      box-shadow: none;
+    }
+
+    html.dark-mode .table-header-wrapper {
+      background: linear-gradient(130deg, #111827 0%, #0f172a 100%);
+      border-bottom-color: #1f2937;
+    }
+
+    html.dark-mode .table-title {
+      color: #f1f5f9;
+    }
+
+    html.dark-mode .table-subtitle {
+      color: #94a3b8;
+    }
+
+    html.dark-mode .table-badge {
+      background: rgba(34, 197, 94, 0.14);
+      color: #86efac;
+      border-color: rgba(74, 222, 128, 0.3);
+    }
+
+    html.dark-mode .table-responsive-wrapper {
+      border-color: #1f2937;
+      background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+    }
+
+    html.dark-mode .data-table th {
+      color: #94a3b8;
+    }
+
+    html.dark-mode .data-table tbody td {
+      background: #0f172a;
+      border-color: #1f2937;
+      box-shadow: none;
+    }
+
+    html.dark-mode .data-table tbody tr:hover td {
+      background: #0b2a1b;
+      border-color: #14532d;
+    }
+
+    html.dark-mode .mustahik-name {
+      color: #f1f5f9;
+    }
+
+    html.dark-mode .mustahik-rt {
+      color: #cbd5e1;
+      background: #111827;
+      border-color: #1f2937;
+    }
+
+    html.dark-mode .cell-date {
+      color: #cbd5e1;
+      background: #111827;
+      border-color: #334155;
+    }
+
+    html.dark-mode .cell-date i {
+      color: #60a5fa;
+    }
+
+    html.dark-mode .btn-icon-info {
+      background: rgba(37, 99, 235, 0.18);
+      color: #93c5fd;
+      border-color: rgba(147, 197, 253, 0.25);
+    }
+
+    html.dark-mode .btn-icon-primary {
+      background: rgba(5, 150, 105, 0.2);
+      color: #6ee7b7;
+      border-color: rgba(110, 231, 183, 0.26);
+    }
+
+    html.dark-mode .btn-icon-danger {
+      background: rgba(185, 28, 28, 0.2);
+      color: #fca5a5;
+      border-color: rgba(252, 165, 165, 0.26);
+    }
+
+    html.dark-mode .category-fakir { background: rgba(185, 28, 28, 0.24); color: #fecaca; border-color: rgba(252, 165, 165, 0.35); }
+    html.dark-mode .category-miskin { background: rgba(194, 65, 12, 0.24); color: #fdba74; border-color: rgba(251, 146, 60, 0.35); }
+    html.dark-mode .category-amil { background: rgba(4, 120, 87, 0.24); color: #86efac; border-color: rgba(74, 222, 128, 0.35); }
+    html.dark-mode .category-mualaf { background: rgba(30, 64, 175, 0.24); color: #93c5fd; border-color: rgba(96, 165, 250, 0.35); }
+    html.dark-mode .category-fisabilillah { background: rgba(107, 33, 168, 0.24); color: #d8b4fe; border-color: rgba(192, 132, 252, 0.35); }
+    html.dark-mode .category-ibnu_sabil { background: rgba(146, 64, 14, 0.24); color: #fcd34d; border-color: rgba(250, 204, 21, 0.35); }
+    html.dark-mode .category-gharimin { background: rgba(131, 24, 67, 0.24); color: #f9a8d4; border-color: rgba(244, 114, 182, 0.35); }
+    html.dark-mode .category-riqab { background: rgba(55, 48, 163, 0.24); color: #c7d2fe; border-color: rgba(129, 140, 248, 0.35); }
 
     /* Mobile Card View */
     .mobile-card {
@@ -1151,7 +1316,7 @@
 
     @media (max-width: 768px) {
       .page-wrapper {
-        padding: 16px;
+        padding: 0.34rem 0.1rem 0.76rem;
       }
 
       .page-header {

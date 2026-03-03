@@ -156,6 +156,10 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
         </div>
       </div>
       <div class="table-header-right">
+        <button type="button" class="btn-export-excel" onclick="exportRtToExcel()" title="Export data RT ke Excel">
+          <i class="fas fa-file-excel"></i>
+          <span>Export Excel</span>
+        </button>
         <button type="button" class="btn-tambah-infak" onclick="openInfakModal()" title="Tambah Infak dari Kembalian">
           <i class="fas fa-hand-holding-heart"></i>
           <span>Tambah Infak</span>
@@ -411,10 +415,10 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   .page-wrapper {
     max-width: 100%;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 0.26rem;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 16px;
   }
 
   /* Page Header */
@@ -874,6 +878,31 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     gap: 12px;
   }
 
+  .btn-export-excel {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+  }
+
+  .btn-export-excel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.35);
+  }
+
+  .btn-export-excel i {
+    font-size: 15px;
+  }
+
   .btn-tambah-infak {
     display: inline-flex;
     align-items: center;
@@ -1226,7 +1255,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   }
 
   @media (max-width: 768px) {
-    .page-wrapper { padding: 16px; gap: 16px; }
+    .page-wrapper { padding: 0.5rem 0.3rem 1rem; gap: 14px; }
     .page-header { padding: 20px; }
     .header-content-wrapper { flex-direction: column; align-items: flex-start; }
     .header-left-section { flex-wrap: wrap; }
@@ -1257,16 +1286,19 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       justify-content: flex-end;
     }
     
-    .btn-tambah-infak {
+    .btn-tambah-infak,
+    .btn-export-excel {
       padding: 8px 14px;
       font-size: 13px;
     }
     
-    .btn-tambah-infak span {
+    .btn-tambah-infak span,
+    .btn-export-excel span {
       display: none;
     }
     
-    .btn-tambah-infak i {
+    .btn-tambah-infak i,
+    .btn-export-excel i {
       margin: 0;
     }
     
@@ -1296,7 +1328,8 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       width: 100%;
     }
     
-    .btn-tambah-infak {
+    .btn-tambah-infak,
+    .btn-export-excel {
       width: 40px;
       height: 40px;
       padding: 0;
@@ -1379,7 +1412,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
   @media (max-width: 768px) {
     .page-wrapper {
-      padding: 0.75rem;
+      padding: 0.5rem 0.3rem 1rem;
     }
 
     .header-left-section {
@@ -1419,7 +1452,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
   @media (max-width: 420px) {
     .page-wrapper {
-      padding: 0.5rem;
+      padding: 0.34rem 0.22rem 0.86rem;
       gap: 12px;
     }
 
@@ -1449,6 +1482,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     .stat-box:hover,
     .btn-action:hover,
     .btn-tambah-infak:hover,
+    .btn-export-excel:hover,
     .btn-filter-primary:hover,
     .btn-filter-secondary:hover,
     .btn-icon:hover {
@@ -1474,6 +1508,97 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       }<%= index < muzakki.length - 1 ? ',' : '' %>
     <% }); %>
   ];
+
+  const currentRtId = <%- JSON.stringify(String(rt.id || '')) %>;
+  const currentRtNomor = <%- JSON.stringify(String(rt.nomor_rt || '')) %>;
+
+  async function exportRtToExcel() {
+    const result = await Swal.fire({
+      title: 'Export Data RT ke Excel',
+      html: `
+        <div style="text-align: left; padding: 16px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px;">
+          <div style="font-size: 15px; color: #065f46; font-weight: 700; margin-bottom: 8px;">
+            RT ${currentRtNomor || '-'}
+          </div>
+          <div style="font-size: 13px; color: #374151;">
+            File Excel akan berisi data muzakki untuk RT ini saja.
+          </div>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-download mr-2"></i>Download',
+      cancelButtonText: '<i class="fas fa-times mr-2"></i>Batal',
+      reverseButtons: true,
+      confirmButtonColor: '#059669',
+      cancelButtonColor: '#6b7280'
+    });
+
+    if (!result.isConfirmed) return;
+
+    Swal.fire({
+      title: 'Menyiapkan File Excel...',
+      html: 'Mohon tunggu sebentar',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    try {
+      const response = await fetch(`/muzakki/rt/${encodeURIComponent(currentRtId)}/export-excel`);
+      if (!response.ok) {
+        let message = `HTTP ${response.status}`;
+        try {
+          const payload = await response.json();
+          message = payload.message || message;
+        } catch (e) {
+          // Keep fallback message
+        }
+        throw new Error(message);
+      }
+
+      const buffer = await response.arrayBuffer();
+      if (!buffer || buffer.byteLength === 0) {
+        throw new Error('File Excel kosong');
+      }
+
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+
+      const today = new Date().toISOString().split('T')[0];
+      const safeRt = (currentRtNomor || 'unknown')
+        .replace(/[^a-zA-Z0-9_-]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '') || 'unknown';
+      const filename = `Data_Muzakki_RT_${safeRt}_${today}.xlsx`;
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Export Berhasil',
+        text: `File ${filename} berhasil diunduh`,
+        confirmButtonColor: '#059669'
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Export Gagal',
+        text: error.message || 'Terjadi kesalahan saat export data',
+        confirmButtonColor: '#ef4444'
+      });
+    }
+  }
 
   // Combined filter functionality (search + date)
   function applyFilters() {
@@ -1846,7 +1971,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     if (hasMore) {
       const remaining = names.length - maxDisplay;
       html += `
-        <button type="button" class="btn-show-more-names" onclick="showAllMuzakkiNames('${itemId}', '${namesString.replace(/'/g, "\\'")}')">>
+        <button type="button" class="btn-show-more-names" onclick="showAllMuzakkiNames('${itemId}', '${namesString.replace(/'/g, "\\'")}')">
           <i class="fas fa-eye"></i>
           <span>Lihat ${remaining} lainnya</span>
         </button>

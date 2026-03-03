@@ -1,209 +1,743 @@
-<%- include('../layouts/header', { title: 'Edit RT - Zakat Fitrah App',
-bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'rt' }) %>
+<%- include('../layouts/header', { title: 'Edit RT - Zakat Fitrah App', bodyClass: 'min-h-screen bg-gray-100', currentPage: 'rt' }) %>
 
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-  <!-- Header -->
-  <div class="mb-6">
-    <div class="flex items-center mb-4">
-      <a href="/rt" class="text-primary-600 hover:text-primary-800 mr-4">
-        <i class="fas fa-arrow-left"></i>
-      </a>
-      <h1 class="text-3xl font-bold text-gray-900">
-        <i class="fas fa-edit mr-2 text-primary-600"></i>Edit RT
-      </h1>
-    </div>
-    <p class="text-gray-600">Edit data RT <%= rt.nomor_rt %></p>
-  </div>
+<%
+  const selectedRw = (rwList || []).find(function (rw) {
+    return String(rw.id) === String(rt.rw_id);
+  });
+%>
 
-  <!-- Form -->
-  <div class="bg-white shadow-sm rounded-lg overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h2 class="text-lg font-semibold text-gray-900">Informasi RT</h2>
-    </div>
+<style>
+  .rt-edit-page {
+    position: relative;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0.9rem 0.62rem 1.8rem;
+  }
 
-    <form
-      method="POST"
-      action="/rt/<%= rt.id %>/edit"
-      class="p-6 space-y-6"
-      id="rt-form"
-    >
-      <!-- Pilih RW -->
-      <div>
-        <label
-          for="rw_id"
-          class="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Pilih RW <span class="text-red-500">*</span>
-        </label>
-        <div class="relative">
-          <div
-            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-          >
-            <i class="fas fa-building text-gray-400"></i>
-          </div>
-          <select
-            id="rw_id"
-            name="rw_id"
-            required
-            class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-          >
-            <option value="">Pilih RW</option>
-            <% rwList.forEach(function(rw) { %>
-            <option value="<%= rw.id %>" <%= rt.rw_id == rw.id ? 'selected' : '' %>><%= rw.nomor_rw %> - <%= rw.ketua_rw %></option>
-            <% }); %>
-          </select>
-        </div>
-        <p class="mt-1 text-sm text-gray-500">
-          Pilih RW tempat RT ini berada
-        </p>
-      </div>
+  .rt-edit-shell {
+    position: relative;
+    z-index: 2;
+  }
 
-      <!-- Nomor RT -->
-      <div>
-        <label
-          for="nomor_rt"
-          class="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Nomor RT <span class="text-red-500">*</span>
-        </label>
-        <div class="relative">
-          <div
-            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-          >
-            <i class="fas fa-home text-gray-400"></i>
-          </div>
-          <input
-            type="text"
-            id="nomor_rt"
-            name="nomor_rt"
-            required
-            value="<%= rt.nomor_rt %>"
-            placeholder="Contoh: RT 01, RT 02, dll"
-            class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-          />
-        </div>
-        <p class="mt-1 text-sm text-gray-500">
-          Masukkan nomor RT, contoh: RT 01, RT 02, RT 11, dll.
-        </p>
-      </div>
+  .rt-edit-orb {
+    position: absolute;
+    z-index: 1;
+    border-radius: 9999px;
+    filter: blur(8px);
+    pointer-events: none;
+    opacity: 0.6;
+  }
 
-      <!-- Ketua RT -->
-      <div>
-        <label
-          for="ketua_rt"
-          class="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Nama Ketua RT <span class="text-red-500">*</span>
-        </label>
-        <div class="relative">
-          <div
-            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-          >
-            <i class="fas fa-user text-gray-400"></i>
-          </div>
-          <input
-            type="text"
-            id="ketua_rt"
-            name="ketua_rt"
-            required
-            value="<%= rt.ketua_rt %>"
-            placeholder="Nama lengkap ketua RT"
-            class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-          />
-        </div>
-        <p class="mt-1 text-sm text-gray-500">Masukkan nama lengkap ketua RT</p>
-      </div>
+  .rt-edit-orb-a {
+    width: 220px;
+    height: 220px;
+    top: 12px;
+    right: -60px;
+    background: radial-gradient(circle at center, rgba(34, 197, 94, 0.24), rgba(16, 185, 129, 0));
+  }
 
-      <!-- Keterangan -->
-      <div>
-        <label
-          for="keterangan"
-          class="block text-sm font-medium text-gray-700 mb-2"
-        >
-          Keterangan
-        </label>
-        <div class="relative">
-          <div
-            class="absolute top-3 left-0 pl-3 flex items-start pointer-events-none"
-          >
-            <i class="fas fa-sticky-note text-gray-400"></i>
-          </div>
-          <textarea
-            id="keterangan"
-            name="keterangan"
-            rows="3"
-            placeholder="Catatan tambahan atau keterangan RT (opsional)"
-            class="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-          >
-<%= rt.keterangan || '' %></textarea
-          >
-        </div>
-        <p class="mt-1 text-sm text-gray-500">
-          Keterangan tambahan tentang RT (opsional)
-        </p>
-      </div>
+  .rt-edit-orb-b {
+    width: 170px;
+    height: 170px;
+    bottom: 80px;
+    left: -40px;
+    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.16), rgba(59, 130, 246, 0));
+  }
 
-      <!-- Action Buttons -->
-      <div
-        class="flex items-center justify-between pt-6 border-t border-gray-200"
-      >
-        <a href="/rt" class="btn-secondary">
-          <i class="fas fa-times mr-2"></i>Batal
+  .rt-edit-hero {
+    background: linear-gradient(120deg, #0f766e 0%, #16a34a 55%, #22c55e 100%);
+    border-radius: 22px;
+    padding: 1.2rem 1.15rem;
+    color: #ffffff;
+    box-shadow: 0 18px 40px rgba(21, 128, 61, 0.28);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .rt-edit-hero::after {
+    content: "";
+    position: absolute;
+    width: 240px;
+    height: 240px;
+    border-radius: 9999px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 68%);
+    top: -108px;
+    right: -60px;
+  }
+
+  .rt-edit-hero-main {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    position: relative;
+    z-index: 2;
+    min-width: 0;
+  }
+
+  .rt-edit-back {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.13);
+    transition: all 0.24s ease;
+    flex-shrink: 0;
+  }
+
+  .rt-edit-back:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .rt-edit-title {
+    margin: 0;
+    font-size: 1.42rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.1px;
+  }
+
+  .rt-edit-subtitle {
+    margin: 0.28rem 0 0 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.92rem;
+  }
+
+  .rt-edit-chip {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.56rem 0.88rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #064e3b;
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 10px 24px rgba(4, 120, 87, 0.2);
+    white-space: nowrap;
+  }
+
+  .rt-edit-layout {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .rt-edit-card {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+  }
+
+  .rt-edit-card-head {
+    padding: 1rem 1rem 0.72rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  }
+
+  .rt-edit-card-title {
+    margin: 0;
+    font-size: 1.04rem;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .rt-edit-card-desc {
+    margin: 0.26rem 0 0 0;
+    font-size: 0.84rem;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  .rt-edit-form {
+    padding: 1rem;
+    display: grid;
+    gap: 0.88rem;
+  }
+
+  .rt-edit-field {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 0.78rem;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  }
+
+  .rt-edit-field:focus-within {
+    border-color: rgba(22, 163, 74, 0.36);
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.14);
+    transform: translateY(-1px);
+  }
+
+  .rt-edit-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .rt-edit-label {
+    margin: 0;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .rt-edit-mandatory {
+    color: #dc2626;
+  }
+
+  .rt-edit-input-wrap {
+    position: relative;
+  }
+
+  .rt-edit-input-wrap i {
+    position: absolute;
+    left: 0.88rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 0.88rem;
+    pointer-events: none;
+  }
+
+  .rt-edit-input-wrap-textarea i {
+    top: 1rem;
+    transform: none;
+  }
+
+  .rt-edit-control {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #111827;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    padding: 0.62rem 0.72rem 0.62rem 2.2rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .rt-edit-control:focus {
+    outline: none;
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.16);
+  }
+
+  .rt-edit-help {
+    margin: 0.44rem 0 0 0;
+    font-size: 0.76rem;
+    line-height: 1.45;
+    color: #6b7280;
+  }
+
+  .rt-edit-actions {
+    border-top: 1px solid #e5e7eb;
+    margin-top: 0.28rem;
+    padding-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.72rem;
+  }
+
+  .rt-edit-btn {
+    border: 0;
+    border-radius: 10px;
+    padding: 0.66rem 1rem;
+    font-size: 0.86rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    cursor: pointer;
+  }
+
+  .rt-edit-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .rt-edit-btn-muted {
+    color: #1f2937;
+    background: #e5e7eb;
+  }
+
+  .rt-edit-btn-muted:hover {
+    background: #d1d5db;
+  }
+
+  .rt-edit-btn-primary {
+    color: #ffffff;
+    background: linear-gradient(120deg, #15803d 0%, #16a34a 100%);
+    box-shadow: 0 10px 20px rgba(22, 163, 74, 0.28);
+  }
+
+  .rt-edit-btn-primary:hover {
+    box-shadow: 0 14px 24px rgba(22, 163, 74, 0.34);
+  }
+
+  .rt-edit-side {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .rt-edit-side-card {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 20px;
+    padding: 0.95rem;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.05);
+  }
+
+  .rt-edit-side-title {
+    margin: 0 0 0.84rem 0;
+    font-size: 0.94rem;
+    color: #111827;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .rt-edit-side-title i {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(120deg, #dcfce7 0%, #bbf7d0 100%);
+    color: #047857;
+    font-size: 0.76rem;
+  }
+
+  .rt-edit-summary {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.56rem;
+  }
+
+  .rt-edit-summary li {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 0.58rem 0.66rem;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+  }
+
+  .rt-edit-summary span {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  .rt-edit-summary strong {
+    font-size: 0.78rem;
+    color: #111827;
+    font-weight: 700;
+    text-align: right;
+  }
+
+  .rt-edit-warning {
+    border: 1px solid #fde68a;
+    background: linear-gradient(165deg, #fffbeb 0%, #fef3c7 100%);
+  }
+
+  .rt-edit-warning .rt-edit-side-title i {
+    background: linear-gradient(120deg, #fef3c7 0%, #fde68a 100%);
+    color: #b45309;
+  }
+
+  .rt-edit-warning-list {
+    margin: 0;
+    padding-left: 1rem;
+    display: grid;
+    gap: 0.5rem;
+    color: #92400e;
+    font-size: 0.8rem;
+    line-height: 1.48;
+  }
+
+  .rt-edit-reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: rtEditReveal 0.55s ease forwards;
+    animation-delay: var(--reveal-delay, 0ms);
+  }
+
+  @keyframes rtEditReveal {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .rt-edit-page {
+      padding: 1rem 0.72rem 2rem;
+    }
+
+    .rt-edit-layout {
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 1.05rem;
+    }
+
+    .rt-edit-form {
+      padding: 1.08rem;
+      gap: 0.94rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .rt-edit-hero {
+      border-radius: 18px;
+      padding: 1rem 0.88rem;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .rt-edit-chip {
+      white-space: normal;
+    }
+
+    .rt-edit-card,
+    .rt-edit-side-card {
+      border-radius: 16px;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .rt-edit-page {
+      padding: 0.56rem 0.32rem 1.24rem;
+    }
+
+    .rt-edit-title {
+      font-size: 1.16rem;
+    }
+
+    .rt-edit-subtitle {
+      font-size: 0.82rem;
+    }
+
+    .rt-edit-card-head,
+    .rt-edit-form,
+    .rt-edit-side-card {
+      padding: 0.76rem;
+    }
+
+    .rt-edit-field {
+      border-radius: 12px;
+      padding: 0.68rem;
+    }
+
+    .rt-edit-control {
+      font-size: 0.85rem;
+      padding: 0.55rem 0.66rem 0.55rem 2rem;
+    }
+
+    .rt-edit-actions {
+      justify-content: stretch;
+    }
+
+    .rt-edit-btn {
+      width: 100%;
+    }
+  }
+
+  html.dark-mode .rt-edit-hero {
+    box-shadow: 0 14px 34px rgba(8, 47, 73, 0.45);
+  }
+
+  html.dark-mode .rt-edit-chip {
+    background: rgba(2, 6, 23, 0.88);
+    color: #86efac;
+  }
+
+  html.dark-mode .rt-edit-card,
+  html.dark-mode .rt-edit-side-card {
+    background: #0f172a;
+    border-color: #1f2937;
+    box-shadow: none;
+  }
+
+  html.dark-mode .rt-edit-card-head {
+    border-color: #1f2937;
+    background: linear-gradient(180deg, #0f172a 0%, #0f172a 100%);
+  }
+
+  html.dark-mode .rt-edit-card-title,
+  html.dark-mode .rt-edit-side-title,
+  html.dark-mode .rt-edit-label {
+    color: #f8fafc;
+  }
+
+  html.dark-mode .rt-edit-card-desc,
+  html.dark-mode .rt-edit-help,
+  html.dark-mode .rt-edit-summary span {
+    color: #94a3b8;
+  }
+
+  html.dark-mode .rt-edit-field,
+  html.dark-mode .rt-edit-summary li {
+    background: #111827;
+    border-color: #1f2937;
+  }
+
+  html.dark-mode .rt-edit-control {
+    background: #0b1220;
+    color: #e2e8f0;
+    border-color: #334155;
+  }
+
+  html.dark-mode .rt-edit-control::placeholder {
+    color: #64748b;
+  }
+
+  html.dark-mode .rt-edit-btn-muted {
+    background: #1f2937;
+    color: #e5e7eb;
+  }
+
+  html.dark-mode .rt-edit-btn-muted:hover {
+    background: #374151;
+  }
+
+  html.dark-mode .rt-edit-warning {
+    border-color: #854d0e;
+    background: linear-gradient(165deg, rgba(120, 53, 15, 0.3) 0%, rgba(68, 64, 60, 0.14) 100%);
+  }
+
+  html.dark-mode .rt-edit-warning-list {
+    color: #fcd34d;
+  }
+
+  html.dark-mode .rt-edit-summary strong {
+    color: #f8fafc;
+  }
+</style>
+
+<section class="rt-edit-page">
+  <div class="rt-edit-orb rt-edit-orb-a"></div>
+  <div class="rt-edit-orb rt-edit-orb-b"></div>
+
+  <div class="rt-edit-shell">
+    <header class="rt-edit-hero rt-edit-reveal" style="--reveal-delay: 0ms;">
+      <div class="rt-edit-hero-main">
+        <a href="/rt" class="rt-edit-back" aria-label="Kembali ke daftar RT">
+          <i class="fas fa-arrow-left"></i>
         </a>
-        <button type="submit" class="btn-primary">
-          <i class="fas fa-save mr-2"></i>Simpan Perubahan
-        </button>
+        <div>
+          <h1 class="rt-edit-title">
+            <i class="fas fa-pen-to-square mr-1"></i>Edit Data RT
+          </h1>
+          <p class="rt-edit-subtitle">
+            Perbarui data wilayah RT agar struktur administrasi tetap akurat.
+          </p>
+        </div>
       </div>
-    </form>
-  </div>
 
-  <!-- Information -->
-  <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-6">
-    <div class="flex">
-      <div class="flex-shrink-0">
-        <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+      <div class="rt-edit-chip">
+        <i class="fas fa-circle-info"></i>
+        Sedang mengubah <strong><%= rt.nomor_rt %></strong>
       </div>
-      <div class="ml-3">
-        <h3 class="text-sm font-medium text-yellow-800">Informasi Penting</h3>
-        <div class="mt-2 text-sm text-yellow-700">
-          <ul class="list-disc space-y-1 ml-4">
+    </header>
+
+    <div class="rt-edit-layout">
+      <article class="rt-edit-card rt-edit-reveal" style="--reveal-delay: 110ms;">
+        <div class="rt-edit-card-head">
+          <h2 class="rt-edit-card-title">Formulir Informasi RT</h2>
+          <p class="rt-edit-card-desc">
+            Pastikan data nomor RT, ketua RT, dan keterangan sudah sesuai sebelum disimpan.
+          </p>
+        </div>
+
+        <form method="POST" action="/rt/<%= rt.id %>/edit" id="rt-form" class="rt-edit-form">
+          <div class="rt-edit-field">
+            <div class="rt-edit-label-row">
+              <label for="rw_id" class="rt-edit-label">
+                Pilih RW <span class="rt-edit-mandatory">*</span>
+              </label>
+            </div>
+            <div class="rt-edit-input-wrap">
+              <i class="fas fa-building"></i>
+              <select id="rw_id" name="rw_id" required class="rt-edit-control">
+                <option value="">Pilih RW</option>
+                <% rwList.forEach(function(rw) { %>
+                <option value="<%= rw.id %>" <%= rt.rw_id == rw.id ? 'selected' : '' %>>
+                  <%= rw.nomor_rw %> - <%= rw.ketua_rw %>
+                </option>
+                <% }); %>
+              </select>
+            </div>
+            <p class="rt-edit-help">Tentukan RW yang menaungi RT ini.</p>
+          </div>
+
+          <div class="rt-edit-field">
+            <div class="rt-edit-label-row">
+              <label for="nomor_rt" class="rt-edit-label">
+                Nomor RT <span class="rt-edit-mandatory">*</span>
+              </label>
+            </div>
+            <div class="rt-edit-input-wrap">
+              <i class="fas fa-hashtag"></i>
+              <input
+                type="text"
+                id="nomor_rt"
+                name="nomor_rt"
+                required
+                value="<%= rt.nomor_rt %>"
+                placeholder="Contoh: RT 01 atau RT 11"
+                class="rt-edit-control"
+              />
+            </div>
+            <p class="rt-edit-help">Contoh penulisan: RT 01, RT 02, RT 11.</p>
+          </div>
+
+          <div class="rt-edit-field">
+            <div class="rt-edit-label-row">
+              <label for="ketua_rt" class="rt-edit-label">
+                Nama Ketua RT <span class="rt-edit-mandatory">*</span>
+              </label>
+            </div>
+            <div class="rt-edit-input-wrap">
+              <i class="fas fa-user"></i>
+              <input
+                type="text"
+                id="ketua_rt"
+                name="ketua_rt"
+                required
+                value="<%= rt.ketua_rt %>"
+                placeholder="Masukkan nama lengkap ketua RT"
+                class="rt-edit-control"
+              />
+            </div>
+            <p class="rt-edit-help">Gunakan nama resmi untuk menghindari duplikasi data.</p>
+          </div>
+
+          <div class="rt-edit-field">
+            <div class="rt-edit-label-row">
+              <label for="keterangan" class="rt-edit-label">Keterangan</label>
+            </div>
+            <div class="rt-edit-input-wrap rt-edit-input-wrap-textarea">
+              <i class="fas fa-note-sticky"></i>
+              <textarea
+                id="keterangan"
+                name="keterangan"
+                rows="4"
+                placeholder="Catatan tambahan atau informasi pendukung (opsional)"
+                class="rt-edit-control"
+              ><%= rt.keterangan || '' %></textarea>
+            </div>
+            <p class="rt-edit-help">Isi jika ada informasi tambahan yang perlu dicatat.</p>
+          </div>
+
+          <div class="rt-edit-actions">
+            <a href="/rt" class="rt-edit-btn rt-edit-btn-muted">
+              <i class="fas fa-xmark"></i>Batal
+            </a>
+            <button type="submit" class="rt-edit-btn rt-edit-btn-primary">
+              <i class="fas fa-floppy-disk"></i>Simpan Perubahan
+            </button>
+          </div>
+        </form>
+      </article>
+
+      <aside class="rt-edit-side">
+        <div class="rt-edit-side-card rt-edit-reveal" style="--reveal-delay: 180ms;">
+          <h3 class="rt-edit-side-title">
+            <i class="fas fa-table-list"></i>Ringkasan Data Saat Ini
+          </h3>
+          <ul class="rt-edit-summary">
             <li>
-              Perubahan nomor RT akan mempengaruhi semua data muzakki di RT ini
+              <span>Nomor RT</span>
+              <strong><%= rt.nomor_rt || '-' %></strong>
             </li>
-            <li>Pastikan nomor RT yang baru tidak bentrok dengan RT lain</li>
-            <li>Data yang sudah disimpan tidak dapat dikembalikan</li>
+            <li>
+              <span>RW</span>
+              <strong><%= selectedRw ? selectedRw.nomor_rw : '-' %></strong>
+            </li>
+            <li>
+              <span>Ketua RT</span>
+              <strong><%= rt.ketua_rt || '-' %></strong>
+            </li>
           </ul>
         </div>
-      </div>
+
+        <div class="rt-edit-side-card rt-edit-warning rt-edit-reveal" style="--reveal-delay: 250ms;">
+          <h3 class="rt-edit-side-title">
+            <i class="fas fa-triangle-exclamation"></i>Catatan Penting
+          </h3>
+          <ul class="rt-edit-warning-list">
+            <li>Perubahan nomor RT dapat mempengaruhi data muzakki yang terhubung.</li>
+            <li>Pastikan nomor RT baru tidak sama dengan RT lain di RW yang sama.</li>
+            <li>Periksa kembali data sebelum menekan tombol simpan.</li>
+          </ul>
+        </div>
+      </aside>
     </div>
   </div>
-</div>
+</section>
 
 <script>
-  document.getElementById("rt-form").addEventListener("submit", function (e) {
-    e.preventDefault(); // Prevent default submit
-    const nomorRt = document.getElementById("nomor_rt").value.trim();
-    const ketuaRt = document.getElementById("ketua_rt").value.trim();
+  const rtForm = document.getElementById("rt-form");
+  const nomorRtInput = document.getElementById("nomor_rt");
+  const ketuaRtInput = document.getElementById("ketua_rt");
+
+  rtForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const nomorRt = nomorRtInput.value.trim();
+    const ketuaRt = ketuaRtInput.value.trim();
 
     if (!nomorRt || !ketuaRt) {
       Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Nomor RT dan Nama Ketua RT harus diisi',
-        confirmButtonText: 'OK'
+        icon: "error",
+        title: "Error",
+        text: "Nomor RT dan Nama Ketua RT harus diisi.",
+        confirmButtonText: "OK",
       });
       return false;
     }
 
     Swal.fire({
-      title: 'Konfirmasi Simpan',
-      text: 'Apakah perubahan data RT sudah benar?',
-      icon: 'question',
+      title: "Konfirmasi Simpan",
+      text: "Apakah perubahan data RT sudah benar?",
+      icon: "question",
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Ya, Simpan',
-      cancelButtonText: 'Batal'
+      confirmButtonColor: "#15803d",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Ya, Simpan",
+      cancelButtonText: "Batal",
     }).then((result) => {
       if (result.isConfirmed) {
         this.submit();
@@ -211,17 +745,15 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'rt' }) %>
     });
   });
 
-  // Format input nomor RT
-  document.getElementById("nomor_rt").addEventListener("input", function (e) {
+  nomorRtInput.addEventListener("input", function (e) {
     let value = e.target.value.toUpperCase();
 
-    // Auto format RT if user types just numbers
     if (/^\d+$/.test(value)) {
-      const num = parseInt(value);
+      const num = parseInt(value, 10);
       if (num < 10) {
-        value = `RT 0${num}`;
+        value = "RT 0" + num;
       } else {
-        value = `RT ${num}`;
+        value = "RT " + num;
       }
       e.target.value = value;
     }
@@ -231,10 +763,10 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'rt' }) %>
 <% if (error) { %>
 <script>
   Swal.fire({
-    icon: 'error',
-    title: 'Error',
-    text: '<%= error %>',
-    confirmButtonText: 'OK'
+    icon: "error",
+    title: "Error",
+    text: <%- JSON.stringify(error) %>,
+    confirmButtonText: "OK",
   });
 </script>
 <% } %>
@@ -242,12 +774,12 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'rt' }) %>
 <% if (success) { %>
 <script>
   Swal.fire({
-    icon: 'success',
-    title: 'Berhasil',
-    text: '<%= success %>',
-    confirmButtonText: 'OK'
+    icon: "success",
+    title: "Berhasil",
+    text: <%- JSON.stringify(success) %>,
+    confirmButtonText: "OK",
   });
 </script>
 <% } %>
 
-<%- include('layouts/footer') %>
+<%- include('../layouts/footer') %>

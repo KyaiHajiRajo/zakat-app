@@ -106,13 +106,44 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       
       <div class="section-content">
         <% if (muzakkiDetails.length > 0) { %>
-          <div class="muzakki-list">
+          <div class="muzakki-table-desktop">
+            <div class="muzakki-table-wrapper">
+              <table class="muzakki-table" aria-label="Daftar nama muzakki" data-no-stack-mobile="true">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Nama Muzakki</th>
+                    <th>Bin/Binti</th>
+                    <th>Nama Orang Tua</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% muzakkiDetails.forEach(function(detail, index) { %>
+                    <% const relationRaw = detail.bin_binti ? String(detail.bin_binti).toLowerCase() : ''; %>
+                    <% const relationText = relationRaw === 'bin' ? 'Bin' : relationRaw === 'binti' ? 'Binti' : '-'; %>
+                    <tr class="muzakki-item">
+                      <td>
+                        <span class="muzakki-row-number"><%= index + 1 %></span>
+                      </td>
+                      <td><%= detail.nama_muzakki || '-' %></td>
+                      <td><%= relationText %></td>
+                      <td><%= detail.nama_orang_tua || '-' %></td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="muzakki-list-mobile">
             <% muzakkiDetails.forEach(function(detail, index) { %>
-              <div class="muzakki-item">
-                <% const relation = detail.bin_binti ? String(detail.bin_binti).toLowerCase() : ''; %>
-                <% const fullName = [detail.nama_muzakki, relation, detail.nama_orang_tua].filter(Boolean).join(' '); %>
-                <div class="muzakki-line"><%= index + 1 %>. <%= fullName || '-' %></div>
-              </div>
+              <% const relationRaw = detail.bin_binti ? String(detail.bin_binti).toLowerCase() : ''; %>
+              <% const relationText = relationRaw === 'bin' ? 'Bin' : relationRaw === 'binti' ? 'Binti' : '-'; %>
+              <% const mobileLineText = [detail.nama_muzakki, relationText !== '-' ? relationText : '', detail.nama_orang_tua].filter(Boolean).join(' '); %>
+              <p class="muzakki-item muzakki-mobile-line">
+                <span class="muzakki-mobile-line-index"><%= index + 1 %>.</span>
+                <span class="muzakki-mobile-line-text"><%= mobileLineText || '-' %></span>
+              </p>
             <% }); %>
           </div>
         <% } else { %>
@@ -299,12 +330,12 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 <style>
   /* Page Wrapper */
   .page-wrapper {
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 24px;
+    padding: 0.7rem 0.26rem 1.2rem;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 16px;
   }
 
   /* Page Header */
@@ -517,60 +548,109 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
   .section-content { padding: 20px; }
 
-  /* Muzakki List */
-  .muzakki-list { display: flex; flex-direction: column; gap: 10px; }
-
-  .muzakki-item {
+  /* Muzakki Table */
+  .muzakki-table-desktop {
     display: block;
-    padding: 12px;
-    background: #f9fafb;
-    border-radius: 10px;
-    border: 1px solid #e5e7eb;
-    transition: all 0.3s ease;
   }
 
-  .muzakki-item:hover { background: #f0fdf4; border-color: #1EAF2F; }
+  .muzakki-list-mobile {
+    display: none;
+  }
 
-  .muzakki-line {
-    font-size: 14px;
-    font-weight: 600;
-    color: #111827;
+  .muzakki-table-wrapper {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+  }
+
+  .muzakki-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 660px;
+  }
+
+  .muzakki-table thead tr {
+    background: linear-gradient(to right, #f8fafc, #f1f5f9);
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .muzakki-table th {
+    padding: 11px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.45px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .muzakki-table td {
+    padding: 11px 12px;
+    font-size: 13px;
+    color: #0f172a;
+    border-bottom: 1px solid #eef2f7;
+    vertical-align: top;
     line-height: 1.5;
     overflow-wrap: anywhere;
   }
 
-  .muzakki-number {
-    width: 28px;
-    height: 28px;
-    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
-    color: white;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 600;
-    flex-shrink: 0;
+  .muzakki-table tbody tr:last-child td {
+    border-bottom: 0;
   }
 
-  .muzakki-info { flex: 1; }
-  .muzakki-name { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 4px; }
-  .muzakki-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .muzakki-table .muzakki-item {
+    transition: background 0.2s ease;
+  }
 
-  .badge-gender {
+  .muzakki-table .muzakki-item:hover {
+    background: #f8fafc;
+  }
+
+  .muzakki-row-number {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 600;
+    justify-content: center;
   }
 
-  .badge-male { background: #dbeafe; color: #1e40af; }
-  .badge-female { background: #fce7f3; color: #9d174d; }
+  .muzakki-mobile-line {
+    margin: 0;
+    padding: 8px 0;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #0f172a;
+    overflow-wrap: anywhere;
+  }
 
-  .parent-name { font-size: 12px; color: #6b7280; display: flex; align-items: center; gap: 4px; }
+  .muzakki-mobile-line:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .muzakki-mobile-line-index {
+    font-weight: 700;
+    color: #16a34a;
+    min-width: 20px;
+  }
+
+  .muzakki-mobile-line-text {
+    flex: 1;
+    font-weight: 600;
+    color: #0f172a;
+    overflow-wrap: anywhere;
+  }
 
   .empty-mini {
     display: flex;
@@ -583,6 +663,42 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   }
 
   .empty-mini i { font-size: 20px; }
+
+  html.dark-mode .muzakki-table-wrapper {
+    border-color: #1f2937;
+    background: #0f172a;
+  }
+
+  html.dark-mode .muzakki-table thead tr {
+    background: #111827;
+    border-bottom-color: #1f2937;
+  }
+
+  html.dark-mode .muzakki-table th {
+    color: #94a3b8;
+  }
+
+  html.dark-mode .muzakki-table td {
+    color: #e2e8f0;
+    border-bottom-color: #1f2937;
+  }
+
+  html.dark-mode .muzakki-table .muzakki-item:hover {
+    background: #111827;
+  }
+
+  html.dark-mode .muzakki-mobile-line,
+  html.dark-mode .muzakki-mobile-line-text {
+    color: #e2e8f0;
+  }
+
+  html.dark-mode .muzakki-mobile-line {
+    border-bottom-color: #1f2937;
+  }
+
+  html.dark-mode .muzakki-mobile-line-index {
+    color: #4ade80;
+  }
 
   /* Info Grid */
   .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -695,7 +811,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   }
 
   @media (max-width: 768px) {
-    .page-wrapper { padding: 16px; gap: 16px; }
+    .page-wrapper { padding: 0.5rem 0.3rem 1rem; gap: 14px; }
     .page-header { padding: 20px; }
     .header-content-wrapper { flex-direction: column; align-items: flex-start; }
     .header-left-section { flex-wrap: wrap; }
@@ -722,7 +838,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   /* Responsive Polish */
   .page-wrapper {
     width: 100%;
-    max-width: 1200px;
+    max-width: 100%;
     min-width: 0;
   }
 
@@ -764,7 +880,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
   @media (max-width: 768px) {
     .page-wrapper {
-      padding: 0.75rem;
+      padding: 0.5rem 0.3rem 1rem;
       gap: 14px;
     }
 
@@ -792,6 +908,24 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       padding-right: 12px;
     }
 
+    .muzakki-table-desktop {
+      display: none;
+    }
+
+    .muzakki-list-mobile {
+      display: grid;
+      gap: 0;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 2px 10px;
+    }
+
+    html.dark-mode .muzakki-list-mobile {
+      border-color: #1f2937;
+      background: #0f172a;
+    }
+
     .info-item {
       padding: 10px;
     }
@@ -803,7 +937,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
   @media (max-width: 420px) {
     .page-wrapper {
-      padding: 0.5rem;
+      padding: 0.34rem 0.22rem 0.86rem;
       gap: 12px;
     }
 
