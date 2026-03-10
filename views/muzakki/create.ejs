@@ -41,6 +41,12 @@
             </div>
           </div>
           <div class="card-body">
+            <input
+              type="hidden"
+              id="tanggal"
+              name="tanggal"
+              value="<%= defaultTanggal %>"
+            />
             <div class="form-group">
               <label for="rt_id" class="form-label">
                 <i class="fas fa-home mr-1"></i>RT <span class="required">*</span>
@@ -1413,6 +1419,7 @@
       .getElementById("muzakkiForm")
       .addEventListener("submit", function (e) {
         const jiwa = parseInt(document.getElementById("jumlah_jiwa").value);
+        const tanggal = document.getElementById("tanggal").value;
         const masterZakatId = document.getElementById("master_zakat_id").value;
         const jumlahBayar = parseInt(
           document.getElementById("jumlah_bayar").value
@@ -1445,6 +1452,21 @@
             });
           } else {
             alert("Pilih jenis zakat terlebih dahulu");
+          }
+          return false;
+        }
+
+        if (!tanggal) {
+          e.preventDefault();
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'error',
+              title: 'Validasi Gagal',
+              text: 'Tanggal zakat wajib diisi',
+              confirmButtonColor: '#1EAF2F'
+            });
+          } else {
+            alert("Tanggal zakat wajib diisi");
           }
           return false;
         }
@@ -1507,6 +1529,7 @@
             <div style="text-align: left; padding: 10px;">
               <p style="margin-bottom: 8px;"><strong>Apakah data yang dimasukkan sudah benar?</strong></p>
               <ul style="list-style: none; padding-left: 0;">
+                <li style="margin-bottom: 6px;">Tanggal Zakat: <strong>${new Date(`${tanggal}T00:00:00`).toLocaleDateString("id-ID")}</strong></li>
                 <li style="margin-bottom: 6px;">Jumlah Muzakki: <strong>${muzakkiCount} orang</strong></li>
                 <li style="margin-bottom: 6px;">Jumlah Jiwa: <strong>${jiwa} jiwa</strong></li>
                 <li style="margin-bottom: 6px;">Jenis Zakat: <strong>${jenisZakatText}</strong></li>
@@ -1531,6 +1554,7 @@
           // Fallback ke confirm default
           const confirmMessage =
             `Apakah data yang dimasukkan sudah benar?\n\n` +
+            `- Tanggal Zakat: ${new Date(`${tanggal}T00:00:00`).toLocaleDateString("id-ID")}\n` +
             `- Jumlah Muzakki: ${muzakkiCount} orang\n` +
             `- Jumlah Jiwa: ${jiwa} jiwa\n` +
             `- Jenis Zakat: ${jenisZakatText}\n` +

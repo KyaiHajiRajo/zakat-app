@@ -17,11 +17,16 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
         </div>
         <div class="header-text-box">
           <h1 class="header-title-text">Detail Muzakki <%= rt.nomor_rt %></h1>
-          <p class="header-subtitle-text">Ketua RT: <%= rt.ketua_rt %></p>
+          <p class="header-subtitle-text">
+            Ketua RT: <%= rt.ketua_rt %>
+            <% if (selectedTanggal && selectedTanggalLabel) { %>
+              | Tanggal: <%= selectedTanggalLabel %>
+            <% } %>
+          </p>
         </div>
       </div>
       <div class="header-actions">
-        <a href="/muzakki/create" class="btn-action btn-action-primary">
+        <a href="/muzakki/create<%= selectedTanggal ? `?tanggal=${selectedTanggal}` : '' %>" class="btn-action btn-action-primary">
           <i class="fas fa-plus mr-2"></i>
           <span>Tambah Muzakki</span>
         </a>
@@ -80,7 +85,12 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
         </div>
         <div>
           <h3 class="filter-title">Filter & Pencarian Data</h3>
-          <p class="filter-subtitle">Cari dan filter data muzakki berdasarkan nama atau tanggal</p>
+          <p class="filter-subtitle">
+            Cari dan filter data muzakki berdasarkan nama atau tanggal
+            <% if (selectedTanggal && selectedTanggalLabel) { %>
+              untuk konteks <%= selectedTanggalLabel %>
+            <% } %>
+          </p>
         </div>
       </div>
     </div>
@@ -143,6 +153,23 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     </div>
   </div>
 
+  <% if (selectedTanggal && navTabs && navTabs.length > 0) { %>
+    <div class="rt-nav-tabs-section">
+      <div class="rt-nav-tabs-scroll">
+        <div class="rt-nav-tabs-list">
+          <% navTabs.forEach(function(tab) { %>
+            <a
+              href="/muzakki/rt/<%= tab.id %>?tanggal=<%= selectedTanggal %>"
+              class="rt-nav-tab <%= String(tab.id) === String(rt.id) ? 'rt-nav-tab-active' : '' %>"
+            >
+              <span class="rt-nav-tab-name"><%= tab.nomor_rt %></span>
+            </a>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
   <!-- Data Table Section -->
   <div class="table-section">
     <div class="table-header-wrapper">
@@ -151,8 +178,13 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
           <i class="fas fa-table"></i>
         </div>
         <div class="table-header-text">
-          <h2 class="table-title">Daftar Muzakki RT <%= rt.nomor_rt %></h2>
-          <p class="table-subtitle">Data lengkap muzakki dan zakat fitrah</p>
+          <h2 class="table-title">Daftar Muzakki <%= rt.nomor_rt %></h2>
+          <p class="table-subtitle">
+            Data lengkap muzakki dan zakat fitrah
+            <% if (selectedTanggal && selectedTanggalLabel) { %>
+              pada <%= selectedTanggalLabel %>
+            <% } %>
+          </p>
         </div>
       </div>
       <div class="table-header-right">
@@ -193,12 +225,10 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                 <tr>
                   <th>No</th>
                   <th>Nama Muzakki</th>
-                  <th>Jiwa</th>
                   <th>Jenis Zakat</th>
                   <th>Kewajiban</th>
                   <th>Jumlah Bayar</th>
                   <th>Kembalian</th>
-                  <th>Pencatat</th>
                   <th>Aksi</th>
                 </tr>
               </thead>
@@ -218,12 +248,6 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                           <div class="cell-note"><%= item.catatan %></div>
                         <% } %>
                       </div>
-                    </td>
-                    <td class="text-center">
-                      <span class="badge-stat badge-stat-gray">
-                        <i class="fas fa-user-friends"></i>
-                        <%= item.jumlah_jiwa %> jiwa
-                      </span>
                     </td>
                     <td class="text-center">
                       <% if (item.jenis_zakat === 'beras') { %>
@@ -282,12 +306,6 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                       <% } else { %>
                         <div class="text-gray-400">-</div>
                       <% } %>
-                    </td>
-                    <td>
-                      <div class="pencatat-info">
-                        <div class="pencatat-name"><%= item.pencatat_name || '-' %></div>
-                        <div class="pencatat-date"><%= new Date(item.created_at).toLocaleDateString('id-ID') %></div>
-                      </div>
                     </td>
                     <td>
                       <div class="action-buttons-group">
@@ -518,6 +536,82 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+  }
+
+  .rt-nav-tabs-section {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    padding: 14px;
+  }
+
+  .rt-nav-tabs-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+
+  .rt-nav-tabs-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .rt-nav-tabs-subtitle {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #64748b;
+  }
+
+  .rt-nav-tabs-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  .rt-nav-tabs-list {
+    display: flex;
+    gap: 8px;
+    min-width: max-content;
+  }
+
+  .rt-nav-tab {
+    min-width: 96px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    background: #f8fafc;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  }
+
+  .rt-nav-tab:hover {
+    transform: translateY(-1px);
+    border-color: #86efac;
+    background: #f0fdf4;
+  }
+
+  .rt-nav-tab-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .rt-nav-tab-active {
+    border-color: #22c55e;
+    background: #16a34a;
+  }
+
+  .rt-nav-tab-active .rt-nav-tab-name {
+    color: #ffffff;
   }
 
   .btn-action {
@@ -1262,6 +1356,10 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     .header-title-text { font-size: 22px; }
     .header-actions { width: 100%; }
     .btn-action { flex: 1; justify-content: center; padding: 10px 16px; font-size: 13px; }
+    .rt-nav-tabs-section { padding: 14px; }
+    .rt-nav-tabs-title { font-size: 15px; }
+    .rt-nav-tabs-subtitle { font-size: 12px; }
+    .rt-nav-tab { min-width: 110px; padding: 10px 12px; }
     
     /* Filter responsive */
     .filter-body { padding: 16px; }
@@ -1316,6 +1414,12 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     .header-left-section { gap: 10px; }
     .btn-back { width: 36px; height: 36px; font-size: 14px; }
     .header-icon-box { width: 44px; height: 44px; font-size: 18px; }
+    .rt-nav-tabs-section { padding: 12px; }
+    .rt-nav-tabs-title { font-size: 15px; }
+    .rt-nav-tabs-subtitle { font-size: 12px; }
+    .rt-nav-tabs-list { display: flex; }
+    .rt-nav-tab { min-width: 96px; max-width: none; width: auto; }
+    .rt-nav-tab-name { font-size: 14px; }
     .mobile-card-row { grid-template-columns: 1fr; gap: 8px; }
     .filter-grid-row {
       grid-template-columns: 1fr;
@@ -1500,7 +1604,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     <% muzakki.forEach(function(item, index) { %>
       {
         id: <%= item.id %>,
-        created_at: '<%= item.created_at %>',
+        tanggal: '<%= item.tanggal %>',
         jumlah_jiwa: <%= item.jumlah_jiwa || 0 %>,
         jumlah_uang: <%= parseFloat(item.jumlah_uang) || 0 %>,
         kembalian: <%= parseFloat(item.kembalian) || 0 %>,
@@ -1511,6 +1615,8 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
   const currentRtId = <%- JSON.stringify(String(rt.id || '')) %>;
   const currentRtNomor = <%- JSON.stringify(String(rt.nomor_rt || '')) %>;
+  const currentSelectedTanggal = <%- JSON.stringify(selectedTanggal || "") %>;
+  const currentSelectedTanggalLabel = <%- JSON.stringify(selectedTanggalLabel || "") %>;
 
   async function exportRtToExcel() {
     const result = await Swal.fire({
@@ -1521,7 +1627,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
             RT ${currentRtNomor || '-'}
           </div>
           <div style="font-size: 13px; color: #374151;">
-            File Excel akan berisi data muzakki untuk RT ini saja.
+            File Excel akan berisi data muzakki untuk RT ini saja${currentSelectedTanggalLabel ? ` pada ${currentSelectedTanggalLabel}` : ''}.
           </div>
         </div>
       `,
@@ -1547,7 +1653,12 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     });
 
     try {
-      const response = await fetch(`/muzakki/rt/${encodeURIComponent(currentRtId)}/export-excel`);
+      const exportUrl = new URL(`/muzakki/rt/${encodeURIComponent(currentRtId)}/export-excel`, window.location.origin);
+      if (currentSelectedTanggal) {
+        exportUrl.searchParams.set('tanggal', currentSelectedTanggal);
+      }
+
+      const response = await fetch(exportUrl.toString());
       if (!response.ok) {
         let message = `HTTP ${response.status}`;
         try {
@@ -1639,7 +1750,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       const rowData = allMuzakkiData[index];
       if (!rowData) return;
 
-      const rowDate = new Date(rowData.created_at);
+      const rowDate = new Date(`${rowData.tanggal}T00:00:00`);
       const muzakkiContainer = row.querySelector('.muzakki-names-container');
       const namesString = muzakkiContainer ? muzakkiContainer.getAttribute('data-names') : '';
       
@@ -1678,7 +1789,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       const rowData = allMuzakkiData[index];
       if (!rowData) return;
 
-      const rowDate = new Date(rowData.created_at);
+      const rowDate = new Date(`${rowData.tanggal}T00:00:00`);
       const muzakkiContainer = card.querySelector('.muzakki-names-container-mobile');
       const namesString = muzakkiContainer ? muzakkiContainer.getAttribute('data-names') : '';
       
@@ -1792,7 +1903,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       const rowData = allMuzakkiData[index];
       if (!rowData) return;
 
-      const rowDate = new Date(rowData.created_at);
+      const rowDate = new Date(`${rowData.tanggal}T00:00:00`);
       let shouldShow = true;
 
       if (startDate && rowDate < startDate) {
@@ -1819,7 +1930,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       const rowData = allMuzakkiData[index];
       if (!rowData) return;
 
-      const rowDate = new Date(rowData.created_at);
+      const rowDate = new Date(`${rowData.tanggal}T00:00:00`);
       let shouldShow = true;
 
       if (startDate && rowDate < startDate) {

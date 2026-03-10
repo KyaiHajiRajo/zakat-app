@@ -1,0 +1,341 @@
+<%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50', currentPage: 'muzakki' }) %>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <div class="header-left">
+      <a href="/muzakki" class="btn-back">
+        <i class="fas fa-arrow-left"></i>
+      </a>
+      <div>
+        <h1 class="page-title">Detail Muzakki Per Tanggal</h1>
+        <p class="page-subtitle"><%= selectedTanggalLabel %></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Data</div>
+      <div class="stat-value"><%= summary.totalMuzakki %></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Nama</div>
+      <div class="stat-value"><%= summary.totalNama %></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Jiwa</div>
+      <div class="stat-value"><%= summary.totalJiwa %></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">RT Terlibat</div>
+      <div class="stat-value"><%= summary.totalRT %></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <div>
+        <h2 class="table-title">Daftar Muzakki</h2>
+        <p class="table-subtitle">Data muzakki yang tercatat pada tanggal <%= selectedTanggal %></p>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>RT</th>
+            <th>Nama Muzakki</th>
+            <th>Jiwa</th>
+            <th>Jenis</th>
+            <th>Kewajiban</th>
+            <th>Bayar</th>
+            <th>Kembalian</th>
+            <th>Pencatat</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% muzakki.forEach(function(item, index) { %>
+            <tr>
+              <td class="text-center"><%= index + 1 %></td>
+              <td>
+                <div class="primary-text">RT <%= item.nomor_rt || '-' %></div>
+                <div class="secondary-text"><%= item.ketua_rt || '-' %></div>
+              </td>
+              <td>
+                <div class="primary-text"><%= item.nama_muzakki_list || '-' %></div>
+                <div class="secondary-text"><%= item.jumlah_muzakki || 0 %> orang</div>
+                <% if (item.catatan) { %>
+                  <div class="note-text"><%= item.catatan %></div>
+                <% } %>
+              </td>
+              <td class="text-center"><%= item.jumlah_jiwa || 0 %> jiwa</td>
+              <td class="text-center">
+                <% if (item.jenis_zakat === 'beras') { %>
+                  <span class="badge badge-beras">Beras</span>
+                <% } else { %>
+                  <span class="badge badge-uang">Uang</span>
+                <% } %>
+              </td>
+              <td class="text-center">
+                <% if (item.jenis_zakat === 'beras') { %>
+                  <%= parseFloat(item.jumlah_beras_kg || 0).toLocaleString('id-ID') %> kg
+                <% } else { %>
+                  Rp <%= Math.floor(item.jumlah_uang || 0).toLocaleString('id-ID') %>
+                <% } %>
+              </td>
+              <td class="text-center">Rp <%= Math.floor(item.jumlah_bayar || 0).toLocaleString('id-ID') %></td>
+              <td class="text-center">
+                <% if (item.infak_id) { %>
+                  <span class="badge badge-infak">Sudah diinfakkan</span>
+                <% } else if (item.kembalian > 0) { %>
+                  Rp <%= Math.floor(item.kembalian).toLocaleString('id-ID') %>
+                <% } else { %>
+                  -
+                <% } %>
+              </td>
+              <td><%= item.pencatat_name || '-' %></td>
+              <td>
+                <div class="action-group">
+                  <a href="/muzakki/<%= item.id %>" class="btn-icon btn-info" title="Detail">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <a href="/muzakki/<%= item.id %>/edit" class="btn-icon btn-primary" title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  <a href="/muzakki/rt/<%= item.rt_id %>" class="btn-icon btn-secondary" title="Lihat RT">
+                    <i class="fas fa-home"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<style>
+  .page-wrapper {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0.75rem 0.26rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .page-header {
+    background: linear-gradient(135deg, #0f766e 0%, #16a34a 100%);
+    color: #fff;
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 14px 30px rgba(22, 163, 74, 0.18);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .btn-back {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  .page-title {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .page-subtitle {
+    margin: 4px 0 0;
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .stat-card,
+  .table-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .stat-value {
+    margin-top: 6px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .table-header {
+    padding: 18px 20px 0;
+  }
+
+  .table-title {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #111827;
+  }
+
+  .table-subtitle {
+    margin: 4px 0 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    padding: 16px 20px 20px;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 980px;
+  }
+
+  .data-table th,
+  .data-table td {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 12px;
+    vertical-align: top;
+  }
+
+  .data-table th {
+    font-size: 12px;
+    color: #6b7280;
+    text-transform: uppercase;
+    text-align: left;
+    background: #f8fafc;
+  }
+
+  .primary-text {
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .secondary-text,
+  .note-text {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .note-text {
+    color: #0f766e;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .badge-beras {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .badge-uang {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .badge-infak {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .action-group {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #fff;
+  }
+
+  .btn-info {
+    background: #0ea5e9;
+  }
+
+  .btn-primary {
+    background: #16a34a;
+  }
+
+  .btn-secondary {
+    background: #6b7280;
+  }
+
+  @media (max-width: 900px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .page-wrapper {
+      padding-left: 0.22rem;
+      padding-right: 0.22rem;
+    }
+
+    .table-header,
+    .table-responsive {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+  }
+</style>
+
+<%- include('../layouts/footer') %>

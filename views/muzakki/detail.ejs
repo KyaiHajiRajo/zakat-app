@@ -190,6 +190,16 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
           </div>
 
           <div class="info-item">
+            <div class="info-icon icon-blue">
+              <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="info-content">
+              <div class="info-label">Tanggal Zakat</div>
+              <div class="info-value"><%= new Date(`${muzakki.tanggal}T00:00:00`).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></div>
+            </div>
+          </div>
+
+          <div class="info-item">
             <div class="info-icon">
               <% if (muzakki.jenis_zakat === 'beras') { %>
                 <i class="fas fa-seedling"></i>
@@ -315,6 +325,15 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
         <div class="sistem-item">
           <div class="sistem-icon">
             <i class="fas fa-calendar-alt"></i>
+          </div>
+          <div class="sistem-content">
+            <div class="sistem-label">Tanggal Zakat</div>
+            <div class="sistem-value"><%= new Date(`${muzakki.tanggal}T00:00:00`).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></div>
+          </div>
+        </div>
+        <div class="sistem-item">
+          <div class="sistem-icon">
+            <i class="fas fa-clock"></i>
           </div>
           <div class="sistem-content">
             <div class="sistem-label">Tanggal Dibuat</div>

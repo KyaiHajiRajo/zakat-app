@@ -183,7 +183,7 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
         END as status
       FROM muzakki m
       LEFT JOIN rt ON m.rt_id = rt.id
-      ORDER BY m.created_at DESC
+      ORDER BY COALESCE(m.tanggal, DATE(m.created_at)) DESC, m.created_at DESC
       LIMIT 5
     `);
 

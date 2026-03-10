@@ -93,7 +93,7 @@
                     <div class="card-name-section">
                       <h4 class="muzakki-name"><%= item.nama_muzakki_list || '-' %></h4>
                       <p class="card-subtitle">
-                        <%= item.jumlah_muzakki %> jiwa • <%= new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) %>
+                        <%= item.jumlah_muzakki %> jiwa • <%= new Date(`${item.tanggal}T00:00:00`).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) %>
                       </p>
                     </div>
                     <div class="card-amount">

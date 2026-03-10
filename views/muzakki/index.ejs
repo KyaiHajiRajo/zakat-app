@@ -89,8 +89,8 @@
             <i class="fas fa-table"></i>
           </div>
           <div class="table-header-text">
-            <h2 class="table-title">Data Muzakki Per RT</h2>
-            <p class="table-subtitle">Daftar lengkap data muzakki berdasarkan RT</p>
+            <h2 class="table-title">Data Muzakki Per Tanggal</h2>
+            <p class="table-subtitle">Daftar lengkap data muzakki berdasarkan tanggal pembayaran zakat</p>
           </div>
         </div>
         <div class="table-header-right">
@@ -100,13 +100,13 @@
           </button>
           <span class="table-badge">
             <i class="fas fa-list"></i>
-            <%= rtData.length %> RT
+            <%= tanggalData.length %> tanggal
           </span>
         </div>
       </div>
 
       <div class="table-content-wrapper">
-        <% if (rtData.length===0) { %>
+        <% if (tanggalData.length===0) { %>
           <div class="empty-state-box">
             <div class="empty-state-icon">
               <i class="fas fa-users"></i>
@@ -123,8 +123,7 @@
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>RT</th>
-                    <th>Ketua RT</th>
+                    <th>Tanggal</th>
                     <th>Total Data</th>
                     <th>Total Nama</th>
                     <th>Total Jiwa</th>
@@ -135,57 +134,50 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <% rtData.forEach(function(rt, index) { %>
+                  <% tanggalData.forEach(function(group, index) { %>
                     <tr class="table-row-animated" style="animation-delay: <%= index * 0.05 %>s;">
                       <td>
                         <div class="cell-content-primary">
                           <div class="rt-badge">
-                            <i class="fas fa-home"></i>
-                            RT <%= rt.nomor_rt %>
+                            <i class="fas fa-calendar-alt"></i>
+                            <%= new Date(`${group.tanggal}T00:00:00`).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) %>
                           </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div class="cell-content-primary">
-                          <div class="ketua-name">
-                            <%= rt.ketua_rt || '-' %>
-                          </div>
-                          <div class="cell-subtitle">Ketua RT</div>
+                          <div class="cell-subtitle"><%= group.tanggal %></div>
                         </div>
                       </td>
                       <td class="text-center">
                         <span class="badge-stat badge-stat-primary">
                           <i class="fas fa-database"></i>
-                          <%= rt.total_muzakki || 0 %> data
+                          <%= group.total_muzakki || 0 %> data
                         </span>
                       </td>
                       <td class="text-center">
                         <span class="badge-stat badge-stat-purple">
                           <i class="fas fa-users"></i>
-                          <%= rt.total_nama_muzakki || 0 %> orang
+                          <%= group.total_nama_muzakki || 0 %> orang
                         </span>
                       </td>
                       <td class="text-center">
                         <span class="badge-stat badge-stat-gray">
                           <i class="fas fa-user-friends"></i>
-                          <%= rt.total_jiwa || 0 %> jiwa
+                          <%= group.total_jiwa || 0 %> jiwa
                         </span>
                       </td>
                       <td class="text-center">
-                        <% if (rt.total_beras> 0) { %>
+                        <% if (group.total_beras> 0) { %>
                           <div class="amount-display amount-success">
                             <i class="fas fa-weight mr-1"></i>
-                            <%= Math.floor(rt.total_beras).toLocaleString('id-ID') %> kg
+                            <%= Math.floor(group.total_beras).toLocaleString('id-ID') %> kg
                           </div>
                           <% } else { %>
                             <div class="text-gray-400">-</div>
                             <% } %>
                       </td>
                       <td class="text-center">
-                        <% if (rt.total_uang> 0) { %>
+                        <% if (group.total_uang> 0) { %>
                           <div class="amount-display amount-info">
                             <i class="fas fa-money-bill-wave mr-1"></i>
-                            Rp <%= Math.floor(rt.total_uang).toLocaleString('id-ID') %>
+                            Rp <%= Math.floor(group.total_uang).toLocaleString('id-ID') %>
                           </div>
                           <% } else { %>
                             <div class="text-gray-400">-</div>
@@ -196,21 +188,21 @@
                           <div class="ki-row">
                             <span class="ki-label">Kembalian:</span>
                             <span class="ki-value ki-kembalian">
-                              Rp <%= (rt.total_kembalian_saat_ini > 0 ? Math.floor(rt.total_kembalian_saat_ini) : 0).toLocaleString('id-ID') %>
+                              Rp <%= (group.total_kembalian_saat_ini > 0 ? Math.floor(group.total_kembalian_saat_ini) : 0).toLocaleString('id-ID') %>
                             </span>
                           </div>
                           <div class="ki-row">
                             <span class="ki-label">Infak:</span>
                             <span class="ki-value ki-infak">
-                              Rp <%= (rt.total_infak > 0 ? Math.floor(rt.total_infak) : 0).toLocaleString('id-ID') %>
+                              Rp <%= (group.total_infak > 0 ? Math.floor(group.total_infak) : 0).toLocaleString('id-ID') %>
                             </span>
                           </div>
                         </div>
                       </td>
                       <td>
                         <div class="action-buttons-group">
-                          <a href="/muzakki/rt/<%= rt.rt_id %>" class="btn-icon btn-icon-info"
-                            title="Detail Muzakki RT <%= rt.nomor_rt %>">
+                          <a href="/muzakki/rt/<%= group.primary_rt_id %>?tanggal=<%= group.tanggal %>" class="btn-icon btn-icon-info"
+                            title="Detail Muzakki RT pada tanggal <%= group.tanggal %>">
                             <i class="fas fa-eye"></i>
                           </a>
                         </div>
@@ -1111,7 +1103,7 @@
                 <i class="fas fa-file-excel"></i>
               </div>
               <div>
-                <div style="font-weight: 700; font-size: 16px; color: #065f46;">Data Muzakki Per RT</div>
+                <div style="font-weight: 700; font-size: 16px; color: #065f46;">Data Muzakki Lintas RT</div>
                 <div style="font-size: 13px; color: #059669;">File Excel dengan multiple sheets</div>
               </div>
             </div>
@@ -1123,7 +1115,7 @@
                 <li style="margin-bottom: 6px;">📋 Tab terpisah untuk setiap RT</li>
                 <li style="margin-bottom: 6px;">👥 Detail lengkap muzakki per RT</li>
                 <li style="margin-bottom: 6px;">💰 Informasi zakat dan pembayaran</li>
-                <li>📊 Total <%= rtData.length %> RT akan di-export</li>
+                <li>📊 Total <%= stats.total_rt_all || 0 %> RT akan di-export</li>
               </ul>
             </div>
           </div>

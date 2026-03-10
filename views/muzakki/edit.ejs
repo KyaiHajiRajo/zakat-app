@@ -46,6 +46,12 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    <input
+                        type="hidden"
+                        id="tanggal"
+                        name="tanggal"
+                        value="<%= muzakki.tanggal %>"
+                    >
                     <div class="form-group">
                         <label for="rt_id" class="form-label">
                             <i class="fas fa-home"></i> RT <span class="required">*</span>
@@ -313,6 +319,7 @@
                 <ul class="info-card-list">
                     <li><strong>Dibuat:</strong> <%= new Date(muzakki.created_at).toLocaleString('id-ID') %></li>
                     <li><strong>Diupdate:</strong> <%= new Date(muzakki.updated_at).toLocaleString('id-ID') %></li>
+                    <li><strong>Tanggal Zakat:</strong> <%= new Date(`${muzakki.tanggal}T00:00:00`).toLocaleDateString('id-ID') %></li>
                     <li><strong>Pencatat:</strong> User ID <%= muzakki.user_id %></li>
                 </ul>
             </div>
@@ -1400,6 +1407,7 @@
     // Form validation
     document.getElementById("muzakkiForm").addEventListener("submit", function (e) {
         const jiwa = parseInt(document.getElementById("jumlah_jiwa").value);
+        const tanggal = document.getElementById("tanggal").value;
         const masterZakatId = document.getElementById("master_zakat_id").value;
         const jumlahBayar = parseInt(document.getElementById("jumlah_bayar").value);
 
@@ -1430,6 +1438,21 @@
                 });
             } else {
                 alert('Pilih jenis zakat terlebih dahulu');
+            }
+            return false;
+        }
+
+        if (!tanggal) {
+            e.preventDefault();
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Data Belum Lengkap',
+                    text: 'Tanggal zakat wajib diisi',
+                    confirmButtonColor: '#1EAF2F'
+                });
+            } else {
+                alert('Tanggal zakat wajib diisi');
             }
             return false;
         }
@@ -1489,6 +1512,7 @@
                 title: 'Konfirmasi Perubahan Data',
                 html: `
                     <div style="text-align: left; padding: 10px;">
+                        <p><strong>Tanggal Zakat:</strong> ${new Date(`${tanggal}T00:00:00`).toLocaleDateString("id-ID")}</p>
                         <p><strong>Jumlah Muzakki:</strong> ${muzakkiCount} orang</p>
                         <p><strong>Jumlah Jiwa:</strong> ${jiwa} jiwa</p>
                         <p><strong>Jenis Zakat:</strong> ${jenisZakatText}</p>
@@ -1510,6 +1534,7 @@
             });
         } else {
             const confirmMessage = `Apakah perubahan data sudah benar?\n\n` +
+                `- Tanggal Zakat: ${new Date(`${tanggal}T00:00:00`).toLocaleDateString("id-ID")}\n` +
                 `- Jumlah Muzakki: ${muzakkiCount} orang\n` +
                 `- Jumlah Jiwa: ${jiwa} jiwa\n` +
                 `- Jenis Zakat: ${jenisZakatText}\n` +
