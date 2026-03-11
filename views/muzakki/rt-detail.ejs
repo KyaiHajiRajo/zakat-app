@@ -60,7 +60,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
         <div class="stat-value-text" id="stat_total_beras_kg">
           <%= parseFloat(
             muzakki.reduce((total, m) => total + (parseFloat(m.jumlah_beras_kg) || 0), 0)
-          ).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) %> kg
+          ).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) %> Liter
         </div>
         <div class="stat-label-text">Total Beras</div>
       </div>
@@ -956,6 +956,24 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   .stat-content-box { flex: 1; position: relative; z-index: 1; }
   .stat-value-text { font-size: 22px; font-weight: 700; color: #111827; line-height: 1; margin-bottom: 4px; }
   .stat-label-text { font-size: 13px; color: #6b7280; font-weight: 500; }
+
+  html.dark-mode .stat-box {
+    background: #0f172a;
+    border-color: #1f2937;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  html.dark-mode .stat-value-text {
+    color: #f8fafc;
+  }
+
+  html.dark-mode .stat-label-text {
+    color: #cbd5e1;
+  }
+
+  html.dark-mode .stat-decoration {
+    opacity: 0.18;
+  }
 
   /* Table Section */
   .table-section {
