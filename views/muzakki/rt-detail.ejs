@@ -241,8 +241,8 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                   <th>No</th>
                   <th>Nama Muzakki</th>
                   <th>Jenis Zakat</th>
-                  <th>Kewajiban</th>
                   <th>Jumlah Bayar</th>
+                  <th>Jumlah Beras</th>
                   <th>Kembalian</th>
                   <th>Aksi</th>
                 </tr>
@@ -271,35 +271,42 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                       </div>
                     </td>
                     <td class="text-center">
-                      <% if (item.jenis_zakat === 'beras') { %>
-                        <span class="badge-zakat badge-zakat-beras">
-                          <i class="fas fa-seedling"></i>
-                          Beras
-                        </span>
-                      <% } else { %>
-                        <span class="badge-zakat badge-zakat-uang">
-                          <i class="fas fa-coins"></i>
-                          Uang
-                        </span>
-                      <% } %>
-                    </td>
-                    <td class="text-center">
-                      <% if (item.jenis_zakat === 'beras') { %>
-                        <div class="amount-display amount-success">
-                          <i class="fas fa-weight"></i>
-                          <%= item.jumlah_beras_kg %> kg
-                        </div>
-                      <% } else { %>
-                        <div class="amount-display amount-info">
-                          Rp <%= Math.floor(item.jumlah_uang).toLocaleString('id-ID') %>
-                        </div>
-                      <% } %>
+                      <div class="jenis-zakat-stack">
+                        <% if (item.jenis_zakat === 'beras') { %>
+                          <span class="badge-zakat badge-zakat-beras">
+                            <i class="fas fa-seedling"></i>
+                            Beras
+                          </span>
+                          <div class="amount-display amount-success">
+                            <i class="fas fa-weight"></i>
+                            <%= item.jumlah_beras_kg %> kg
+                          </div>
+                        <% } else { %>
+                          <span class="badge-zakat badge-zakat-uang">
+                            <i class="fas fa-coins"></i>
+                            Uang
+                          </span>
+                          <div class="amount-display amount-info">
+                            Rp <%= Math.floor(item.jumlah_uang).toLocaleString('id-ID') %>
+                          </div>
+                        <% } %>
+                      </div>
                     </td>
                     <td class="text-center">
                       <div class="amount-display amount-success">
                         <i class="fas fa-check-circle"></i>
                         Rp <%= Math.floor(item.jumlah_bayar).toLocaleString('id-ID') %>
                       </div>
+                    </td>
+                    <td class="text-center">
+                      <% if (parseFloat(item.jumlah_beras_kg) > 0) { %>
+                        <div class="amount-display amount-success">
+                          <i class="fas fa-weight"></i>
+                          <%= parseFloat(item.jumlah_beras_kg).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) %> Liter
+                        </div>
+                      <% } else { %>
+                        <div class="text-gray-400">-</div>
+                      <% } %>
                     </td>
                     <td class="text-center">
                       <% if (item.infak_id) { %>
@@ -1191,6 +1198,13 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   }
   .badge-zakat-beras { background: #d1fae5; color: #065f46; }
   .badge-zakat-uang { background: #dbeafe; color: #1e40af; }
+
+  .jenis-zakat-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
 
   /* Amount Display */
   .amount-display { font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }

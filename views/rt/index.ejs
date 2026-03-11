@@ -1,5 +1,12 @@
 <%- include('../layouts/header', { title: 'Data RW & RT - Zakat Fitrah App',
 bodyClass: 'bg-gray-50', currentPage: 'rt' }) %>
+<%
+  const toSafeNumber = (value) => {
+    const numericValue = parseFloat(value);
+    return Number.isFinite(numericValue) ? numericValue : 0;
+  };
+  const formatRupiah = (value) => Math.floor(toSafeNumber(value)).toLocaleString('id-ID');
+%>
 
 <div class="page-wrapper">
   <!-- Modern Header -->
@@ -45,7 +52,7 @@ bodyClass: 'bg-gray-50', currentPage: 'rt' }) %>
         <i class="fas fa-home"></i>
       </div>
       <div class="stat-content-box">
-        <div class="stat-value-text"><%= rwList.reduce((sum, rw) => sum + (rw.total_rt || 0), 0) %></div>
+        <div class="stat-value-text"><%= rwList.reduce((sum, rw) => sum + toSafeNumber(rw.total_rt), 0) %></div>
         <div class="stat-label-text">Total RT</div>
       </div>
       <div class="stat-decoration"></div>
@@ -56,7 +63,7 @@ bodyClass: 'bg-gray-50', currentPage: 'rt' }) %>
         <i class="fas fa-users"></i>
       </div>
       <div class="stat-content-box">
-        <div class="stat-value-text"><%= rwList.reduce((sum, rw) => sum + (rw.total_muzakki || 0), 0) %></div>
+        <div class="stat-value-text"><%= rwList.reduce((sum, rw) => sum + toSafeNumber(rw.total_muzakki), 0) %></div>
         <div class="stat-label-text">Total Muzakki</div>
       </div>
       <div class="stat-decoration"></div>
@@ -67,7 +74,7 @@ bodyClass: 'bg-gray-50', currentPage: 'rt' }) %>
         <i class="fas fa-coins"></i>
       </div>
       <div class="stat-content-box">
-        <div class="stat-value-text">Rp <%= Math.floor(rtList.reduce((sum, rt) => sum + (rt.total_zakat || 0), 0)).toLocaleString('id-ID') %></div>
+        <div class="stat-value-text">Rp <%= formatRupiah(rtList.reduce((sum, rt) => sum + toSafeNumber(rt.total_zakat), 0)) %></div>
         <div class="stat-label-text">Total Zakat</div>
       </div>
       <div class="stat-decoration"></div>
@@ -172,7 +179,7 @@ bodyClass: 'bg-gray-50', currentPage: 'rt' }) %>
                   </td>
                   <td>
                     <div class="amount-display">
-                      Rp <%= Math.floor(rt.total_zakat).toLocaleString('id-ID') %>
+                      Rp <%= formatRupiah(rt.total_zakat) %>
                     </div>
                   </td>
                   <td>
