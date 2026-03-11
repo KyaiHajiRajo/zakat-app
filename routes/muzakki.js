@@ -191,6 +191,30 @@ function formatTanggalLabel(value) {
   });
 }
 
+async function getTanggalRtTabs(db, selectedTanggal) {
+  if (!selectedTanggal) {
+    return [];
+  }
+
+  const [tanggalTabs] = await db.execute(
+    `
+    SELECT
+      r.id,
+      r.nomor_rt,
+      r.ketua_rt,
+      COUNT(DISTINCT m.id) as total_muzakki
+    FROM muzakki m
+    INNER JOIN rt r ON m.rt_id = r.id
+    WHERE ${getMuzakkiTanggalSql("m")} = ?
+    GROUP BY r.id, r.nomor_rt, r.ketua_rt
+    ORDER BY r.nomor_rt ASC
+    `,
+    [selectedTanggal]
+  );
+
+  return tanggalTabs || [];
+}
+
 // GET /muzakki - List all muzakki grouped by tanggal
 router.get("/", async (req, res) => {
   try {
@@ -286,6 +310,12 @@ router.get("/tanggal/:tanggal", async (req, res) => {
       return res.redirect("/muzakki");
     }
 
+    const navTabs = await getTanggalRtTabs(db, selectedTanggal);
+    if (navTabs.length === 0) {
+      req.flash("error_msg", "Tidak ada data RT pada tanggal tersebut");
+      return res.redirect("/muzakki");
+    }
+
     const [muzakki] = await db.execute(
       `
       SELECT
@@ -341,6 +371,7 @@ router.get("/tanggal/:tanggal", async (req, res) => {
       layout: "layouts/main",
       selectedTanggal,
       selectedTanggalLabel: formatTanggalLabel(selectedTanggal),
+      navTabs,
       muzakki,
       summary: {
         totalMuzakki: summary.totalMuzakki,
@@ -362,6 +393,7 @@ router.get("/rt/:rt_id", async (req, res) => {
     const db = req.app.locals.db;
     const rtId = req.params.rt_id;
     const selectedTanggal = normalizeMuzakkiDateInput(req.query.tanggal);
+    const isAllTanggalView = Boolean(selectedTanggal) && req.query.scope !== "rt";
 
     // Get RT info
     const [rtInfo] = await db.execute("SELECT * FROM rt WHERE id = ?", [rtId]);
@@ -374,23 +406,7 @@ router.get("/rt/:rt_id", async (req, res) => {
     let navTabs = [];
 
     if (selectedTanggal) {
-      const [tanggalTabs] = await db.execute(
-        `
-        SELECT
-          r.id,
-          r.nomor_rt,
-          r.ketua_rt,
-          COUNT(DISTINCT m.id) as total_muzakki
-        FROM muzakki m
-        INNER JOIN rt r ON m.rt_id = r.id
-        WHERE ${getMuzakkiTanggalSql("m")} = ?
-        GROUP BY r.id, r.nomor_rt, r.ketua_rt
-        ORDER BY r.nomor_rt ASC
-        `,
-        [selectedTanggal]
-      );
-
-      navTabs = tanggalTabs || [];
+      navTabs = await getTanggalRtTabs(db, selectedTanggal);
 
       if (navTabs.length === 0) {
         req.flash("error_msg", "Tidak ada data RT pada tanggal tersebut");
@@ -398,18 +414,26 @@ router.get("/rt/:rt_id", async (req, res) => {
       }
 
       const isRtIncluded = navTabs.some((item) => String(item.id) === String(rtId));
-      if (!isRtIncluded) {
-        return res.redirect(`/muzakki/rt/${navTabs[0].id}?tanggal=${selectedTanggal}`);
+      if (!isAllTanggalView && !isRtIncluded) {
+        return res.redirect(`/muzakki/rt/${navTabs[0].id}?tanggal=${selectedTanggal}&scope=rt`);
       }
     }
 
-    // Get all muzakki for this RT
-    const muzakkiParams = [rtId];
-    let muzakkiWhereClause = "WHERE m.rt_id = ?";
+    // Get muzakki data for this RT or all RT on selected tanggal
+    const muzakkiParams = [];
+    let muzakkiWhereClause = "";
 
-    if (selectedTanggal) {
-      muzakkiWhereClause += ` AND ${getMuzakkiTanggalSql("m")} = ?`;
+    if (isAllTanggalView) {
+      muzakkiWhereClause = `WHERE ${getMuzakkiTanggalSql("m")} = ?`;
       muzakkiParams.push(selectedTanggal);
+    } else {
+      muzakkiWhereClause = "WHERE m.rt_id = ?";
+      muzakkiParams.push(rtId);
+
+      if (selectedTanggal) {
+        muzakkiWhereClause += ` AND ${getMuzakkiTanggalSql("m")} = ?`;
+        muzakkiParams.push(selectedTanggal);
+      }
     }
 
     const [muzakki] = await db.execute(
@@ -417,12 +441,15 @@ router.get("/rt/:rt_id", async (req, res) => {
       SELECT
         m.*,
         ${getMuzakkiTanggalSelectSql("m")} as tanggal,
+        r.nomor_rt,
+        r.ketua_rt,
         u.name as pencatat_name,
         ${getNamaMuzakkiSql("m")} as nama_muzakki_list,
         ${getJumlahNamaMuzakkiSql("m")} as jumlah_muzakki,
         infak_agg.infak_id,
         COALESCE(infak_agg.infak_jumlah, 0) as infak_jumlah
       FROM muzakki m
+      LEFT JOIN rt r ON m.rt_id = r.id
       LEFT JOIN users u ON m.user_id = u.id
       LEFT JOIN (
         SELECT
@@ -433,7 +460,7 @@ router.get("/rt/:rt_id", async (req, res) => {
         GROUP BY muzakki_id
       ) infak_agg ON m.id = infak_agg.muzakki_id
       ${muzakkiWhereClause}
-      ORDER BY ${getMuzakkiTanggalSql("m")} DESC, m.created_at DESC
+      ORDER BY ${isAllTanggalView ? "r.nomor_rt ASC," : ""} ${getMuzakkiTanggalSql("m")} DESC, m.created_at DESC
     `,
       muzakkiParams
     );
@@ -463,7 +490,9 @@ router.get("/rt/:rt_id", async (req, res) => {
     });
 
     res.render("muzakki/rt-detail", {
-      title: `Detail Muzakki RT ${rtInfo[0].nomor_rt} - Zakat Fitrah`,
+      title: isAllTanggalView
+        ? `Detail Muzakki Semua RT ${selectedTanggal ? `- ${selectedTanggal}` : ""} - Zakat Fitrah`
+        : `Detail Muzakki RT ${rtInfo[0].nomor_rt} - Zakat Fitrah`,
       layout: "layouts/main",
       rt: rtInfo[0],
       muzakki,
@@ -471,6 +500,7 @@ router.get("/rt/:rt_id", async (req, res) => {
       navTabs,
       selectedTanggal,
       selectedTanggalLabel: formatTanggalLabel(selectedTanggal),
+      isAllTanggalView,
     });
   } catch (error) {
     console.error("Error fetching RT detail:", error);
@@ -498,6 +528,7 @@ router.get("/rt/:rt_id/export-excel", async (req, res) => {
     const db = req.app.locals.db;
     const rtId = req.params.rt_id;
     const selectedTanggal = normalizeMuzakkiDateInput(req.query.tanggal);
+    const isAllTanggalView = Boolean(selectedTanggal) && req.query.scope !== "rt";
 
     const [rtRows] = await db.execute(
       `
@@ -517,12 +548,20 @@ router.get("/rt/:rt_id/export-excel", async (req, res) => {
     }
 
     const rt = rtRows[0];
-    const exportParams = [rtId];
-    let exportWhereClause = "WHERE m.rt_id = ?";
+    const exportParams = [];
+    let exportWhereClause = "";
 
-    if (selectedTanggal) {
-      exportWhereClause += ` AND ${getMuzakkiTanggalSql("m")} = ?`;
+    if (isAllTanggalView) {
+      exportWhereClause = `WHERE ${getMuzakkiTanggalSql("m")} = ?`;
       exportParams.push(selectedTanggal);
+    } else {
+      exportWhereClause = "WHERE m.rt_id = ?";
+      exportParams.push(rtId);
+
+      if (selectedTanggal) {
+        exportWhereClause += ` AND ${getMuzakkiTanggalSql("m")} = ?`;
+        exportParams.push(selectedTanggal);
+      }
     }
 
     const [muzakkiData] = await db.execute(
@@ -536,12 +575,14 @@ router.get("/rt/:rt_id/export-excel", async (req, res) => {
         m.jumlah_bayar,
         m.kembalian,
         ${getMuzakkiTanggalSelectSql("m")} as tanggal,
+        r.nomor_rt,
         u.name as pencatat_name,
         ${getNamaMuzakkiSql("m")} as nama_muzakki_list
       FROM muzakki m
+      LEFT JOIN rt r ON m.rt_id = r.id
       LEFT JOIN users u ON m.user_id = u.id
       ${exportWhereClause}
-      ORDER BY ${getMuzakkiTanggalSql("m")} DESC, m.created_at DESC
+      ORDER BY ${isAllTanggalView ? "r.nomor_rt ASC," : ""} ${getMuzakkiTanggalSql("m")} DESC, m.created_at DESC
       `,
       exportParams
     );
@@ -553,12 +594,14 @@ router.get("/rt/:rt_id/export-excel", async (req, res) => {
     workbook.modified = new Date();
 
     const worksheet = workbook.addWorksheet(
-      normalizeExcelSheetName(`RT ${rt.nomor_rt}`)
+      normalizeExcelSheetName(isAllTanggalView ? `Semua RT ${selectedTanggal}` : `RT ${rt.nomor_rt}`)
     );
 
     worksheet.mergeCells("A1:J1");
     const titleCell = worksheet.getCell("A1");
-    titleCell.value = `DATA MUZAKKI RT ${sanitizeForExcel(rt.nomor_rt)}`;
+    titleCell.value = isAllTanggalView
+      ? `DATA MUZAKKI SEMUA RT${selectedTanggal ? ` ${sanitizeForExcel(selectedTanggal)}` : ""}`
+      : `DATA MUZAKKI RT ${sanitizeForExcel(rt.nomor_rt)}`;
     titleCell.font = { bold: true, size: 14, color: { argb: "FF1EAF2F" } };
     titleCell.alignment = { horizontal: "center", vertical: "middle" };
     titleCell.fill = {
@@ -570,7 +613,9 @@ router.get("/rt/:rt_id/export-excel", async (req, res) => {
 
     worksheet.mergeCells("A2:J2");
     const ketuaCell = worksheet.getCell("A2");
-    ketuaCell.value = `Ketua RT: ${sanitizeForExcel(rt.ketua_rt) || "-"}`;
+    ketuaCell.value = isAllTanggalView
+      ? `Tanggal: ${sanitizeForExcel(formatTanggalLabel(selectedTanggal) || selectedTanggal || "-")}`
+      : `Ketua RT: ${sanitizeForExcel(rt.ketua_rt) || "-"}`;
     ketuaCell.font = { italic: true, size: 11 };
     ketuaCell.alignment = { horizontal: "center", vertical: "middle" };
     ketuaCell.fill = {

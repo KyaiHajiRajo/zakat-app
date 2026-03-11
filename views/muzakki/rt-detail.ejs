@@ -1,4 +1,4 @@
-<%- include('../layouts/header', { title: 'Detail RT - Zakat Fitrah App',
+<%- include('../layouts/header', { title: title || 'Detail RT - Zakat Fitrah App',
 bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
 <!-- Flatpickr Date Picker -->
@@ -6,6 +6,11 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+
+<%
+  const pageRtLabel = isAllTanggalView ? 'Semua RT' : (rt.nomor_rt || '-');
+  const pageSubtitlePrefix = isAllTanggalView ? 'Menampilkan seluruh data RT' : `Ketua RT: ${rt.ketua_rt || '-'}`;
+%>
 
 <div class="page-wrapper">
   <!-- Modern Header -->
@@ -16,9 +21,9 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
           <img src="/images/logo-dkm.png" alt="Logo DKM" class="header-logo">
         </div>
         <div class="header-text-box">
-          <h1 class="header-title-text">Detail Muzakki <%= rt.nomor_rt %></h1>
+          <h1 class="header-title-text">Detail Muzakki <%= pageRtLabel %></h1>
           <p class="header-subtitle-text">
-            Ketua RT: <%= rt.ketua_rt %>
+            <%= pageSubtitlePrefix %>
             <% if (selectedTanggal && selectedTanggalLabel) { %>
               | Tanggal: <%= selectedTanggalLabel %>
             <% } %>
@@ -172,10 +177,16 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     <div class="rt-nav-tabs-section">
       <div class="rt-nav-tabs-scroll">
         <div class="rt-nav-tabs-list">
+          <a
+            href="/muzakki/rt/<%= rt.id %>?tanggal=<%= selectedTanggal %>&scope=all"
+            class="rt-nav-tab <%= isAllTanggalView ? 'rt-nav-tab-active' : '' %>"
+          >
+            <span class="rt-nav-tab-name">Semua</span>
+          </a>
           <% navTabs.forEach(function(tab) { %>
             <a
-              href="/muzakki/rt/<%= tab.id %>?tanggal=<%= selectedTanggal %>"
-              class="rt-nav-tab <%= String(tab.id) === String(rt.id) ? 'rt-nav-tab-active' : '' %>"
+              href="/muzakki/rt/<%= tab.id %>?tanggal=<%= selectedTanggal %>&scope=rt"
+              class="rt-nav-tab <%= !isAllTanggalView && String(tab.id) === String(rt.id) ? 'rt-nav-tab-active' : '' %>"
             >
               <span class="rt-nav-tab-name"><%= tab.nomor_rt %></span>
             </a>
@@ -193,9 +204,9 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
           <i class="fas fa-table"></i>
         </div>
         <div class="table-header-text">
-          <h2 class="table-title">Daftar Muzakki <%= rt.nomor_rt %></h2>
+          <h2 class="table-title">Daftar Muzakki <%= pageRtLabel %></h2>
           <p class="table-subtitle">
-            Data lengkap muzakki dan zakat fitrah
+            <%= isAllTanggalView ? 'Data lengkap seluruh muzakki dari semua RT' : 'Data lengkap muzakki dan zakat fitrah' %>
             <% if (selectedTanggal && selectedTanggalLabel) { %>
               pada <%= selectedTanggalLabel %>
             <% } %>
@@ -203,7 +214,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
         </div>
       </div>
       <div class="table-header-right">
-        <button type="button" class="btn-export-excel" onclick="exportRtToExcel()" title="Export data RT ke Excel">
+        <button type="button" class="btn-export-excel" onclick="exportRtToExcel()" title="<%= isAllTanggalView ? 'Export semua data tanggal ini ke Excel' : 'Export data RT ke Excel' %>">
           <i class="fas fa-file-excel"></i>
           <span>Export Excel</span>
         </button>
@@ -224,8 +235,8 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
           <div class="empty-state-icon">
             <i class="fas fa-users"></i>
           </div>
-          <h3 class="empty-state-title">Belum ada data muzakki di RT <%= rt.nomor_rt %></h3>
-          <p class="empty-state-desc">Mulai dengan menambahkan data muzakki untuk RT ini</p>
+          <h3 class="empty-state-title">Belum ada data muzakki di <%= pageRtLabel %></h3>
+          <p class="empty-state-desc"><%= isAllTanggalView ? 'Belum ada data muzakki pada tanggal yang dipilih' : 'Mulai dengan menambahkan data muzakki untuk RT ini' %></p>
           <a href="/muzakki/create" class="btn-empty-state">
             <i class="fas fa-plus mr-2"></i>
             Tambah Muzakki
@@ -265,6 +276,9 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                             1 nama muzakki
                           <% } %>
                         </div>
+                        <% if (isAllTanggalView) { %>
+                          <div class="cell-subtitle">RT <%= item.nomor_rt || '-' %> | Ketua: <%= item.ketua_rt || '-' %></div>
+                        <% } %>
                         <% if (item.catatan) { %>
                           <div class="cell-note"><%= item.catatan %></div>
                         <% } %>
@@ -368,6 +382,9 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                     <div class="muzakki-names-container-mobile" data-names="<%= item.nama_muzakki_search || item.nama_muzakki_display || '-' %>">
                       <div class="muzakki-name-single"><%= item.nama_muzakki_display || '-' %></div>
                     </div>
+                    <% if (isAllTanggalView) { %>
+                      <div class="mobile-card-subtitle">RT <%= item.nomor_rt || '-' %> | Ketua: <%= item.ketua_rt || '-' %></div>
+                    <% } %>
                     <span class="mobile-card-subtitle"><%= item.jumlah_muzakki || 0 %> orang • <%= item.jumlah_jiwa %> jiwa</span>
                   </div>
                 </div>
@@ -1669,9 +1686,10 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   ];
 
   const currentRtId = <%- JSON.stringify(String(rt.id || '')) %>;
-  const currentRtNomor = <%- JSON.stringify(String(rt.nomor_rt || '')) %>;
+  const currentRtNomor = <%- JSON.stringify(String(isAllTanggalView ? 'Semua_RT' : (rt.nomor_rt || ''))) %>;
   const currentSelectedTanggal = <%- JSON.stringify(selectedTanggal || "") %>;
   const currentSelectedTanggalLabel = <%- JSON.stringify(selectedTanggalLabel || "") %>;
+  const currentIsAllTanggalView = <%- JSON.stringify(Boolean(isAllTanggalView)) %>;
 
   function formatBerasKg(totalBerasKg) {
     return new Intl.NumberFormat('id-ID', {
@@ -1686,10 +1704,10 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       html: `
         <div style="text-align: left; padding: 16px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-radius: 12px;">
           <div style="font-size: 15px; color: #065f46; font-weight: 700; margin-bottom: 8px;">
-            RT ${currentRtNomor || '-'}
+            ${currentIsAllTanggalView ? 'Semua RT' : `RT ${currentRtNomor || '-'}`}
           </div>
           <div style="font-size: 13px; color: #374151;">
-            File Excel akan berisi data muzakki untuk RT ini saja${currentSelectedTanggalLabel ? ` pada ${currentSelectedTanggalLabel}` : ''}.
+            File Excel akan berisi ${currentIsAllTanggalView ? 'seluruh data muzakki pada tanggal ini' : 'data muzakki untuk RT ini saja'}${currentSelectedTanggalLabel ? ` pada ${currentSelectedTanggalLabel}` : ''}.
           </div>
         </div>
       `,
@@ -1718,6 +1736,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       const exportUrl = new URL(`/muzakki/rt/${encodeURIComponent(currentRtId)}/export-excel`, window.location.origin);
       if (currentSelectedTanggal) {
         exportUrl.searchParams.set('tanggal', currentSelectedTanggal);
+        exportUrl.searchParams.set('scope', currentIsAllTanggalView ? 'all' : 'rt');
       }
 
       const response = await fetch(exportUrl.toString());
@@ -1746,7 +1765,9 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
         .replace(/[^a-zA-Z0-9_-]/g, '_')
         .replace(/_+/g, '_')
         .replace(/^_+|_+$/g, '') || 'unknown';
-      const filename = `Data_Muzakki_RT_${safeRt}_${today}.xlsx`;
+      const filename = currentIsAllTanggalView
+        ? `Data_Muzakki_Semua_RT_${today}.xlsx`
+        : `Data_Muzakki_RT_${safeRt}_${today}.xlsx`;
 
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
