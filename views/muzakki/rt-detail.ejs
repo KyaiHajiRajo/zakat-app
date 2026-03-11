@@ -46,18 +46,33 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
         <i class="fas fa-user-friends"></i>
       </div>
       <div class="stat-content-box">
-        <div class="stat-value-text"><%= muzakki.reduce((total, m) => total + (parseInt(m.jumlah_jiwa) || 0), 0) %></div>
+        <div class="stat-value-text" id="stat_total_jiwa"><%= muzakki.reduce((total, m) => total + (parseInt(m.jumlah_jiwa) || 0), 0) %></div>
         <div class="stat-label-text">Total Jiwa</div>
       </div>
       <div class="stat-decoration"></div>
     </div>
 
-       <div class="stat-box stat-box-cyan">
+    <div class="stat-box stat-box-success">
+      <div class="stat-icon-wrapper stat-icon-success">
+        <i class="fas fa-seedling"></i>
+      </div>
+      <div class="stat-content-box">
+        <div class="stat-value-text" id="stat_total_beras_kg">
+          <%= parseFloat(
+            muzakki.reduce((total, m) => total + (parseFloat(m.jumlah_beras_kg) || 0), 0)
+          ).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) %> kg
+        </div>
+        <div class="stat-label-text">Total Beras</div>
+      </div>
+      <div class="stat-decoration"></div>
+    </div>
+
+    <div class="stat-box stat-box-cyan">
       <div class="stat-icon-wrapper stat-icon-cyan">
         <i class="fas fa-money-bill-wave"></i>
       </div>
       <div class="stat-content-box">
-        <div class="stat-value-text">Rp <%= Math.floor(muzakki.reduce((total, m) => total + (parseFloat(m.jumlah_uang) || 0), 0)).toLocaleString('id-ID') %></div>
+        <div class="stat-value-text" id="stat_total_uang">Rp <%= Math.floor(muzakki.reduce((total, m) => total + (parseFloat(m.jumlah_uang) || 0), 0)).toLocaleString('id-ID') %></div>
         <div class="stat-label-text">Total Kewajiban Uang</div>
       </div>
       <div class="stat-decoration"></div>
@@ -68,7 +83,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
         <i class="fas fa-hand-holding-usd"></i>
       </div>
       <div class="stat-content-box">
-        <div class="stat-value-text">Rp <%= Math.floor(muzakki.reduce((total, m) => total + (parseFloat(m.kembalian) || 0), 0)).toLocaleString('id-ID') %></div>
+        <div class="stat-value-text" id="stat_total_kembalian">Rp <%= Math.floor(muzakki.reduce((total, m) => total + (parseFloat(m.kembalian) || 0), 0)).toLocaleString('id-ID') %></div>
         <div class="stat-label-text">Total Kembalian</div>
       </div>
       <div class="stat-decoration"></div>
@@ -198,13 +213,13 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
         </button>
         <span class="table-badge">
           <i class="fas fa-users"></i>
-          <%= muzakki.length %> Data
+          <%= displayMuzakki.length %> Data
         </span>
       </div>
     </div>
 
     <div class="table-content-wrapper">
-      <% if (muzakki.length === 0) { %>
+      <% if (displayMuzakki.length === 0) { %>
         <div class="empty-state-box">
           <div class="empty-state-icon">
             <i class="fas fa-users"></i>
@@ -233,17 +248,23 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                 </tr>
               </thead>
               <tbody>
-                <% muzakki.forEach(function(item, index) { %>
+                <% displayMuzakki.forEach(function(item, index) { %>
                   <tr class="table-row-animated" style="animation-delay: <%= index * 0.05 %>s;">
                     <td class="text-center">
                       <span class="number-badge"><%= index + 1 %></span>
                     </td>
                     <td>
                       <div class="cell-content-primary">
-                        <div class="muzakki-names-container" data-names="<%= item.nama_muzakki_list || '-' %>" data-id="<%= item.id %>">
-                          <!-- Will be populated by JavaScript -->
+                        <div class="muzakki-names-container" data-names="<%= item.nama_muzakki_search || item.nama_muzakki_display || '-' %>">
+                          <div class="muzakki-name-single"><%= item.nama_muzakki_display || '-' %></div>
                         </div>
-                        <div class="cell-subtitle"><%= item.jumlah_muzakki || 0 %> orang</div>
+                        <div class="cell-subtitle">
+                          <% if ((item.jumlah_muzakki_parent || 0) > 1) { %>
+                            Data pembayaran bersama <%= item.jumlah_muzakki_parent %> orang
+                          <% } else { %>
+                            1 nama muzakki
+                          <% } %>
+                        </div>
                         <% if (item.catatan) { %>
                           <div class="cell-note"><%= item.catatan %></div>
                         <% } %>
@@ -315,7 +336,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                         <a href="/muzakki/<%= item.id %>/edit" class="btn-icon btn-icon-primary" title="Edit">
                           <i class="fas fa-edit"></i>
                         </a>
-                        <form method="POST" action="/muzakki/<%= item.id %>?_method=DELETE" class="inline-form delete-form" data-name="<%= item.nama_muzakki_list %>">
+                        <form method="POST" action="/muzakki/<%= item.id %>?_method=DELETE" class="inline-form delete-form" data-name="<%= item.nama_muzakki_parent_list || item.nama_muzakki_display %>">
                           <button type="button" class="btn-icon btn-icon-danger" title="Hapus" onclick="confirmDelete(this)">
                             <i class="fas fa-trash"></i>
                           </button>
@@ -331,14 +352,14 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
         <!-- Mobile View -->
         <div class="mobile-view">
-          <% muzakki.forEach(function(item, index) { %>
+          <% displayMuzakki.forEach(function(item, index) { %>
             <div class="mobile-card">
               <div class="mobile-card-header">
                 <div class="mobile-card-title">
                   <span class="mobile-card-number"><%= index + 1 %></span>
                   <div class="mobile-card-name-wrapper">
-                    <div class="muzakki-names-container-mobile" data-names="<%= item.nama_muzakki_list || '-' %>" data-id="mobile-<%= item.id %>">
-                      <!-- Will be populated by JavaScript -->
+                    <div class="muzakki-names-container-mobile" data-names="<%= item.nama_muzakki_search || item.nama_muzakki_display || '-' %>">
+                      <div class="muzakki-name-single"><%= item.nama_muzakki_display || '-' %></div>
                     </div>
                     <span class="mobile-card-subtitle"><%= item.jumlah_muzakki || 0 %> orang • <%= item.jumlah_jiwa %> jiwa</span>
                   </div>
@@ -412,7 +433,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                   <a href="/muzakki/<%= item.id %>/edit" class="btn-icon btn-icon-primary" title="Edit">
                     <i class="fas fa-edit"></i>
                   </a>
-                  <form method="POST" action="/muzakki/<%= item.id %>?_method=DELETE" class="inline-form delete-form" data-name="<%= item.nama_muzakki_list %>">
+                  <form method="POST" action="/muzakki/<%= item.id %>?_method=DELETE" class="inline-form delete-form" data-name="<%= item.nama_muzakki_parent_list || item.nama_muzakki_display %>">
                     <button type="button" class="btn-icon btn-icon-danger" title="Hapus" onclick="confirmDelete(this)">
                       <i class="fas fa-trash"></i>
                     </button>
@@ -1601,15 +1622,17 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 <script>
   // Data muzakki untuk filtering (from EJS)
   const allMuzakkiData = [
-    <% muzakki.forEach(function(item, index) { %>
+    <% displayMuzakki.forEach(function(item, index) { %>
       {
         id: <%= item.id %>,
+        group_id: <%= item.group_id || item.id %>,
         tanggal: '<%= item.tanggal %>',
+        nama_muzakki: <%- JSON.stringify(item.nama_muzakki_display || '-') %>,
         jumlah_jiwa: <%= item.jumlah_jiwa || 0 %>,
         jumlah_uang: <%= parseFloat(item.jumlah_uang) || 0 %>,
         kembalian: <%= parseFloat(item.kembalian) || 0 %>,
         jumlah_beras_kg: <%= parseFloat(item.jumlah_beras_kg) || 0 %>
-      }<%= index < muzakki.length - 1 ? ',' : '' %>
+      }<%= index < displayMuzakki.length - 1 ? ',' : '' %>
     <% }); %>
   ];
 
@@ -1617,6 +1640,13 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   const currentRtNomor = <%- JSON.stringify(String(rt.nomor_rt || '')) %>;
   const currentSelectedTanggal = <%- JSON.stringify(selectedTanggal || "") %>;
   const currentSelectedTanggalLabel = <%- JSON.stringify(selectedTanggalLabel || "") %>;
+
+  function formatBerasKg(totalBerasKg) {
+    return new Intl.NumberFormat('id-ID', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(totalBerasKg || 0) + ' kg';
+  }
 
   async function exportRtToExcel() {
     const result = await Swal.fire({
@@ -1711,6 +1741,31 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     }
   }
 
+  function calculateUniqueTotals(dataRows) {
+    const groupedRows = new Map();
+
+    dataRows.forEach((row) => {
+      const groupKey = String(row.group_id || row.id);
+      if (!groupedRows.has(groupKey)) {
+        groupedRows.set(groupKey, row);
+      }
+    });
+
+    let totalJiwa = 0;
+    let totalBerasKg = 0;
+    let totalUang = 0;
+    let totalKembalian = 0;
+
+    groupedRows.forEach((row) => {
+      totalJiwa += row.jumlah_jiwa || 0;
+      totalBerasKg += row.jumlah_beras_kg || 0;
+      totalUang += row.jumlah_uang || 0;
+      totalKembalian += row.kembalian || 0;
+    });
+
+    return { totalJiwa, totalBerasKg, totalUang, totalKembalian };
+  }
+
   // Combined filter functionality (search + date)
   function applyFilters() {
     const searchInput = document.getElementById('filter_search');
@@ -1740,9 +1795,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     }
 
     let filteredCount = 0;
-    let totalJiwa = 0;
-    let totalUang = 0;
-    let totalKembalian = 0;
+    const visibleRows = [];
 
     // Filter desktop table rows
     const desktopRows = document.querySelectorAll('.desktop-view tbody tr');
@@ -1751,9 +1804,8 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       if (!rowData) return;
 
       const rowDate = new Date(`${rowData.tanggal}T00:00:00`);
-      const muzakkiContainer = row.querySelector('.muzakki-names-container');
-      const namesString = muzakkiContainer ? muzakkiContainer.getAttribute('data-names') : '';
-      
+      const namesString = (rowData.nama_muzakki || '').toLowerCase();
+
       let shouldShow = true;
 
       // Filter by date
@@ -1766,8 +1818,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
       // Filter by search query
       if (searchQuery && shouldShow) {
-        const namesLower = namesString.toLowerCase();
-        if (!namesLower.includes(searchQuery)) {
+        if (!namesString.includes(searchQuery)) {
           shouldShow = false;
         }
       }
@@ -1775,9 +1826,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       if (shouldShow) {
         row.style.display = '';
         filteredCount++;
-        totalJiwa += rowData.jumlah_jiwa;
-        totalUang += rowData.jumlah_uang;
-        totalKembalian += rowData.kembalian;
+        visibleRows.push(rowData);
       } else {
         row.style.display = 'none';
       }
@@ -1790,9 +1839,8 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       if (!rowData) return;
 
       const rowDate = new Date(`${rowData.tanggal}T00:00:00`);
-      const muzakkiContainer = card.querySelector('.muzakki-names-container-mobile');
-      const namesString = muzakkiContainer ? muzakkiContainer.getAttribute('data-names') : '';
-      
+      const namesString = (rowData.nama_muzakki || '').toLowerCase();
+
       let shouldShow = true;
 
       // Filter by date
@@ -1805,8 +1853,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
       // Filter by search query
       if (searchQuery && shouldShow) {
-        const namesLower = namesString.toLowerCase();
-        if (!namesLower.includes(searchQuery)) {
+        if (!namesString.includes(searchQuery)) {
           shouldShow = false;
         }
       }
@@ -1814,8 +1861,14 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       card.style.display = shouldShow ? '' : 'none';
     });
 
-    // Update statistics
-    updateStatistics(totalJiwa, totalUang, totalKembalian);
+    // Update statistics using unique parent records only
+    const totals = calculateUniqueTotals(visibleRows);
+    updateStatistics(
+      totals.totalJiwa,
+      totals.totalBerasKg,
+      totals.totalUang,
+      totals.totalKembalian
+    );
 
     // Show filter info
     let hasActiveFilter = searchQuery || startDate || endDate;
@@ -1855,7 +1908,8 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     // Show notification
     const searchInput = document.getElementById('filter_search');
     const searchQuery = searchInput.value.toLowerCase().trim();
-    const filteredCount = document.querySelectorAll('.desktop-view tbody tr[style=""]').length;
+    const filteredCount = Array.from(document.querySelectorAll('.desktop-view tbody tr'))
+      .filter((row) => row.style.display !== 'none').length;
     
     Swal.fire({
       icon: 'success',
@@ -1893,9 +1947,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     }
 
     let filteredCount = 0;
-    let totalJiwa = 0;
-    let totalUang = 0;
-    let totalKembalian = 0;
+    const visibleRows = [];
 
     // Filter desktop table rows
     const desktopRows = document.querySelectorAll('.desktop-view tbody tr');
@@ -1916,9 +1968,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       if (shouldShow) {
         row.style.display = '';
         filteredCount++;
-        totalJiwa += rowData.jumlah_jiwa;
-        totalUang += rowData.jumlah_uang;
-        totalKembalian += rowData.kembalian;
+        visibleRows.push(rowData);
       } else {
         row.style.display = 'none';
       }
@@ -1943,8 +1993,14 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       card.style.display = shouldShow ? '' : 'none';
     });
 
-    // Update statistics
-    updateStatistics(totalJiwa, totalUang, totalKembalian);
+    // Update statistics using unique parent records only
+    const totals = calculateUniqueTotals(visibleRows);
+    updateStatistics(
+      totals.totalJiwa,
+      totals.totalBerasKg,
+      totals.totalUang,
+      totals.totalKembalian
+    );
 
     // Show filter info
     if (startDate || endDate) {
@@ -1996,17 +2052,13 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     });
 
     // Reset statistics to original
-    let totalJiwa = 0;
-    let totalUang = 0;
-    let totalKembalian = 0;
-
-    allMuzakkiData.forEach(data => {
-      totalJiwa += data.jumlah_jiwa;
-      totalUang += data.jumlah_uang;
-      totalKembalian += data.kembalian;
-    });
-
-    updateStatistics(totalJiwa, totalUang, totalKembalian);
+    const totals = calculateUniqueTotals(allMuzakkiData);
+    updateStatistics(
+      totals.totalJiwa,
+      totals.totalBerasKg,
+      totals.totalUang,
+      totals.totalKembalian
+    );
 
     // Hide filter info
     filterInfo.style.display = 'none';
@@ -2020,21 +2072,27 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     });
   }
 
-  function updateStatistics(totalJiwa, totalUang, totalKembalian) {
+  function updateStatistics(totalJiwa, totalBerasKg, totalUang, totalKembalian) {
     // Update Total Jiwa
-    const jiwaElement = document.querySelector('.stat-box-purple .stat-value-text');
+    const jiwaElement = document.getElementById('stat_total_jiwa');
     if (jiwaElement) {
       jiwaElement.textContent = totalJiwa;
     }
 
+    // Update Total Beras
+    const berasElement = document.getElementById('stat_total_beras_kg');
+    if (berasElement) {
+      berasElement.textContent = formatBerasKg(totalBerasKg);
+    }
+
     // Update Total Kewajiban Uang
-    const uangElement = document.querySelector('.stat-box-cyan .stat-value-text');
+    const uangElement = document.getElementById('stat_total_uang');
     if (uangElement) {
       uangElement.textContent = 'Rp ' + Math.floor(totalUang).toLocaleString('id-ID');
     }
 
     // Update Total Kembalian
-    const kembalianElement = document.querySelector('.stat-box-warning .stat-value-text');
+    const kembalianElement = document.getElementById('stat_total_kembalian');
     if (kembalianElement) {
       kembalianElement.textContent = 'Rp ' + Math.floor(totalKembalian).toLocaleString('id-ID');
     }
@@ -2044,78 +2102,6 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return date.toLocaleDateString('id-ID', options);
   }
-
-  // Parse and display muzakki names
-  function parseMuzakkiNames(namesString) {
-    if (!namesString || namesString === '-') return [];
-    // Split by comma or newline
-    return namesString.split(/[,\n]/).map(name => name.trim()).filter(name => name);
-  }
-
-  function displayMuzakkiNames(container, namesString, itemId, isMobile = false) {
-    const names = parseMuzakkiNames(namesString);
-    
-    if (names.length === 0) {
-      container.innerHTML = '<div class="muzakki-name-single">-</div>';
-      return;
-    }
-
-    if (names.length === 1) {
-      container.innerHTML = `<div class="muzakki-name-single">${names[0]}</div>`;
-      return;
-    }
-
-    // Show max 4 names
-    const maxDisplay = 4;
-    const displayNames = names.slice(0, maxDisplay);
-    const hasMore = names.length > maxDisplay;
-
-    const listClass = isMobile ? 'muzakki-names-list-mobile' : 'muzakki-names-list';
-    let html = `<ol class="${listClass}">`;
-    
-    displayNames.forEach((name, index) => {
-      html += `<li>${index + 1}. ${name}</li>`;
-    });
-    
-    html += '</ol>';
-
-    if (hasMore) {
-      const remaining = names.length - maxDisplay;
-      html += `
-        <button type="button" class="btn-show-more-names" onclick="showAllMuzakkiNames('${itemId}', '${namesString.replace(/'/g, "\\'")}')">
-          <i class="fas fa-eye"></i>
-          <span>Lihat ${remaining} lainnya</span>
-        </button>
-      `;
-    }
-
-    container.innerHTML = html;
-  }
-
-  function showAllMuzakkiNames(itemId, namesString) {
-    const names = parseMuzakkiNames(namesString);
-    
-    let listHtml = '<ol style="text-align: left; padding-left: 20px; margin: 10px 0;">';
-    names.forEach((name, index) => {
-      listHtml += `<li style="margin-bottom: 8px; font-size: 14px; color: #111827;">${name}</li>`;
-    });
-    listHtml += '</ol>';
-
-    Swal.fire({
-      title: 'Daftar Lengkap Muzakki',
-      html: `
-        <div style="max-height: 400px; overflow-y: auto;">
-          <p style="color: #6b7280; font-size: 13px; margin-bottom: 10px;">Total: ${names.length} orang</p>
-          ${listHtml}
-        </div>
-      `,
-      icon: 'info',
-      confirmButtonColor: '#6366f1',
-      confirmButtonText: '<i class="fas fa-check"></i> Tutup',
-      width: '500px'
-    });
-  }
-
   // Flatpickr instances (global agar bisa diakses resetFilter)
   let fpStart = null;
   let fpEnd = null;
@@ -2155,19 +2141,6 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
           fpStart.set('maxDate', selectedDates[0]);
         }
       }
-    });
-
-    // Populate muzakki names on page load
-    document.querySelectorAll('.muzakki-names-container').forEach(container => {
-      const namesString = container.getAttribute('data-names');
-      const itemId = container.getAttribute('data-id');
-      displayMuzakkiNames(container, namesString, itemId, false);
-    });
-
-    document.querySelectorAll('.muzakki-names-container-mobile').forEach(container => {
-      const namesString = container.getAttribute('data-names');
-      const itemId = container.getAttribute('data-id');
-      displayMuzakkiNames(container, namesString, itemId, true);
     });
 
     // Real-time search

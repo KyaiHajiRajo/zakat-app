@@ -98,6 +98,88 @@ function normalizeMuzakkiPayload(muzakki) {
   return [];
 }
 
+function parseNullableDecimal(value) {
+  if (value === null || value === undefined) return null;
+
+  const normalized = String(value).trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const parsed = parseFloat(normalized);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+function getNamaMuzakkiSql(alias = "m") {
+  return `COALESCE(NULLIF(TRIM(${alias}.nama_muzakki), ''), '-')`;
+}
+
+function getJumlahNamaMuzakkiSql(alias = "m") {
+  return `CASE WHEN ${alias}.nama_muzakki IS NOT NULL AND TRIM(${alias}.nama_muzakki) <> '' THEN 1 ELSE 0 END`;
+}
+
+function getPrimaryMuzakkiIdentity(body = {}) {
+  const muzakkiArray = normalizeMuzakkiPayload(body.muzakki);
+  const firstMuzakki =
+    muzakkiArray.find(
+      (item) => item && typeof item === "object" && item.nama && item.nama.trim()
+    ) || muzakkiArray[0] || {};
+
+  const nama_muzakki = String(body.nama_muzakki || firstMuzakki.nama || "").trim();
+  const bin_binti = body.bin_binti || firstMuzakki.bin_binti || null;
+  const nama_orang_tua = String(
+    body.nama_orang_tua || firstMuzakki.nama_orang_tua || ""
+  ).trim();
+
+  return {
+    nama_muzakki,
+    bin_binti,
+    nama_orang_tua: nama_orang_tua || null,
+  };
+}
+
+function getSubmittedMuzakkiEntries(body = {}) {
+  const muzakkiArray = normalizeMuzakkiPayload(body.muzakki);
+  const rawEntries =
+    muzakkiArray.length > 0
+      ? muzakkiArray
+      : [
+          {
+            nama: body.nama_muzakki,
+            bin_binti: body.bin_binti,
+            nama_orang_tua: body.nama_orang_tua,
+            master_zakat_id: body.master_zakat_id,
+            jumlah_bayar: body.jumlah_bayar,
+          },
+        ];
+
+  return rawEntries
+    .filter((item) => item && typeof item === "object")
+    .map((item) => {
+      const nama_muzakki = String(item.nama || item.nama_muzakki || "").trim();
+      const bin_binti = item.bin_binti || null;
+      const nama_orang_tua = String(item.nama_orang_tua || "").trim();
+      const master_zakat_id = String(item.master_zakat_id || "").trim();
+      const jumlah_bayar = parseNullableDecimal(item.jumlah_bayar);
+
+      return {
+        nama_muzakki,
+        bin_binti,
+        nama_orang_tua: nama_orang_tua || null,
+        master_zakat_id,
+        jumlah_bayar,
+      };
+    })
+    .filter(
+      (item) =>
+        item.nama_muzakki ||
+        item.bin_binti ||
+        item.nama_orang_tua ||
+        item.master_zakat_id ||
+        item.jumlah_bayar !== null
+    );
+}
+
 function formatTanggalLabel(value) {
   if (!value) return null;
 
@@ -154,11 +236,7 @@ router.get("/", async (req, res) => {
                     m.jumlah_beras_kg,
                     m.jumlah_bayar,
                     m.kembalian,
-                    (
-                        SELECT COUNT(*)
-                        FROM muzakki_details md
-                        WHERE md.muzakki_id = m.id
-                    ) as total_nama_muzakki,
+                    ${getJumlahNamaMuzakkiSql("m")} as total_nama_muzakki,
                     COALESCE((
                         SELECT SUM(i.jumlah)
                         FROM infak i
@@ -180,9 +258,8 @@ router.get("/", async (req, res) => {
                 SUM(CASE WHEN m.jenis_zakat = 'beras' THEN m.jumlah_beras_kg ELSE 0 END) as total_beras_all,
                 SUM(CASE WHEN m.jenis_zakat = 'uang' THEN m.jumlah_bayar ELSE 0 END) as total_uang_all,
                 SUM(m.kembalian) as total_kembalian_all,
-                COUNT(DISTINCT md.id) as total_nama_muzakki_all
+                SUM(${getJumlahNamaMuzakkiSql("m")}) as total_nama_muzakki_all
             FROM muzakki m
-            LEFT JOIN muzakki_details md ON m.id = md.muzakki_id
         `);
 
     res.render("muzakki/index", {
@@ -217,17 +294,22 @@ router.get("/tanggal/:tanggal", async (req, res) => {
         r.nomor_rt,
         r.ketua_rt,
         u.name as pencatat_name,
-        GROUP_CONCAT(md.nama_muzakki SEPARATOR ', ') as nama_muzakki_list,
-        COALESCE(COUNT(md.id), 0) as jumlah_muzakki,
-        MAX(i.id) as infak_id,
-        COALESCE(SUM(i.jumlah), 0) as infak_jumlah
+        ${getNamaMuzakkiSql("m")} as nama_muzakki_list,
+        ${getJumlahNamaMuzakkiSql("m")} as jumlah_muzakki,
+        infak_agg.infak_id,
+        COALESCE(infak_agg.infak_jumlah, 0) as infak_jumlah
       FROM muzakki m
       LEFT JOIN rt r ON m.rt_id = r.id
       LEFT JOIN users u ON m.user_id = u.id
-      LEFT JOIN muzakki_details md ON m.id = md.muzakki_id
-      LEFT JOIN infak i ON m.id = i.muzakki_id
+      LEFT JOIN (
+        SELECT
+          muzakki_id,
+          MAX(id) as infak_id,
+          SUM(jumlah) as infak_jumlah
+        FROM infak
+        GROUP BY muzakki_id
+      ) infak_agg ON m.id = infak_agg.muzakki_id
       WHERE ${getMuzakkiTanggalSql("m")} = ?
-      GROUP BY m.id, r.nomor_rt, r.ketua_rt, u.name
       ORDER BY r.nomor_rt ASC, m.created_at DESC
       `,
       [selectedTanggal]
@@ -332,24 +414,39 @@ router.get("/rt/:rt_id", async (req, res) => {
 
     const [muzakki] = await db.execute(
       `
-      SELECT 
+      SELECT
         m.*,
         ${getMuzakkiTanggalSelectSql("m")} as tanggal,
         u.name as pencatat_name,
-        GROUP_CONCAT(md.nama_muzakki SEPARATOR ', ') as nama_muzakki_list,
-        COALESCE(COUNT(md.id), 0) as jumlah_muzakki,
-        MAX(i.id) as infak_id,
-        SUM(i.jumlah) as infak_jumlah
+        ${getNamaMuzakkiSql("m")} as nama_muzakki_list,
+        ${getJumlahNamaMuzakkiSql("m")} as jumlah_muzakki,
+        infak_agg.infak_id,
+        COALESCE(infak_agg.infak_jumlah, 0) as infak_jumlah
       FROM muzakki m
       LEFT JOIN users u ON m.user_id = u.id
-      LEFT JOIN muzakki_details md ON m.id = md.muzakki_id
-      LEFT JOIN infak i ON m.id = i.muzakki_id
+      LEFT JOIN (
+        SELECT
+          muzakki_id,
+          MAX(id) as infak_id,
+          SUM(jumlah) as infak_jumlah
+        FROM infak
+        GROUP BY muzakki_id
+      ) infak_agg ON m.id = infak_agg.muzakki_id
       ${muzakkiWhereClause}
-      GROUP BY m.id, u.name
       ORDER BY ${getMuzakkiTanggalSql("m")} DESC, m.created_at DESC
     `,
       muzakkiParams
     );
+    const displayMuzakki = muzakki.map((item) => ({
+      ...item,
+      group_id: item.id,
+      nama_muzakki_display: item.nama_muzakki_list || "-",
+      nama_muzakki_search: item.nama_muzakki_list || "",
+      nama_muzakki_parent_list: item.nama_muzakki_list || "-",
+      jumlah_muzakki_parent: parseInt(item.jumlah_muzakki, 10) || 0,
+      detail_index: 1,
+      detail_count: 1,
+    }));
 
     // Debug: Log data untuk troubleshooting
     console.log('=== RT DETAIL DEBUG ===');
@@ -370,6 +467,7 @@ router.get("/rt/:rt_id", async (req, res) => {
       layout: "layouts/main",
       rt: rtInfo[0],
       muzakki,
+      displayMuzakki,
       navTabs,
       selectedTanggal,
       selectedTanggalLabel: formatTanggalLabel(selectedTanggal),
@@ -439,11 +537,7 @@ router.get("/rt/:rt_id/export-excel", async (req, res) => {
         m.kembalian,
         ${getMuzakkiTanggalSelectSql("m")} as tanggal,
         u.name as pencatat_name,
-        (
-          SELECT GROUP_CONCAT(nama_muzakki SEPARATOR ', ')
-          FROM muzakki_details
-          WHERE muzakki_id = m.id
-        ) as nama_muzakki_list
+        ${getNamaMuzakkiSql("m")} as nama_muzakki_list
       FROM muzakki m
       LEFT JOIN users u ON m.user_id = u.id
       ${exportWhereClause}
@@ -718,27 +812,25 @@ router.post("/", async (req, res) => {
   const {
     rt_id,
     tanggal,
-    muzakki,
     jumlah_jiwa,
-    master_zakat_id,
-    jumlah_bayar,
     catatan,
   } = req.body;
 
   try {
+    const submittedMuzakki = getSubmittedMuzakkiEntries(req.body);
+
     // Debug log untuk melihat data yang diterima
     console.log("Received data:", {
       rt_id,
       tanggal,
-      muzakki,
+      muzakki: req.body.muzakki,
       jumlah_jiwa,
-      master_zakat_id,
-      jumlah_bayar,
+      submittedMuzakki,
       catatan,
     });
 
     // Input validation
-    if (!rt_id || !tanggal || !jumlah_jiwa || !master_zakat_id || !jumlah_bayar) {
+    if (!rt_id || !tanggal || !jumlah_jiwa) {
       req.flash("error_msg", "Semua field yang wajib harus diisi");
       return res.redirect("/muzakki/create");
     }
@@ -749,32 +841,23 @@ router.post("/", async (req, res) => {
       return res.redirect("/muzakki/create");
     }
 
-    const muzakkiArray = normalizeMuzakkiPayload(muzakki);
-
-    console.log("Processed muzakkiArray:", muzakkiArray);
-
-    if (!muzakkiArray || muzakkiArray.length === 0) {
-      req.flash("error_msg", "Minimal harus ada satu data muzakki");
+    if (submittedMuzakki.length === 0) {
+      req.flash("error_msg", "Minimal harus ada 1 muzakki");
       return res.redirect("/muzakki/create");
     }
 
-    // Validate each muzakki has nama
-    for (let i = 0; i < muzakkiArray.length; i++) {
-      if (
-        !muzakkiArray[i] ||
-        !muzakkiArray[i].nama ||
-        !muzakkiArray[i].nama.trim()
-      ) {
-        req.flash("error_msg", `Nama muzakki #${i + 1} tidak boleh kosong`);
-        return res.redirect("/muzakki/create");
-      }
-    }
+    const invalidEntryIndex = submittedMuzakki.findIndex(
+      (item) =>
+        !item.nama_muzakki ||
+        !item.master_zakat_id ||
+        (item.jumlah_bayar !== null && item.jumlah_bayar < 0)
+    );
 
-    const jiwa = parseInt(jumlah_jiwa);
-    const bayar = parseFloat(jumlah_bayar);
-
-    if (jiwa <= 0 || bayar <= 0) {
-      req.flash("error_msg", "Jumlah jiwa dan jumlah bayar harus lebih dari 0");
+    if (invalidEntryIndex !== -1) {
+      req.flash(
+        "error_msg",
+        `Data muzakki #${invalidEntryIndex + 1} belum lengkap atau jumlah bayar tidak valid`
+      );
       return res.redirect("/muzakki/create");
     }
 
@@ -789,92 +872,78 @@ router.post("/", async (req, res) => {
     const connection = await db.getConnection();
 
     try {
+      const masterZakatIds = [
+        ...new Set(submittedMuzakki.map((item) => item.master_zakat_id)),
+      ];
+
+      const placeholders = masterZakatIds.map(() => "?").join(", ");
       const [masterZakat] = await connection.execute(
-        "SELECT * FROM master_zakat WHERE id = ?",
-        [master_zakat_id]
+        `SELECT * FROM master_zakat WHERE id IN (${placeholders})`,
+        masterZakatIds
       );
 
-      if (masterZakat.length === 0) {
+      if (masterZakat.length !== masterZakatIds.length) {
         req.flash("error_msg", "Jenis zakat tidak valid");
         return res.redirect("/muzakki/create");
       }
 
-      const zakatData = masterZakat[0];
-      const jenis_zakat = zakatData.kg > 0 ? "beras" : "uang";
-
-      let jumlah_beras_kg = null;
-      let jumlah_uang = null;
-      let kewajiban = 0;
-
-      if (jenis_zakat === "beras") {
-        jumlah_beras_kg = jiwa * parseFloat(zakatData.kg);
-        kewajiban = jiwa * parseFloat(zakatData.harga);
-      } else if (jenis_zakat === "uang") {
-        jumlah_uang = jiwa * parseFloat(zakatData.harga);
-        kewajiban = jumlah_uang;
-      }
-
-      const kembalian = Math.max(0, bayar - kewajiban);
-
-      console.log("About to start transaction with data:", {
-        rt_id,
-        tanggalZakat,
-        jiwa,
-        jenis_zakat,
-        jumlah_beras_kg,
-        jumlah_uang,
-        bayar,
-        kembalian,
-        catatan,
-        userId,
-        muzakkiCount: muzakkiArray.length,
-      });
+      const masterZakatMap = new Map(
+        masterZakat.map((item) => [String(item.id), item])
+      );
 
       await connection.beginTransaction();
 
-      // Insert main muzakki record (without nama)
-      const [result] = await connection.execute(
-        `
-        INSERT INTO muzakki 
-        (rt_id, jumlah_jiwa, jenis_zakat, jumlah_beras_kg, jumlah_uang, jumlah_bayar, kembalian, catatan, user_id, tanggal, master_zakat_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `,
-        [
-          rt_id,
-          jiwa,
-          jenis_zakat,
-          jumlah_beras_kg,
-          jumlah_uang,
-          bayar,
-          kembalian,
-          catatan || null,
-          userId,
-          tanggalZakat,
-          master_zakat_id,
-        ]
-      );
+      const insertedIds = [];
 
-      const muzakkiId = result.insertId;
-      console.log("Inserted muzakki with ID:", muzakkiId);
+      for (const [index, entry] of submittedMuzakki.entries()) {
+        const zakatData = masterZakatMap.get(entry.master_zakat_id);
+        if (!zakatData) {
+          throw new Error(`Jenis zakat untuk muzakki #${index + 1} tidak ditemukan`);
+        }
 
-      // Insert muzakki details for each individual
-      for (let i = 0; i < muzakkiArray.length; i++) {
-        const muzakkiData = muzakkiArray[i];
-        console.log(`Inserting muzakki detail ${i + 1}:`, muzakkiData);
+        const jiwa = 1;
+        const bayar = entry.jumlah_bayar;
+        const jenis_zakat = parseFloat(zakatData.kg) > 0 ? "beras" : "uang";
 
-        await connection.execute(
+        let jumlah_beras_kg = null;
+        let jumlah_uang = null;
+        let kewajiban = 0;
+
+        if (jenis_zakat === "beras") {
+          jumlah_beras_kg = jiwa * parseFloat(zakatData.kg);
+          kewajiban = jiwa * parseFloat(zakatData.harga);
+        } else {
+          jumlah_uang = jiwa * parseFloat(zakatData.harga);
+          kewajiban = jumlah_uang;
+        }
+
+        const kembalian = bayar === null ? null : Math.max(0, bayar - kewajiban);
+
+        const [result] = await connection.execute(
           `
-          INSERT INTO muzakki_details 
-          (muzakki_id, nama_muzakki, bin_binti, nama_orang_tua)
-          VALUES (?, ?, ?, ?)
+          INSERT INTO muzakki 
+          (rt_id, nama_muzakki, bin_binti, nama_orang_tua, jumlah_jiwa, jenis_zakat, master_zakat_id, jumlah_beras_kg, jumlah_uang, jumlah_bayar, kembalian, catatan, user_id, tanggal)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `,
           [
-            muzakkiId,
-            muzakkiData.nama.trim(),
-            muzakkiData.bin_binti || null,
-            muzakkiData.nama_orang_tua || null,
+            rt_id,
+            entry.nama_muzakki,
+            entry.bin_binti,
+            entry.nama_orang_tua,
+            jiwa,
+            jenis_zakat,
+            entry.master_zakat_id,
+            jumlah_beras_kg,
+            jumlah_uang,
+            bayar,
+            kembalian,
+            catatan || null,
+            userId,
+            tanggalZakat,
           ]
         );
+
+        insertedIds.push(result.insertId);
       }
 
       // Commit transaction
@@ -883,9 +952,16 @@ router.post("/", async (req, res) => {
 
       req.flash(
         "success_msg",
-        `Data muzakki berhasil ditambahkan dengan ${muzakkiArray.length} orang muzakki`
+        submittedMuzakki.length > 1
+          ? `${submittedMuzakki.length} data muzakki berhasil ditambahkan`
+          : "Data muzakki berhasil ditambahkan"
       );
-      res.redirect(`/muzakki/${muzakkiId}`);
+
+      if (insertedIds.length === 1) {
+        return res.redirect(`/muzakki/${insertedIds[0]}`);
+      }
+
+      return res.redirect(`/muzakki/tanggal/${tanggalZakat}`);
     } catch (error) {
       // Rollback on error
       await connection.rollback();
@@ -930,11 +1006,16 @@ router.get("/:id/edit", async (req, res) => {
       return res.redirect("/muzakki");
     }
 
-    // Get muzakki details
-    const [muzakkiDetails] = await db.execute(
-      "SELECT * FROM muzakki_details WHERE muzakki_id = ? ORDER BY id",
-      [id]
-    );
+    const muzakkiDetails = [
+      {
+        nama_muzakki: muzakki[0].nama_muzakki,
+        bin_binti: muzakki[0].bin_binti,
+        nama_orang_tua: muzakki[0].nama_orang_tua,
+        master_zakat_id: muzakki[0].master_zakat_id,
+      },
+    ];
+
+    const selectedMasterZakatId = muzakki[0].master_zakat_id || null;
 
     // Get all RT for dropdown
     const [rtList] = await db.execute("SELECT * FROM rt ORDER BY nomor_rt");
@@ -949,6 +1030,7 @@ router.get("/:id/edit", async (req, res) => {
       layout: "layouts/main",
       muzakki: muzakki[0],
       muzakkiDetails: muzakkiDetails, // Pass all details
+      selectedMasterZakatId,
       rtList,
       masterZakatList,
     });
@@ -965,7 +1047,6 @@ router.put("/:id", async (req, res) => {
   const {
     rt_id,
     tanggal,
-    muzakki,
     jumlah_jiwa,
     master_zakat_id,
     jumlah_bayar,
@@ -974,7 +1055,7 @@ router.put("/:id", async (req, res) => {
 
   try {
     // Input validation
-    if (!rt_id || !tanggal || !jumlah_jiwa || !master_zakat_id || !jumlah_bayar) {
+    if (!rt_id || !tanggal || !jumlah_jiwa || !master_zakat_id) {
       req.flash("error_msg", "Semua field yang wajib harus diisi");
       return res.redirect(`/muzakki/${id}/edit`);
     }
@@ -985,27 +1066,22 @@ router.put("/:id", async (req, res) => {
       return res.redirect(`/muzakki/${id}/edit`);
     }
 
-    const muzakkiArray = normalizeMuzakkiPayload(muzakki);
-
-    // Validate muzakki array
-    if (!muzakkiArray || muzakkiArray.length === 0) {
-      req.flash("error_msg", "Minimal harus ada satu data muzakki");
+    const identity = getPrimaryMuzakkiIdentity(req.body);
+    if (!identity.nama_muzakki) {
+      req.flash("error_msg", "Nama muzakki tidak boleh kosong");
       return res.redirect(`/muzakki/${id}/edit`);
     }
 
-    // Validate each muzakki has nama
-    for (let i = 0; i < muzakkiArray.length; i++) {
-      if (!muzakkiArray[i].nama || !muzakkiArray[i].nama.trim()) {
-        req.flash("error_msg", `Nama muzakki #${i + 1} tidak boleh kosong`);
-        return res.redirect(`/muzakki/${id}/edit`);
-      }
+    const jiwa = 1;
+    const bayar = parseNullableDecimal(jumlah_bayar);
+
+    if (jumlah_bayar !== undefined && String(jumlah_bayar).trim() !== "" && bayar === null) {
+      req.flash("error_msg", "Jumlah bayar tidak valid");
+      return res.redirect(`/muzakki/${id}/edit`);
     }
 
-    const jiwa = parseInt(jumlah_jiwa);
-    const bayar = parseFloat(jumlah_bayar);
-
-    if (jiwa <= 0 || bayar <= 0) {
-      req.flash("error_msg", "Jumlah jiwa dan jumlah bayar harus lebih dari 0");
+    if (bayar !== null && bayar < 0) {
+      req.flash("error_msg", "Jumlah bayar tidak boleh negatif");
       return res.redirect(`/muzakki/${id}/edit`);
     }
 
@@ -1038,7 +1114,7 @@ router.put("/:id", async (req, res) => {
         kewajiban = jumlah_uang;
       }
 
-      const kembalian = Math.max(0, bayar - kewajiban);
+      const kembalian = bayar === null ? null : Math.max(0, bayar - kewajiban);
 
       await connection.beginTransaction();
 
@@ -1046,49 +1122,29 @@ router.put("/:id", async (req, res) => {
       await connection.execute(
         `
         UPDATE muzakki 
-        SET rt_id = ?, jumlah_jiwa = ?, jenis_zakat = ?, 
+        SET rt_id = ?, nama_muzakki = ?, bin_binti = ?, nama_orang_tua = ?,
+            jumlah_jiwa = ?, jenis_zakat = ?, master_zakat_id = ?,
             jumlah_beras_kg = ?, jumlah_uang = ?, jumlah_bayar = ?, 
-            kembalian = ?, catatan = ?, tanggal = ?, master_zakat_id = ?
+            kembalian = ?, catatan = ?, tanggal = ?
         WHERE id = ?
         `,
         [
           rt_id,
+          identity.nama_muzakki,
+          identity.bin_binti,
+          identity.nama_orang_tua,
           jiwa,
           jenis_zakat,
+          master_zakat_id,
           jumlah_beras_kg,
           jumlah_uang,
           bayar,
           kembalian,
           catatan,
           tanggalZakat,
-          master_zakat_id,
           id,
         ]
       );
-
-      // Delete existing muzakki details
-      await connection.execute("DELETE FROM muzakki_details WHERE muzakki_id = ?", [
-        id,
-      ]);
-
-      // Insert new muzakki details
-      for (let i = 0; i < muzakkiArray.length; i++) {
-        const muzakkiData = muzakkiArray[i];
-
-        await connection.execute(
-          `
-          INSERT INTO muzakki_details 
-          (muzakki_id, nama_muzakki, bin_binti, nama_orang_tua)
-          VALUES (?, ?, ?, ?)
-          `,
-          [
-            id,
-            muzakkiData.nama.trim(),
-            muzakkiData.bin_binti || null,
-            muzakkiData.nama_orang_tua || null,
-          ]
-        );
-      }
 
       // Update infak if kembalian changed
       const [existingInfak] = await connection.execute(
@@ -1126,7 +1182,7 @@ router.put("/:id", async (req, res) => {
 
       req.flash(
         "success_msg",
-        `Data muzakki berhasil diupdate dengan ${muzakkiArray.length} orang muzakki`
+        "Data muzakki berhasil diupdate"
       );
       res.redirect(`/muzakki/${id}`);
     } catch (error) {
@@ -1161,9 +1217,6 @@ router.delete("/:id", async (req, res) => {
     }
 
     const rtId = muzakki[0].rt_id;
-
-    // Delete muzakki details first
-    await db.execute("DELETE FROM muzakki_details WHERE muzakki_id = ?", [id]);
 
     // Delete related infak records
     await db.execute("DELETE FROM infak WHERE muzakki_id = ?", [id]);
@@ -1284,12 +1337,12 @@ router.post("/rt/:rtId/batch-infak", async (req, res) => {
         );
 
         if (existingInfak.length > 0) {
-          errors.push(`Muzakki ${muzakkiData.nama_muzakki_list || muzakkiId} sudah memiliki infak`);
+          errors.push(`Muzakki ${muzakkiData.nama_muzakki || muzakkiId} sudah memiliki infak`);
           continue;
         }
 
         if (muzakkiData.kembalian <= 0) {
-          errors.push(`Muzakki ${muzakkiData.nama_muzakki_list || muzakkiId} tidak memiliki kembalian`);
+          errors.push(`Muzakki ${muzakkiData.nama_muzakki || muzakkiId} tidak memiliki kembalian`);
           continue;
         }
 
@@ -1391,11 +1444,7 @@ router.get("/export-excel", async (req, res) => {
           m.kembalian,
           ${getMuzakkiTanggalSelectSql("m")} as tanggal,
           u.name as pencatat_name,
-          (
-            SELECT GROUP_CONCAT(nama_muzakki SEPARATOR ', ')
-            FROM muzakki_details
-            WHERE muzakki_id = m.id
-          ) as nama_muzakki_list
+          ${getNamaMuzakkiSql("m")} as nama_muzakki_list
         FROM muzakki m
         LEFT JOIN users u ON m.user_id = u.id
         WHERE m.rt_id = ?
@@ -1671,10 +1720,14 @@ router.get("/:id", async (req, res) => {
     }
 
     // Get muzakki details
-    const [muzakkiDetails] = await db.execute(
-      "SELECT * FROM muzakki_details WHERE muzakki_id = ? ORDER BY id",
-      [id]
-    );
+    const muzakkiDetails = [
+      {
+        nama_muzakki: muzakki[0].nama_muzakki,
+        bin_binti: muzakki[0].bin_binti,
+        nama_orang_tua: muzakki[0].nama_orang_tua,
+        master_zakat_id: muzakki[0].master_zakat_id,
+      },
+    ];
 
     res.render("muzakki/detail", {
       title: "Detail Muzakki - Zakat Fitrah",

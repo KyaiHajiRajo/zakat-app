@@ -61,7 +61,7 @@
         </div>
         <div class="stat-content-box">
           <div class="stat-value-text">
-            <%= Math.floor(stats.total_beras_all || 0) %> kg
+            <%= Math.floor(stats.total_beras_all || 0) %> Liter
           </div>
           <div class="stat-label-text">Total Zakat Beras</div>
         </div>
@@ -167,7 +167,7 @@
                         <% if (group.total_beras> 0) { %>
                           <div class="amount-display amount-success">
                             <i class="fas fa-weight mr-1"></i>
-                            <%= Math.floor(group.total_beras).toLocaleString('id-ID') %> kg
+                            <%= Math.floor(group.total_beras).toLocaleString('id-ID') %> Liter
                           </div>
                           <% } else { %>
                             <div class="text-gray-400">-</div>

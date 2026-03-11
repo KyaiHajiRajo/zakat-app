@@ -76,7 +76,7 @@
                     </div>
                     <div class="card-header-text">
                         <h3 class="card-title">Data Identitas Muzakki</h3>
-                        <p class="card-subtitle">Informasi lengkap muzakki yang ditanggung</p>
+                        <p class="card-subtitle">Informasi lengkap untuk satu muzakki</p>
                     </div>
                 </div>
                 <div class="card-body">
@@ -178,7 +178,7 @@
                             </div>
                         <% } %>
                     </div>
-                    <button type="button" id="addMuzakkiBtn" class="btn-add-muzakki" onclick="addMuzakkiSection()">
+                    <button type="button" id="addMuzakkiBtn" class="btn-add-muzakki" onclick="addMuzakkiSection()" style="display: none;" aria-hidden="true" tabindex="-1">
                         <i class="fas fa-plus"></i>
                         <span>Tambah Muzakki</span>
                     </button>
@@ -204,11 +204,12 @@
                                 <i class="fas fa-users"></i> Jumlah Jiwa <span class="required">*</span>
                             </label>
                             <input type="number" id="jumlah_jiwa" name="jumlah_jiwa" required min="1" 
-                                   class="form-input" 
-                                   value="<%= muzakki.jumlah_jiwa %>"
-                                   placeholder="Jumlah jiwa yang ditanggung"
-                                   onchange="calculateZakat()">
-                            <p class="form-hint">Jumlah jiwa yang ditanggung zakatnya</p>
+                                   class="form-input input-readonly" 
+                                   value="1"
+                                   placeholder="1"
+                                   readonly
+                                   title="Tetap 1 jiwa untuk satu data muzakki">
+                            <p class="form-hint">Satu data muzakki mewakili satu jiwa</p>
                         </div>
 
                         <!-- Jenis Zakat -->
@@ -222,7 +223,7 @@
                                 <option value="<%= zakat.id %>" 
                                         data-harga="<%= zakat.harga %>" 
                                         data-kg="<%= zakat.kg %>"
-                                        <%= zakat.id === muzakki.master_zakat_id ? 'selected' : '' %>>
+                                        <%= String(zakat.id) === String(selectedMasterZakatId || '') ? 'selected' : '' %>>
                                     <%= zakat.nama %> 
                                     <% if (parseFloat(zakat.kg) > 0) { %>
                                         (<%= zakat.kg %> kg/jiwa)
@@ -232,6 +233,44 @@
                                 </option>
                                 <% }); %>
                             </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jumlah_beras_kg_display" class="form-label">
+                                <i class="fas fa-seedling"></i> Jumlah Beras
+                            </label>
+                            <div class="input-with-suffix">
+                                <input type="text" id="jumlah_beras_kg_display"
+                                       class="form-input input-with-suffix-field input-readonly"
+                                       value="<%= parseFloat(muzakki.jumlah_beras_kg || 0).toLocaleString('id-ID') %>"
+                                       placeholder="0"
+                                       readonly
+                                       title="Otomatis dihitung dari jenis zakat yang dipilih">
+                                <span class="input-suffix">kg</span>
+                                <input type="hidden" id="jumlah_beras_kg" name="jumlah_beras_kg"
+                                       value="<%= muzakki.jumlah_beras_kg || 0 %>">
+                            </div>
+                            <p class="form-hint">Terisi otomatis sesuai jenis zakat dan jumlah jiwa</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="jumlah_uang_display" class="form-label">
+                                <i class="fas fa-wallet"></i> Jumlah Uang
+                            </label>
+                            <div class="input-with-prefix">
+                                <span class="input-prefix">Rp</span>
+                                <input type="text" id="jumlah_uang_display"
+                                       class="form-input input-with-prefix-field input-readonly"
+                                       value="<%= muzakki.jumlah_uang ? parseInt(muzakki.jumlah_uang).toLocaleString('id-ID') : '0' %>"
+                                       placeholder="0"
+                                       readonly
+                                       title="Otomatis dihitung dari jenis zakat yang dipilih">
+                                <input type="hidden" id="jumlah_uang" name="jumlah_uang"
+                                       value="<%= muzakki.jumlah_uang || 0 %>">
+                                <input type="hidden" id="jenis_zakat" name="jenis_zakat"
+                                       value="<%= muzakki.jenis_zakat || '' %>">
+                            </div>
+                            <p class="form-hint">Terisi otomatis sesuai jenis zakat dan jumlah jiwa</p>
                         </div>
 
                         <!-- Kewajiban Display -->
@@ -254,9 +293,9 @@
                         </div>
 
                         <!-- Jumlah Bayar -->
-                        <div class="form-group form-group-full">
+                        <div class="form-group">
                             <label for="jumlah_bayar" class="form-label">
-                                <i class="fas fa-money-bill-wave"></i> Jumlah Bayar <span class="required">*</span>
+                                <i class="fas fa-money-bill-wave"></i> Jumlah Bayar
                             </label>
                             <div class="input-with-prefix">
                                 <span class="input-prefix">Rp</span>
@@ -268,17 +307,29 @@
                                        onfocus="prepareRupiahInput(this)"
                                        onblur="finalizeRupiahInput(this)">
                                 <input type="hidden" id="jumlah_bayar" name="jumlah_bayar" 
-                                       value="<%= muzakki.jumlah_bayar %>" required>
+                                       value="<%= muzakki.jumlah_bayar ?? '' %>">
                             </div>
                             <p class="form-hint">
-                                Jika lebih dari kewajiban, selisihnya akan menjadi kembalian yang bisa disedekahkan
+                                Opsional. Kosongkan jika jumlah bayar belum dicatat.
                             </p>
-                            <% if (muzakki.kembalian > 0) { %>
-                            <div class="alert-info">
-                                <i class="fas fa-info-circle"></i>
-                                <span>Kembalian saat ini: <strong>Rp <%= muzakki.kembalian ? parseInt(muzakki.kembalian).toLocaleString('id-ID') : '0' %></strong></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="kembalian_display" class="form-label">
+                                <i class="fas fa-hand-holding-usd"></i> Perkiraan Kembalian
+                            </label>
+                            <div class="input-with-prefix">
+                                <span class="input-prefix">Rp</span>
+                                <input type="text" id="kembalian_display"
+                                       class="form-input input-with-prefix-field input-readonly"
+                                       value="<%= muzakki.kembalian ? parseInt(muzakki.kembalian).toLocaleString('id-ID') : '0' %>"
+                                       placeholder="0"
+                                       readonly
+                                       title="Otomatis dihitung dari jumlah bayar dikurangi kewajiban zakat">
+                                <input type="hidden" id="kembalian" name="kembalian"
+                                       value="<%= muzakki.kembalian || 0 %>">
                             </div>
-                            <% } %>
+                            <p class="form-hint">Terisi otomatis dari jumlah bayar dikurangi kewajiban zakat</p>
                         </div>
 
                         <!-- Catatan -->
@@ -566,6 +617,11 @@
         box-shadow: 0 0 0 3px rgba(30, 175, 47, 0.1);
     }
 
+    .input-readonly {
+        background: #f3f4f6;
+        cursor: not-allowed;
+    }
+
     .form-hint {
         font-size: 12px;
         color: #6b7280;
@@ -574,6 +630,12 @@
 
     /* Input with Prefix */
     .input-with-prefix {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-with-suffix {
         position: relative;
         display: flex;
         align-items: center;
@@ -590,6 +652,19 @@
 
     .input-with-prefix-field {
         padding-left: 48px;
+    }
+
+    .input-suffix {
+        position: absolute;
+        right: 16px;
+        font-weight: 600;
+        color: #6b7280;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .input-with-suffix-field {
+        padding-right: 48px;
     }
 
     /* Muzakki Section */
@@ -1264,22 +1339,35 @@
         return new Intl.NumberFormat("id-ID").format(number);
     }
 
+    function formatKgValue(number) {
+        if (!number || number === 0) return "0";
+        return new Intl.NumberFormat("id-ID", {
+            minimumFractionDigits: Number.isInteger(number) ? 0 : 1,
+            maximumFractionDigits: 2
+        }).format(number);
+    }
+
     function parseFromRupiah(rupiahString) {
         if (!rupiahString) return 0;
         const cleanNumber = rupiahString.replace(/[^\d]/g, "");
         return parseInt(cleanNumber) || 0;
     }
 
+    function parseNullableFromRupiah(rupiahString) {
+        const cleanNumber = String(rupiahString || "").replace(/[^\d]/g, "");
+        return cleanNumber ? parseInt(cleanNumber, 10) : null;
+    }
+
     // Handle rupiah input in real-time
     function handleRupiahInput(input) {
         const cursorPosition = input.selectionStart;
         const oldValue = input.value;
-        const numericValue = input.value.replace(/[^\d]/g, "");
-        const numberValue = parseInt(numericValue) || 0;
-        const formattedValue = formatToRupiah(numberValue);
+        const numberValue = parseNullableFromRupiah(input.value);
+        const formattedValue = numberValue === null ? "" : formatToRupiah(numberValue);
         
         input.value = formattedValue;
-        document.getElementById("jumlah_bayar").value = numberValue;
+        document.getElementById("jumlah_bayar").value = numberValue === null ? "" : numberValue;
+        updateKembalianPreview();
         
         const newLength = formattedValue.length;
         const oldLength = oldValue.length;
@@ -1293,18 +1381,38 @@
     // Prepare input when focused
     function prepareRupiahInput(input) {
         const hiddenValue = document.getElementById("jumlah_bayar").value;
-        if (hiddenValue && hiddenValue !== "0") {
+        if (hiddenValue) {
             input.value = hiddenValue;
             setTimeout(() => input.select(), 50);
+        } else {
+            input.value = "";
         }
     }
 
     // Finalize input when focus is lost
     function finalizeRupiahInput(input) {
-        const numericValue = parseFromRupiah(input.value);
-        const formattedValue = formatToRupiah(numericValue);
+        const numericValue = parseNullableFromRupiah(input.value);
+        const formattedValue = numericValue === null ? "" : formatToRupiah(numericValue);
         input.value = formattedValue;
-        document.getElementById("jumlah_bayar").value = numericValue;
+        document.getElementById("jumlah_bayar").value = numericValue === null ? "" : numericValue;
+        updateKembalianPreview();
+    }
+
+    function updateKembalianPreview() {
+        const jumlahBayarRaw = document.getElementById("jumlah_bayar").value;
+        const jumlahBayar = parseInt(jumlahBayarRaw, 10) || 0;
+        const jumlahUang = parseInt(document.getElementById("jumlah_uang").value) || 0;
+        const estimatedKembalian = Math.max(0, jumlahBayar - jumlahUang);
+        const kembalianDisplay = document.getElementById("kembalian_display");
+        const kembalianInput = document.getElementById("kembalian");
+
+        if (kembalianDisplay) {
+            kembalianDisplay.value = formatToRupiah(estimatedKembalian);
+        }
+
+        if (kembalianInput) {
+            kembalianInput.value = jumlahBayarRaw ? estimatedKembalian : "";
+        }
     }
 
     // Enhanced calculate zakat function with visual feedback
@@ -1313,6 +1421,11 @@
         const masterZakatSelect = document.getElementById("master_zakat_id");
         const kewajibanDisplay = document.getElementById("kewajiban_display");
         const kewajibanBox = kewajibanDisplay ? kewajibanDisplay.closest('.kewajiban-box') : null;
+        const jumlahBerasKgDisplay = document.getElementById("jumlah_beras_kg_display");
+        const jumlahUangDisplay = document.getElementById("jumlah_uang_display");
+        const jumlahBerasKgInput = document.getElementById("jumlah_beras_kg");
+        const jumlahUangInput = document.getElementById("jumlah_uang");
+        const jenisZakatInput = document.getElementById("jenis_zakat");
 
         if (!jiwaEl || !masterZakatSelect || !kewajibanDisplay) {
             return;
@@ -1340,9 +1453,25 @@
                     // Jenis beras
                     const totalKg = jiwa * kg;
                     const totalUang = jiwa * harga;
+                    const formattedKg = formatKgValue(totalKg);
+                    if (jenisZakatInput) {
+                        jenisZakatInput.value = "beras";
+                    }
+                    if (jumlahBerasKgDisplay) {
+                        jumlahBerasKgDisplay.value = formattedKg;
+                    }
+                    if (jumlahUangDisplay) {
+                        jumlahUangDisplay.value = formatToRupiah(totalUang);
+                    }
+                    if (jumlahBerasKgInput) {
+                        jumlahBerasKgInput.value = totalKg.toFixed(2);
+                    }
+                    if (jumlahUangInput) {
+                        jumlahUangInput.value = Math.floor(totalUang);
+                    }
                     kewajibanDisplay.innerHTML = `
                         <div>
-                            <div style="font-size: 28px; color: #16a127;">${totalKg.toFixed(1)} kg beras</div>
+                            <div style="font-size: 28px; color: #16a127;">${formattedKg} kg beras</div>
                             <div style="font-size: 16px; color: #6b7280; margin-top: 4px;">
                                 Setara Rp ${formatToRupiah(totalUang)}
                             </div>
@@ -1351,9 +1480,39 @@
                 } else {
                     // Jenis uang
                     const kewajiban = jiwa * harga;
+                    if (jenisZakatInput) {
+                        jenisZakatInput.value = "uang";
+                    }
+                    if (jumlahBerasKgDisplay) {
+                        jumlahBerasKgDisplay.value = "0";
+                    }
+                    if (jumlahUangDisplay) {
+                        jumlahUangDisplay.value = formatToRupiah(kewajiban);
+                    }
+                    if (jumlahBerasKgInput) {
+                        jumlahBerasKgInput.value = 0;
+                    }
+                    if (jumlahUangInput) {
+                        jumlahUangInput.value = Math.floor(kewajiban);
+                    }
                     kewajibanDisplay.innerHTML = `<div style="color: #1EAF2F;">Rp ${formatToRupiah(kewajiban)}</div>`;
                 }
             } else {
+                if (jenisZakatInput) {
+                    jenisZakatInput.value = "";
+                }
+                if (jumlahBerasKgDisplay) {
+                    jumlahBerasKgDisplay.value = "0";
+                }
+                if (jumlahUangDisplay) {
+                    jumlahUangDisplay.value = "0";
+                }
+                if (jumlahBerasKgInput) {
+                    jumlahBerasKgInput.value = 0;
+                }
+                if (jumlahUangInput) {
+                    jumlahUangInput.value = 0;
+                }
                 kewajibanDisplay.innerHTML = '<span style="color: #9ca3af;">-</span>';
             }
 
@@ -1369,6 +1528,7 @@
             }
             
             kewajibanDisplay.classList.remove('highlight');
+            updateKembalianPreview();
         }, 200);
     }
 
@@ -1409,7 +1569,11 @@
         const jiwa = parseInt(document.getElementById("jumlah_jiwa").value);
         const tanggal = document.getElementById("tanggal").value;
         const masterZakatId = document.getElementById("master_zakat_id").value;
-        const jumlahBayar = parseInt(document.getElementById("jumlah_bayar").value);
+        const jumlahBayar = parseInt(document.getElementById("jumlah_bayar").value, 10);
+        const jenisZakat = document.getElementById("jenis_zakat").value;
+        const jumlahUang = parseInt(document.getElementById("jumlah_uang").value) || 0;
+        const jumlahBerasKg = parseFloat(document.getElementById("jumlah_beras_kg").value) || 0;
+        const kembalian = parseInt(document.getElementById("kembalian").value, 10) || 0;
 
         // Validasi basic fields
         if (jiwa <= 0) {
@@ -1442,6 +1606,21 @@
             return false;
         }
 
+        if ((jenisZakat === "uang" && jumlahUang <= 0) || (jenisZakat === "beras" && jumlahBerasKg <= 0)) {
+            e.preventDefault();
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Perhitungan Gagal',
+                    text: 'Nilai kewajiban zakat belum terhitung dengan benar. Pilih ulang jenis zakat.',
+                    confirmButtonColor: '#1EAF2F'
+                });
+            } else {
+                alert('Nilai kewajiban zakat belum terhitung dengan benar');
+            }
+            return false;
+        }
+
         if (!tanggal) {
             e.preventDefault();
             if (typeof Swal !== 'undefined') {
@@ -1453,21 +1632,6 @@
                 });
             } else {
                 alert('Tanggal zakat wajib diisi');
-            }
-            return false;
-        }
-
-        if (jumlahBayar <= 0) {
-            e.preventDefault();
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Input Tidak Valid',
-                    text: 'Jumlah bayar harus lebih dari 0',
-                    confirmButtonColor: '#1EAF2F'
-                });
-            } else {
-                alert('Jumlah bayar harus lebih dari 0');
             }
             return false;
         }
@@ -1516,7 +1680,9 @@
                         <p><strong>Jumlah Muzakki:</strong> ${muzakkiCount} orang</p>
                         <p><strong>Jumlah Jiwa:</strong> ${jiwa} jiwa</p>
                         <p><strong>Jenis Zakat:</strong> ${jenisZakatText}</p>
+                        <p><strong>Jumlah Beras:</strong> ${formatKgValue(jumlahBerasKg)} kg</p>
                         <p><strong>Jumlah Bayar:</strong> Rp ${formatToRupiah(jumlahBayar)}</p>
+                        <p><strong>Perkiraan Kembalian:</strong> Rp ${formatToRupiah(kembalian)}</p>
                         <br>
                         <p style="color: #6b7280;">Apakah perubahan data sudah benar?</p>
                     </div>
@@ -1538,7 +1704,9 @@
                 `- Jumlah Muzakki: ${muzakkiCount} orang\n` +
                 `- Jumlah Jiwa: ${jiwa} jiwa\n` +
                 `- Jenis Zakat: ${jenisZakatText}\n` +
-                `- Jumlah Bayar: Rp ${formatToRupiah(jumlahBayar)}`;
+                `- Jumlah Beras: ${formatKgValue(jumlahBerasKg)} kg\n` +
+                `- Jumlah Bayar: Rp ${formatToRupiah(jumlahBayar)}\n` +
+                `- Perkiraan Kembalian: Rp ${formatToRupiah(kembalian)}`;
             
             if (confirm(confirmMessage)) {
                 document.getElementById("muzakkiForm").submit();

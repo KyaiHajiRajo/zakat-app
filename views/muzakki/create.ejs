@@ -36,29 +36,38 @@
               <i class="fas fa-map-marker-alt"></i>
             </div>
             <div class="card-header-text">
-              <h2 class="card-title">Pilih RT</h2>
-              <p class="card-subtitle">Tentukan RT tempat muzakki terdaftar</p>
+              <h2 class="card-title">RT dan Tanggal</h2>
+              <p class="card-subtitle">Tentukan RT tempat muzakki terdaftar dan tanggal pembayaran zakat</p>
             </div>
           </div>
           <div class="card-body">
-            <input
-              type="hidden"
-              id="tanggal"
-              name="tanggal"
-              value="<%= defaultTanggal %>"
-            />
-            <div class="form-group">
-              <label for="rt_id" class="form-label">
-                <i class="fas fa-home mr-1"></i>RT <span class="required">*</span>
-              </label>
-              <select id="rt_id" name="rt_id" required class="form-select">
-                <option value="">Pilih RT</option>
-                <% rtList.forEach(function(rt) { %>
-                  <option value="<%= rt.id %>">
-                    RT <%= rt.nomor_rt %> - <%= rt.ketua_rt %>
-                  </option>
-                  <% }); %>
-              </select>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="rt_id" class="form-label">
+                  <i class="fas fa-home mr-1"></i>RT <span class="required">*</span>
+                </label>
+                <select id="rt_id" name="rt_id" required class="form-select">
+                  <option value="">Pilih RT</option>
+                  <% rtList.forEach(function(rt) { %>
+                    <option value="<%= rt.id %>">
+                      <%= rt.nomor_rt %> - <%= rt.ketua_rt %>
+                    </option>
+                    <% }); %>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="tanggal" class="form-label">
+                  <i class="fas fa-calendar-alt mr-1"></i>Tanggal <span class="required">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="tanggal"
+                  name="tanggal"
+                  required
+                  class="form-input"
+                  value="<%= defaultTanggal %>"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -71,65 +80,168 @@
             </div>
             <div class="card-header-text">
               <h2 class="card-title">Data Identitas Muzakki</h2>
-              <p class="card-subtitle">Masukkan data lengkap muzakki yang akan didaftarkan</p>
+              <p class="card-subtitle">Masukkan data lengkap untuk satu atau lebih muzakki</p>
             </div>
           </div>
           <div class="card-body">
-            <!-- Container untuk semua section muzakki -->
             <div id="muzakkiContainer">
-              <!-- Section Muzakki Pertama -->
               <div class="muzakki-section" data-index="0">
                 <div class="muzakki-section-header">
-                  <h4 class="muzakki-section-title">
-                    <i class="fas fa-user-circle"></i>Muzakki #1
-                  </h4>
+                  <h3 class="muzakki-section-title">
+                    <i class="fas fa-user-circle"></i> Muzakki #1
+                  </h3>
+                  <button type="button" class="btn-remove-muzakki" onclick="removeMuzakkiSection(0)">
+                    <i class="fas fa-trash"></i>
+                    <span>Hapus</span>
+                  </button>
                 </div>
 
                 <div class="form-grid">
-                  <!-- Nama Muzakki -->
                   <div class="form-group form-group-full">
                     <label for="nama_0" class="form-label">
-                      <i class="fas fa-user mr-1"></i>Nama Lengkap Muzakki <span class="required">*</span>
+                      <i class="fas fa-user mr-1"></i>Nama Muzakki <span class="required">*</span>
                     </label>
-                    <input type="text" id="nama_0" name="muzakki[0][nama]" required class="form-input"
-                      placeholder="Masukkan nama lengkap muzakki" />
+                    <input
+                      type="text"
+                      id="nama_0"
+                      name="muzakki[0][nama]"
+                      data-field="nama"
+                      required
+                      class="form-input"
+                      maxlength="100"
+                      placeholder="Masukkan nama lengkap muzakki"
+                    />
                   </div>
 
-                  <!-- Bin/Binti -->
                   <div class="form-group">
                     <label for="bin_binti_0" class="form-label">
                       <i class="fas fa-venus-mars mr-1"></i>Bin/Binti
                     </label>
-                    <select id="bin_binti_0" name="muzakki[0][bin_binti]" class="form-select">
+                    <select id="bin_binti_0" name="muzakki[0][bin_binti]" data-field="bin_binti" class="form-select">
                       <option value="">Pilih</option>
                       <option value="bin">Bin (Anak Laki-laki)</option>
                       <option value="binti">Binti (Anak Perempuan)</option>
                     </select>
-                    <p class="form-hint">
-                      Bin untuk laki-laki, Binti untuk perempuan
-                    </p>
+                    <p class="form-hint">Sesuai field `bin_binti` pada tabel `muzakki`</p>
                   </div>
 
-                  <!-- Nama Orang Tua -->
                   <div class="form-group form-group-double">
                     <label for="nama_orang_tua_0" class="form-label">
                       <i class="fas fa-users mr-1"></i>Nama Orang Tua
                     </label>
-                    <input type="text" id="nama_orang_tua_0" name="muzakki[0][nama_orang_tua]" class="form-input"
-                      placeholder="Masukkan nama ayah atau ibu sesuai bin/binti" />
-                    <p class="form-hint">
-                      Nama ayah jika "bin", nama ibu jika "binti"
-                    </p>
+                    <input
+                      type="text"
+                      id="nama_orang_tua_0"
+                      name="muzakki[0][nama_orang_tua]"
+                      data-field="nama_orang_tua"
+                      class="form-input"
+                      maxlength="150"
+                      placeholder="Masukkan nama ayah atau ibu sesuai bin/binti"
+                    />
+                    <p class="form-hint">Sesuai field `nama_orang_tua` pada tabel `muzakki`</p>
+                  </div>
+                </div>
+
+                <div class="form-group form-group-full">
+                  <label for="master_zakat_id_0" class="form-label">
+                    <i class="fas fa-hand-holding mr-1"></i>Jenis Zakat <span class="required">*</span>
+                  </label>
+                  <select
+                    id="master_zakat_id_0"
+                    name="muzakki[0][master_zakat_id]"
+                    data-field="master_zakat_id"
+                    required
+                    class="form-select"
+                    onchange="calculateZakatForSection(this.closest('.muzakki-section'))"
+                  >
+                    <option value="">Pilih jenis zakat</option>
+                    <% masterZakatList.forEach(function(zakat) { %>
+                      <option value="<%= zakat.id %>" data-harga="<%= zakat.harga %>" data-kg="<%= zakat.kg %>">
+                        <%= zakat.nama %>
+                        <% if (parseFloat(zakat.kg) > 0) { %>
+                          (<%= zakat.kg %> Liter/jiwa)
+                        <% } else { %>
+                          (Rp <%= Math.floor(parseFloat(zakat.harga)).toLocaleString('id-ID') %>/jiwa)
+                        <% } %>
+                      </option>
+                    <% }); %>
+                  </select>
+                  <p class="form-hint">
+                    Pilih jenis zakat yang berlaku untuk muzakki ini
+                  </p>
+                </div>
+
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="jumlah_uang_display_0" class="form-label">
+                      <i class="fas fa-wallet mr-1"></i>Jumlah Uang
+                    </label>
+                    <div class="input-with-prefix">
+                      <span class="input-prefix">Rp</span>
+                      <input
+                        type="text"
+                        id="jumlah_uang_display_0"
+                        data-display="jumlah_uang"
+                        class="form-input input-with-prefix-field input-readonly"
+                        placeholder="0"
+                        readonly
+                        title="Otomatis dihitung dari jenis zakat yang dipilih"
+                      />
+                      <input type="hidden" id="jumlah_uang_0" name="muzakki[0][jumlah_uang]" data-field="jumlah_uang" value="0" />
+                      <input type="hidden" id="jenis_zakat_0" name="muzakki[0][jenis_zakat]" data-field="jenis_zakat" value="" />
+                    </div>
+                    <p class="form-hint">Terisi otomatis sesuai jenis zakat muzakki ini</p>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="jumlah_beras_kg_display_0" class="form-label">
+                      <i class="fas fa-seedling mr-1"></i>Jumlah Beras
+                    </label>
+                    <div class="input-with-suffix">
+                      <input
+                        type="text"
+                        id="jumlah_beras_kg_display_0"
+                        data-display="jumlah_beras_kg"
+                        class="form-input input-with-suffix-field input-readonly"
+                        placeholder="0"
+                        readonly
+                        title="Otomatis dihitung dari jenis zakat yang dipilih"
+                      />
+                      <span class="input-suffix">Liter</span>
+                      <input type="hidden" id="jumlah_beras_kg_0" name="muzakki[0][jumlah_beras_kg]" data-field="jumlah_beras_kg" value="0" />
+                    </div>
+                    <p class="form-hint">Terisi otomatis sesuai jenis zakat muzakki ini</p>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="jumlah_bayar_display_0" class="form-label">
+                      <i class="fas fa-money-bill-wave mr-1"></i>Jumlah Bayar
+                    </label>
+                    <div class="input-with-prefix">
+                      <span class="input-prefix">Rp</span>
+                      <input
+                        type="text"
+                        id="jumlah_bayar_display_0"
+                        data-display="jumlah_bayar"
+                        class="form-input input-with-prefix-field"
+                        placeholder="0"
+                        oninput="handleRupiahInput(this)"
+                        onblur="finalizeRupiahInput(this)"
+                        onfocus="prepareRupiahInput(this)"
+                      />
+                      <input type="hidden" id="jumlah_bayar_0" name="muzakki[0][jumlah_bayar]" data-field="jumlah_bayar" value="" />
+                    </div>
+                    <p class="form-hint">Opsional. Kosongkan jika jumlah bayar belum dicatat.</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Tombol Tambah Muzakki -->
             <button type="button" id="addMuzakkiBtn" class="btn-add-muzakki" onclick="addMuzakkiSection()">
               <i class="fas fa-plus"></i>
               <span>Tambah Muzakki</span>
             </button>
+            <p class="form-hint" style="margin-top: 0.5rem;">Gunakan tombol ini untuk menambah section muzakki baru di bawah form yang sudah ada.</p>
           </div>
         </div>
 
@@ -141,7 +253,7 @@
             </div>
             <div class="card-header-text">
               <h2 class="card-title">Perhitungan Zakat</h2>
-              <p class="card-subtitle">Tentukan jenis dan jumlah zakat yang dibayarkan</p>
+              <p class="card-subtitle">Ringkasan otomatis seluruh muzakki yang ada di form ini</p>
             </div>
           </div>
           <div class="card-body">
@@ -151,32 +263,12 @@
                 <label for="jumlah_jiwa" class="form-label">
                   <i class="fas fa-users mr-1"></i>Jumlah Jiwa <span class="required">*</span>
                 </label>
-                <input type="number" id="jumlah_jiwa" name="jumlah_jiwa" required min="0"
-                  class="form-input input-readonly" placeholder="0" readonly
-                  title="Otomatis terisi sesuai jumlah muzakki" />
+                <input type="number" id="jumlah_jiwa" name="jumlah_jiwa" required min="1"
+                  class="form-input input-readonly" placeholder="1" readonly value="1"
+                  title="Otomatis mengikuti jumlah section muzakki" />
                 <p class="form-hint">
-                  Jumlah jiwa akan otomatis terisi sesuai jumlah muzakki yang diinput
+                  Nilai ini terisi otomatis sesuai jumlah section muzakki di atas
                 </p>
-              </div>
-
-              <!-- Jenis Zakat -->
-              <div class="form-group">
-                <label for="master_zakat_id" class="form-label">
-                  <i class="fas fa-hand-holding mr-1"></i>Jenis Zakat <span class="required">*</span>
-                </label>
-                <select id="master_zakat_id" name="master_zakat_id" required class="form-select">
-                  <option value="">Pilih jenis zakat</option>
-                  <% masterZakatList.forEach(function(zakat) { %>
-                    <option value="<%= zakat.id %>" data-harga="<%= zakat.harga %>" data-kg="<%= zakat.kg %>">
-                      <%= zakat.nama %> 
-                      <% if (parseFloat(zakat.kg) > 0) { %>
-                        (<%= zakat.kg %> kg/jiwa)
-                      <% } else { %>
-                        (Rp <%= Math.floor(parseFloat(zakat.harga)).toLocaleString('id-ID') %>/jiwa)
-                      <% } %>
-                    </option>
-                  <% }); %>
-                </select>
               </div>
 
               <!-- Preview Perhitungan Zakat -->
@@ -190,7 +282,6 @@
                     <div class="preview-content">
                       <div class="preview-label">Total Zakat (Uang)</div>
                       <div class="preview-value" id="preview_jumlah_uang">Rp 0</div>
-                      <input type="hidden" id="jumlah_uang" name="jumlah_uang" value="0" />
                     </div>
                   </div>
 
@@ -199,30 +290,23 @@
                     <div class="preview-icon">
                       <i class="fas fa-seedling"></i>
                     </div>
+                  <div class="preview-content">
+                    <div class="preview-label">Total Zakat (Beras)</div>
+                    <div class="preview-value" id="preview_jumlah_beras_kg">0 Liter</div>
+                    </div>
+                  </div>
+
+                  <div class="preview-box preview-box-cyan">
+                    <div class="preview-icon">
+                      <i class="fas fa-hand-holding-usd"></i>
+                    </div>
                     <div class="preview-content">
-                      <div class="preview-label">Total Zakat (Beras)</div>
-                      <div class="preview-value" id="preview_jumlah_beras_kg">0 kg</div>
-                      <input type="hidden" id="jumlah_beras_kg" name="jumlah_beras_kg" value="0" />
+                      <div class="preview-label">Estimasi Kembalian</div>
+                      <div class="preview-value" id="preview_kembalian">Rp 0</div>
+                      <input type="hidden" id="kembalian" name="kembalian" value="0" />
                     </div>
                   </div>
                 </div>
-              </div>
-
-              <!-- Jumlah Bayar -->
-              <div class="form-group form-group-full">
-                <label for="jumlah_bayar_display" class="form-label">
-                  <i class="fas fa-money-bill-wave mr-1"></i>Jumlah Bayar (Rp) <span class="required">*</span>
-                </label>
-                <div class="input-with-prefix">
-                  <span class="input-prefix">Rp</span>
-                  <input type="text" id="jumlah_bayar_display" class="form-input input-with-prefix-field"
-                    placeholder="0" oninput="handleRupiahInput(this)" onblur="finalizeRupiahInput(this)"
-                    onfocus="prepareRupiahInput(this)" />
-                  <input type="hidden" id="jumlah_bayar" name="jumlah_bayar" required />
-                </div>
-                <p class="form-hint">
-                  Jika lebih dari kewajiban, selisihnya akan menjadi kembalian yang bisa disedekahkan
-                </p>
               </div>
 
               <!-- Catatan -->
@@ -260,7 +344,7 @@
         <div class="info-card-content">
           <h3 class="info-card-title">Zakat Beras</h3>
           <ul class="info-card-list">
-            <li>Kewajiban: 2.5 kg per jiwa</li>
+            <li>Kewajiban: 2.5 Liter per jiwa</li>
             <li>Dapat dibayar dengan beras atau uang senilai</li>
             <li>Lebih mudah untuk distribusi</li>
           </ul>
@@ -556,6 +640,12 @@
       align-items: center;
       min-width: 0;
     }
+    .input-with-suffix {
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
     .input-prefix {
       position: absolute;
       left: 0.74rem;
@@ -567,6 +657,18 @@
     }
     .input-with-prefix-field {
       padding-left: 2.1rem;
+    }
+    .input-suffix {
+      position: absolute;
+      right: 0.74rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #64748b;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .input-with-suffix-field {
+      padding-right: 2.2rem;
     }
     .muzakki-section {
       padding: 0.78rem;
@@ -1002,285 +1104,32 @@
 
 
   <script>
-    // Global variable untuk tracking jumlah muzakki
-    let muzakkiCount = 1;
-
-    // Function untuk menghitung dan mengupdate jumlah jiwa otomatis (REAL-TIME)
-    function updateJumlahJiwa() {
-      const muzakkiSections = document.querySelectorAll(".muzakki-section");
-      // Hitung total section muzakki yang ada (tidak peduli isi nama)
-      let totalJiwa = muzakkiSections.length;
-
-      // Update field jumlah_jiwa
-      const jumlahJiwaInput = document.getElementById("jumlah_jiwa");
-      jumlahJiwaInput.value = totalJiwa;
-
-      // Update visual indicator
-      if (totalJiwa > 0) {
-        jumlahJiwaInput.classList.remove("input-readonly");
-        jumlahJiwaInput.classList.add("bg-green-50", "border-green-200");
-      } else {
-        jumlahJiwaInput.classList.add("input-readonly");
-        jumlahJiwaInput.classList.remove("bg-green-50", "border-green-200");
-      }
-
-      // Trigger perhitungan zakat
-      calculateZakat();
-
-      // Debug log
-      console.log(`Total muzakki sections: ${totalJiwa}`);
-    }
-
-    // Enhanced calculate zakat function
-    function calculateZakat() {
-      const jiwaEl = document.getElementById("jumlah_jiwa");
-      const masterZakatSelect = document.getElementById("master_zakat_id");
-
-      // Preview elements
-      const previewJumlahUang = document.getElementById("preview_jumlah_uang");
-      const previewJumlahBerasKg = document.getElementById("preview_jumlah_beras_kg");
-      const inputJumlahUang = document.getElementById("jumlah_uang");
-      const inputJumlahBerasKg = document.getElementById("jumlah_beras_kg");
-
-      if (!jiwaEl || !masterZakatSelect) {
-        return;
-      }
-
-      const jiwa = parseInt(jiwaEl.value) || 0;
-      const selectedValue = masterZakatSelect.value;
-
-      if (jiwa > 0 && selectedValue) {
-        const selectedOption = masterZakatSelect.options[masterZakatSelect.selectedIndex];
-        const harga = parseFloat(selectedOption.getAttribute('data-harga')) || 0;
-        const kg = parseFloat(selectedOption.getAttribute('data-kg')) || 0;
-
-        if (kg > 0) {
-          // Jenis beras
-          const totalKg = jiwa * kg;
-          const totalUang = jiwa * harga;
-
-          // Update preview dan hidden inputs
-          if (previewJumlahUang) {
-            previewJumlahUang.textContent = 'Rp ' + Math.floor(totalUang).toLocaleString("id-ID");
-          }
-          if (previewJumlahBerasKg) {
-            previewJumlahBerasKg.textContent = totalKg.toFixed(1) + ' kg';
-          }
-          if (inputJumlahUang) {
-            inputJumlahUang.value = Math.floor(totalUang);
-          }
-          if (inputJumlahBerasKg) {
-            inputJumlahBerasKg.value = totalKg.toFixed(1);
-          }
-        } else {
-          // Jenis uang
-          const totalUang = jiwa * harga;
-
-          // Update preview dan hidden inputs
-          if (previewJumlahUang) {
-            previewJumlahUang.textContent = 'Rp ' + Math.floor(totalUang).toLocaleString("id-ID");
-          }
-          if (previewJumlahBerasKg) {
-            previewJumlahBerasKg.textContent = '0 kg';
-          }
-          if (inputJumlahUang) {
-            inputJumlahUang.value = Math.floor(totalUang);
-          }
-          if (inputJumlahBerasKg) {
-            inputJumlahBerasKg.value = 0;
-          }
-        }
-      } else {
-        // Reset semua ke default
-        if (previewJumlahUang) {
-          previewJumlahUang.textContent = 'Rp 0';
-        }
-        if (previewJumlahBerasKg) {
-          previewJumlahBerasKg.textContent = '0 kg';
-        }
-        if (inputJumlahUang) {
-          inputJumlahUang.value = 0;
-        }
-        if (inputJumlahBerasKg) {
-          inputJumlahBerasKg.value = 0;
-        }
-      }
-    }
-
-    // Function untuk menambah section muzakki baru
-    function addMuzakkiSection() {
-      const container = document.getElementById("muzakkiContainer");
-      const newIndex = muzakkiCount;
-
-      // HTML untuk section muzakki baru
-      const newSection = `
-      <div class="muzakki-section" data-index="${newIndex}">
-        <div class="muzakki-section-header">
-          <h4 class="muzakki-section-title">
-            <i class="fas fa-user-circle"></i>Muzakki #${newIndex + 1}
-          </h4>
-          <button
-            type="button"
-            class="btn-remove-muzakki"
-            onclick="removeMuzakkiSection(${newIndex})"
-          >
-            <i class="fas fa-trash"></i>Hapus
-          </button>
-        </div>
-        
-        <div class="form-grid">
-          <!-- Nama Muzakki -->
-          <div class="form-group form-group-full">
-            <label
-              for="nama_${newIndex}"
-              class="form-label"
-            >
-              <i class="fas fa-user mr-1"></i>Nama Lengkap Muzakki <span class="required">*</span>
-            </label>
-            <input
-              type="text"
-              id="nama_${newIndex}"
-              name="muzakki[${newIndex}][nama]"
-              required
-              class="form-input"
-              placeholder="Masukkan nama lengkap muzakki"
-            />
-          </div>
-
-          <!-- Bin/Binti -->
-          <div class="form-group">
-            <label
-              for="bin_binti_${newIndex}"
-              class="form-label"
-            >
-              <i class="fas fa-venus-mars mr-1"></i>Bin/Binti
-            </label>
-            <select
-              id="bin_binti_${newIndex}"
-              name="muzakki[${newIndex}][bin_binti]"
-              class="form-select"
-            >
-              <option value="">Pilih</option>
-              <option value="bin">Bin (Anak Laki-laki)</option>
-              <option value="binti">Binti (Anak Perempuan)</option>
-            </select>
-            <p class="form-hint">
-              Bin untuk laki-laki, Binti untuk perempuan
-            </p>
-          </div>
-
-          <!-- Nama Orang Tua -->
-          <div class="form-group form-group-double">
-            <label
-              for="nama_orang_tua_${newIndex}"
-              class="form-label"
-            >
-              <i class="fas fa-users mr-1"></i>Nama Orang Tua
-            </label>
-            <input
-              type="text"
-              id="nama_orang_tua_${newIndex}"
-              name="muzakki[${newIndex}][nama_orang_tua]"
-              class="form-input"
-              placeholder="Masukkan nama ayah atau ibu sesuai bin/binti"
-            />
-            <p class="form-hint">
-              Nama ayah jika "bin", nama ibu jika "binti"
-            </p>
-          </div>
-        </div>
-      </div>
+    const masterZakatOptionsHtml = `
+      <option value="">Pilih jenis zakat</option>
+      <% masterZakatList.forEach(function(zakat) { %>
+        <option value="<%= zakat.id %>" data-harga="<%= zakat.harga %>" data-kg="<%= zakat.kg %>">
+          <%= zakat.nama %>
+          <% if (parseFloat(zakat.kg) > 0) { %>
+            (<%= zakat.kg %> kg/jiwa)
+          <% } else { %>
+            (Rp <%= Math.floor(parseFloat(zakat.harga)).toLocaleString('id-ID') %>/jiwa)
+          <% } %>
+        </option>
+      <% }); %>
     `;
 
-      // Tambahkan section baru ke container
-      container.insertAdjacentHTML("beforeend", newSection);
+    let muzakkiCount = 1;
 
-      // Update counter
-      muzakkiCount++;
-
-      // Update visibility tombol tambah (maksimal 5 muzakki)
-      updateAddButtonVisibility();
-
-      // Update jumlah jiwa LANGSUNG setelah menambah section
-      updateJumlahJiwa();
-
-      // Scroll ke section yang baru ditambahkan
-      const newSectionElement = container.lastElementChild;
-      newSectionElement.scrollIntoView({ behavior: "smooth", block: "center" });
+    function getMuzakkiSections() {
+      return Array.from(document.querySelectorAll(".muzakki-section"));
     }
 
-    // Function untuk menghapus section muzakki dengan SweetAlert2
-    function removeMuzakkiSection(index) {
-      // Cek apakah SweetAlert2 tersedia
-      if (typeof Swal !== 'undefined') {
-        Swal.fire({
-          title: 'Hapus Muzakki?',
-          text: 'Apakah Anda yakin ingin menghapus data muzakki ini?',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#ef4444',
-          cancelButtonColor: '#6b7280',
-          confirmButtonText: 'Ya, Hapus',
-          cancelButtonText: 'Batal',
-          reverseButtons: true
-        }).then((result) => {
-          if (result.isConfirmed) {
-            const section = document.querySelector(`[data-index="${index}"]`);
-            if (section) {
-              section.remove();
-              muzakkiCount--;
-              updateAddButtonVisibility();
-              updateMuzakkiNumbers();
-              updateJumlahJiwa(); // Update jumlah jiwa setelah hapus
-
-              // Tampilkan notifikasi sukses
-              Swal.fire({
-                title: 'Terhapus!',
-                text: 'Data muzakki berhasil dihapus.',
-                icon: 'success',
-                timer: 1500,
-                showConfirmButton: false
-              });
-            }
-          }
-        });
-      } else {
-        // Fallback ke confirm default jika SweetAlert2 tidak tersedia
-        if (confirm("Apakah Anda yakin ingin menghapus data muzakki ini?")) {
-          const section = document.querySelector(`[data-index="${index}"]`);
-          if (section) {
-            section.remove();
-            muzakkiCount--;
-            updateAddButtonVisibility();
-            updateMuzakkiNumbers();
-            updateJumlahJiwa();
-          }
-        }
-      }
+    function getSectionByIndex(index) {
+      return document.querySelector(`.muzakki-section[data-index="${index}"]`);
     }
 
-    // Function untuk update nomor muzakki setelah penghapusan
-    function updateMuzakkiNumbers() {
-      const sections = document.querySelectorAll(".muzakki-section");
-      sections.forEach((section, index) => {
-        const title = section.querySelector(".muzakki-section-title");
-        if (title) {
-          title.innerHTML = `<i class="fas fa-user-circle"></i>Muzakki #${index + 1
-            }`;
-        }
-      });
-    }
-
-    // Function untuk mengatur visibility tombol tambah
-    function updateAddButtonVisibility() {
-      const addBtn = document.getElementById("addMuzakkiBtn");
-      const sections = document.querySelectorAll(".muzakki-section");
-
-      if (sections.length >= 5) {
-        addBtn.style.display = "none";
-      } else {
-        addBtn.style.display = "inline-flex";
-      }
+    function getSectionField(section, selector) {
+      return section ? section.querySelector(selector) : null;
     }
 
     // Rupiah formatting functions
@@ -1289,285 +1138,613 @@
       return new Intl.NumberFormat("id-ID").format(number);
     }
 
-    function parseFromRupiah(rupiahString) {
-      if (!rupiahString) return 0;
-      // Remove all non-numeric characters
-      const cleanNumber = rupiahString.replace(/[^\d]/g, "");
-      return parseInt(cleanNumber) || 0;
+    function formatKgValue(number) {
+      if (!number || number === 0) return "0";
+      return new Intl.NumberFormat("id-ID", {
+        minimumFractionDigits: Number.isInteger(number) ? 0 : 1,
+        maximumFractionDigits: 2,
+      }).format(number);
     }
 
-    // Handle rupiah input in real-time
+    function buildMuzakkiSection(index) {
+      return `
+        <div class="muzakki-section" data-index="${index}">
+          <div class="muzakki-section-header">
+            <h3 class="muzakki-section-title">
+              <i class="fas fa-user-circle"></i> Muzakki #${index + 1}
+            </h3>
+            <button type="button" class="btn-remove-muzakki" onclick="removeMuzakkiSection(${index})">
+              <i class="fas fa-trash"></i>
+              <span>Hapus</span>
+            </button>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group form-group-full">
+              <label for="nama_${index}" class="form-label">
+                <i class="fas fa-user mr-1"></i>Nama Muzakki <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                id="nama_${index}"
+                name="muzakki[${index}][nama]"
+                data-field="nama"
+                required
+                class="form-input"
+                maxlength="100"
+                placeholder="Masukkan nama lengkap muzakki"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="bin_binti_${index}" class="form-label">
+                <i class="fas fa-venus-mars mr-1"></i>Bin/Binti
+              </label>
+              <select id="bin_binti_${index}" name="muzakki[${index}][bin_binti]" data-field="bin_binti" class="form-select">
+                <option value="">Pilih</option>
+                <option value="bin">Bin (Anak Laki-laki)</option>
+                <option value="binti">Binti (Anak Perempuan)</option>
+              </select>
+              <p class="form-hint">Sesuai field \`bin_binti\` pada tabel \`muzakki\`</p>
+            </div>
+
+            <div class="form-group form-group-double">
+              <label for="nama_orang_tua_${index}" class="form-label">
+                <i class="fas fa-users mr-1"></i>Nama Orang Tua
+              </label>
+              <input
+                type="text"
+                id="nama_orang_tua_${index}"
+                name="muzakki[${index}][nama_orang_tua]"
+                data-field="nama_orang_tua"
+                class="form-input"
+                maxlength="150"
+                placeholder="Masukkan nama ayah atau ibu sesuai bin/binti"
+              />
+              <p class="form-hint">Sesuai field \`nama_orang_tua\` pada tabel \`muzakki\`</p>
+            </div>
+          </div>
+
+          <div class="form-group form-group-full">
+            <label for="master_zakat_id_${index}" class="form-label">
+              <i class="fas fa-hand-holding mr-1"></i>Jenis Zakat <span class="required">*</span>
+            </label>
+            <select
+              id="master_zakat_id_${index}"
+              name="muzakki[${index}][master_zakat_id]"
+              data-field="master_zakat_id"
+              required
+              class="form-select"
+              onchange="calculateZakatForSection(this.closest('.muzakki-section'))"
+            >
+              ${masterZakatOptionsHtml}
+            </select>
+            <p class="form-hint">Pilih jenis zakat yang berlaku untuk muzakki ini</p>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="jumlah_uang_display_${index}" class="form-label">
+                <i class="fas fa-wallet mr-1"></i>Jumlah Uang
+              </label>
+              <div class="input-with-prefix">
+                <span class="input-prefix">Rp</span>
+                <input
+                  type="text"
+                  id="jumlah_uang_display_${index}"
+                  data-display="jumlah_uang"
+                  class="form-input input-with-prefix-field input-readonly"
+                  placeholder="0"
+                  readonly
+                  title="Otomatis dihitung dari jenis zakat yang dipilih"
+                />
+                <input type="hidden" id="jumlah_uang_${index}" name="muzakki[${index}][jumlah_uang]" data-field="jumlah_uang" value="0" />
+                <input type="hidden" id="jenis_zakat_${index}" name="muzakki[${index}][jenis_zakat]" data-field="jenis_zakat" value="" />
+              </div>
+              <p class="form-hint">Terisi otomatis sesuai jenis zakat muzakki ini</p>
+            </div>
+
+            <div class="form-group">
+              <label for="jumlah_beras_kg_display_${index}" class="form-label">
+                <i class="fas fa-seedling mr-1"></i>Jumlah Beras
+              </label>
+              <div class="input-with-suffix">
+                <input
+                  type="text"
+                  id="jumlah_beras_kg_display_${index}"
+                  data-display="jumlah_beras_kg"
+                  class="form-input input-with-suffix-field input-readonly"
+                  placeholder="0"
+                  readonly
+                  title="Otomatis dihitung dari jenis zakat yang dipilih"
+                />
+                <span class="input-suffix">Liter</span>
+                <input type="hidden" id="jumlah_beras_kg_${index}" name="muzakki[${index}][jumlah_beras_kg]" data-field="jumlah_beras_kg" value="0" />
+              </div>
+              <p class="form-hint">Terisi otomatis sesuai jenis zakat muzakki ini</p>
+            </div>
+
+            <div class="form-group">
+              <label for="jumlah_bayar_display_${index}" class="form-label">
+                <i class="fas fa-money-bill-wave mr-1"></i>Jumlah Bayar
+              </label>
+              <div class="input-with-prefix">
+                <span class="input-prefix">Rp</span>
+                <input
+                  type="text"
+                  id="jumlah_bayar_display_${index}"
+                  data-display="jumlah_bayar"
+                  class="form-input input-with-prefix-field"
+                  placeholder="0"
+                  oninput="handleRupiahInput(this)"
+                  onblur="finalizeRupiahInput(this)"
+                  onfocus="prepareRupiahInput(this)"
+                />
+                <input type="hidden" id="jumlah_bayar_${index}" name="muzakki[${index}][jumlah_bayar]" data-field="jumlah_bayar" value="" />
+              </div>
+              <p class="form-hint">Opsional. Kosongkan jika jumlah bayar belum dicatat.</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function parseFromRupiah(rupiahString) {
+      if (!rupiahString) return 0;
+      return parseInt(String(rupiahString).replace(/[^\d]/g, ""), 10) || 0;
+    }
+
+    function parseNullableFromRupiah(rupiahString) {
+      const numericValue = String(rupiahString || "").replace(/[^\d]/g, "");
+      return numericValue ? parseInt(numericValue, 10) : null;
+    }
+
+    function calculateZakatForSection(sectionOrIndex) {
+      const section =
+        typeof sectionOrIndex === "object"
+          ? sectionOrIndex
+          : getSectionByIndex(sectionOrIndex);
+
+      if (!section) {
+        return;
+      }
+
+      const masterZakatSelect = getSectionField(section, '[data-field="master_zakat_id"]');
+      const jumlahUangDisplay = getSectionField(section, '[data-display="jumlah_uang"]');
+      const jumlahBerasDisplay = getSectionField(section, '[data-display="jumlah_beras_kg"]');
+      const jenisZakatInput = getSectionField(section, '[data-field="jenis_zakat"]');
+      const jumlahUangInput = getSectionField(section, '[data-field="jumlah_uang"]');
+      const jumlahBerasInput = getSectionField(section, '[data-field="jumlah_beras_kg"]');
+
+      if (!masterZakatSelect) {
+        return;
+      }
+
+      const selectedOption = masterZakatSelect.options[masterZakatSelect.selectedIndex];
+      if (!masterZakatSelect.value || !selectedOption) {
+        if (jenisZakatInput) jenisZakatInput.value = "";
+        if (jumlahUangInput) jumlahUangInput.value = 0;
+        if (jumlahBerasInput) jumlahBerasInput.value = 0;
+        if (jumlahUangDisplay) jumlahUangDisplay.value = "0";
+        if (jumlahBerasDisplay) jumlahBerasDisplay.value = "0";
+        calculateAllTotals();
+        return;
+      }
+
+      const harga = parseFloat(selectedOption.getAttribute("data-harga")) || 0;
+      const kg = parseFloat(selectedOption.getAttribute("data-kg")) || 0;
+
+      if (kg > 0) {
+        if (jenisZakatInput) jenisZakatInput.value = "beras";
+        if (jumlahUangInput) jumlahUangInput.value = Math.floor(harga);
+        if (jumlahBerasInput) jumlahBerasInput.value = kg.toFixed(2);
+        if (jumlahUangDisplay) jumlahUangDisplay.value = formatToRupiah(harga);
+        if (jumlahBerasDisplay) jumlahBerasDisplay.value = formatKgValue(kg);
+      } else {
+        if (jenisZakatInput) jenisZakatInput.value = "uang";
+        if (jumlahUangInput) jumlahUangInput.value = Math.floor(harga);
+        if (jumlahBerasInput) jumlahBerasInput.value = 0;
+        if (jumlahUangDisplay) jumlahUangDisplay.value = formatToRupiah(harga);
+        if (jumlahBerasDisplay) jumlahBerasDisplay.value = "0";
+      }
+
+      calculateAllTotals();
+    }
+
+    function calculateAllTotals() {
+      let totalUang = 0;
+      let totalBeras = 0;
+      let totalKembalian = 0;
+
+      getMuzakkiSections().forEach((section) => {
+        const jumlahUang = parseInt(getSectionField(section, '[data-field="jumlah_uang"]')?.value, 10) || 0;
+        const jumlahBeras = parseFloat(getSectionField(section, '[data-field="jumlah_beras_kg"]')?.value) || 0;
+        const jumlahBayar = parseInt(getSectionField(section, '[data-field="jumlah_bayar"]')?.value, 10) || 0;
+
+        totalUang += jumlahUang;
+        totalBeras += jumlahBeras;
+        totalKembalian += Math.max(0, jumlahBayar - jumlahUang);
+      });
+
+      const previewJumlahUang = document.getElementById("preview_jumlah_uang");
+      const previewJumlahBerasKg = document.getElementById("preview_jumlah_beras_kg");
+      const previewKembalian = document.getElementById("preview_kembalian");
+      const inputKembalian = document.getElementById("kembalian");
+
+      if (previewJumlahUang) {
+        previewJumlahUang.textContent = `Rp ${formatToRupiah(totalUang)}`;
+      }
+      if (previewJumlahBerasKg) {
+        previewJumlahBerasKg.textContent = `${formatKgValue(totalBeras)} kg`;
+      }
+      if (previewKembalian) {
+        previewKembalian.textContent = `Rp ${formatToRupiah(totalKembalian)}`;
+      }
+      if (inputKembalian) {
+        inputKembalian.value = totalKembalian;
+      }
+    }
+
     function handleRupiahInput(input) {
-      // Get current cursor position
+      const section = input.closest(".muzakki-section");
+      const hiddenInput = getSectionField(section, '[data-field="jumlah_bayar"]');
       const cursorPosition = input.selectionStart;
       const oldValue = input.value;
+      const numberValue = parseNullableFromRupiah(input.value);
+      const formattedValue = numberValue === null ? "" : formatToRupiah(numberValue);
 
-      // Extract numbers only
-      const numericValue = input.value.replace(/[^\d]/g, "");
-      const numberValue = parseInt(numericValue) || 0;
-
-      // Format to rupiah
-      const formattedValue = formatToRupiah(numberValue);
-
-      // Update display input
       input.value = formattedValue;
+      if (hiddenInput) {
+        hiddenInput.value = numberValue === null ? "" : numberValue;
+      }
 
-      // Update hidden input
-      document.getElementById("jumlah_bayar").value = numberValue;
+      calculateAllTotals();
 
-      // Restore cursor position (approximate)
       const newLength = formattedValue.length;
       const oldLength = oldValue.length;
       const newCursorPosition = cursorPosition + (newLength - oldLength);
 
       setTimeout(() => {
-        input.setSelectionRange(newCursorPosition, newCursorPosition);
+        if (typeof input.setSelectionRange === "function") {
+          input.setSelectionRange(newCursorPosition, newCursorPosition);
+        }
       }, 0);
     }
 
-    // Prepare input when focused
     function prepareRupiahInput(input) {
-      const hiddenValue = document.getElementById("jumlah_bayar").value;
-      if (hiddenValue && hiddenValue !== "0") {
-        // Show raw number for easier editing
+      const section = input.closest(".muzakki-section");
+      const hiddenInput = getSectionField(section, '[data-field="jumlah_bayar"]');
+      const hiddenValue = hiddenInput ? hiddenInput.value : "";
+
+      if (hiddenValue) {
         input.value = hiddenValue;
-        // Select all for easy replacement
         setTimeout(() => input.select(), 50);
+      } else {
+        input.value = "";
       }
     }
 
-    // Finalize input when focus is lost
     function finalizeRupiahInput(input) {
-      const numericValue = parseFromRupiah(input.value);
-      const formattedValue = formatToRupiah(numericValue);
+      const section = input.closest(".muzakki-section");
+      const hiddenInput = getSectionField(section, '[data-field="jumlah_bayar"]');
+      const numericValue = parseNullableFromRupiah(input.value);
 
-      // Update both inputs
-      input.value = formattedValue;
-      document.getElementById("jumlah_bayar").value = numericValue;
+      input.value = numericValue === null ? "" : formatToRupiah(numericValue);
+      if (hiddenInput) {
+        hiddenInput.value = numericValue === null ? "" : numericValue;
+      }
+
+      calculateAllTotals();
     }
 
-    // Add event listeners when document is ready
-    document.addEventListener("DOMContentLoaded", function () {
-      console.log("=== DOM Content Loaded ===");
-      
-      const displayInput = document.getElementById("jumlah_bayar_display");
+    function updateMuzakkiCounter() {
+      muzakkiCount = getMuzakkiSections().length;
+    }
 
-      // Prevent non-numeric input
-      displayInput.addEventListener("keypress", function (e) {
-        // Allow: backspace, delete, tab, escape, enter, and numbers
-        if (
-          !/[\d]/.test(e.key) &&
-          ![
-            "Backspace",
-            "Delete",
-            "Tab",
-            "ArrowLeft",
-            "ArrowRight",
-            "Enter",
-          ].includes(e.key)
-        ) {
-          e.preventDefault();
+    function updateAddButtonVisibility() {
+      const addBtn = document.getElementById("addMuzakkiBtn");
+      if (addBtn) {
+        addBtn.style.display = "inline-flex";
+      }
+    }
+
+    function updateMuzakkiNumbers() {
+      getMuzakkiSections().forEach((section, index) => {
+        section.setAttribute("data-index", index);
+
+        const title = section.querySelector(".muzakki-section-title");
+        if (title) {
+          title.innerHTML = `<i class="fas fa-user-circle"></i> Muzakki #${index + 1}`;
         }
-      });
 
-      // Handle paste events
-      displayInput.addEventListener("paste", function (e) {
-        e.preventDefault();
-        const pastedText = (e.clipboardData || window.clipboardData).getData(
-          "text"
-        );
-        const numericValue = pastedText.replace(/[^\d]/g, "");
-        if (numericValue) {
-          this.value = numericValue;
-          handleRupiahInput(this);
+        const removeBtn = section.querySelector(".btn-remove-muzakki");
+        if (removeBtn) {
+          removeBtn.setAttribute("onclick", `removeMuzakkiSection(${index})`);
         }
-      });
 
-      // Initialize jumlah jiwa dengan menghitung muzakki yang ada
-      updateJumlahJiwa();
+        section.querySelectorAll("input, select").forEach((input) => {
+          const name = input.getAttribute("name");
+          const id = input.getAttribute("id");
 
-      // Add event listener untuk jenis zakat
-      const masterZakatSelect = document.getElementById("master_zakat_id");
-      if (masterZakatSelect) {
-        console.log("Found master_zakat_id element");
-        
-        // Remove any existing onchange
-        masterZakatSelect.onchange = null;
-        
-        // Add new event listener
-        masterZakatSelect.addEventListener("change", function() {
-          console.log("Event: Jenis zakat changed to:", this.value);
-          calculateZakat();
+          if (name && name.includes("[")) {
+            input.setAttribute("name", name.replace(/\[\d+\]/, `[${index}]`));
+          }
+
+          if (id && id.includes("_")) {
+            const parts = id.split("_");
+            parts[parts.length - 1] = String(index);
+            input.setAttribute("id", parts.join("_"));
+          }
         });
-        
-        console.log("Event listener added successfully");
-        
-        // Trigger initial calculation if already selected
-        if (masterZakatSelect.value) {
-          console.log("Initial value exists:", masterZakatSelect.value);
-          setTimeout(() => {
-            calculateZakat();
-          }, 300);
+
+        section.querySelectorAll("label[for]").forEach((label) => {
+          const forAttr = label.getAttribute("for");
+          if (forAttr && forAttr.includes("_")) {
+            const parts = forAttr.split("_");
+            parts[parts.length - 1] = String(index);
+            label.setAttribute("for", parts.join("_"));
+          }
+        });
+      });
+    }
+
+    function updateJumlahJiwa() {
+      const jumlahJiwaInput = document.getElementById("jumlah_jiwa");
+      if (jumlahJiwaInput) {
+        jumlahJiwaInput.value = getMuzakkiSections().length;
+      }
+      calculateAllTotals();
+    }
+
+    function addMuzakkiSection() {
+      const container = document.getElementById("muzakkiContainer");
+      if (!container) {
+        return;
+      }
+
+      const newIndex = getMuzakkiSections().length;
+      container.insertAdjacentHTML("beforeend", buildMuzakkiSection(newIndex));
+
+      updateMuzakkiNumbers();
+      updateMuzakkiCounter();
+      updateJumlahJiwa();
+      updateAddButtonVisibility();
+
+      const newSection = container.lastElementChild;
+      if (newSection) {
+        newSection.scrollIntoView({ behavior: "smooth", block: "center" });
+        const namaInput = newSection.querySelector('[data-field="nama"]');
+        if (namaInput) {
+          setTimeout(() => namaInput.focus(), 200);
         }
-      } else {
-        console.error("Element master_zakat_id not found!");
+      }
+    }
+
+    function performRemove(index) {
+      const section = getSectionByIndex(index);
+      if (!section) {
+        return;
+      }
+
+      section.style.transition = "all 0.25s ease";
+      section.style.opacity = "0";
+      section.style.transform = "translateX(-20px)";
+
+      setTimeout(() => {
+        section.remove();
+        updateMuzakkiNumbers();
+        updateMuzakkiCounter();
+        updateJumlahJiwa();
+        updateAddButtonVisibility();
+      }, 250);
+    }
+
+    function removeMuzakkiSection(index) {
+      if (getMuzakkiSections().length <= 1) {
+        if (typeof Swal !== "undefined") {
+          Swal.fire({
+            icon: "warning",
+            title: "Tidak Dapat Dihapus",
+            text: "Minimal harus ada 1 muzakki",
+            confirmButtonColor: "#1EAF2F",
+          });
+        } else {
+          alert("Minimal harus ada 1 muzakki");
+        }
+        return;
+      }
+
+      const confirmMessage = "Apakah Anda yakin ingin menghapus section muzakki ini?";
+
+      if (typeof Swal !== "undefined") {
+        Swal.fire({
+          icon: "question",
+          title: "Konfirmasi Hapus",
+          text: confirmMessage,
+          showCancelButton: true,
+          confirmButtonText: "Ya, Hapus",
+          cancelButtonText: "Batal",
+          confirmButtonColor: "#ef4444",
+          cancelButtonColor: "#6b7280",
+          reverseButtons: true,
+        }).then((result) => {
+          if (result.isConfirmed) {
+            performRemove(index);
+          }
+        });
+      } else if (confirm(confirmMessage)) {
+        performRemove(index);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      updateMuzakkiNumbers();
+      updateMuzakkiCounter();
+      updateAddButtonVisibility();
+      getMuzakkiSections().forEach((section) => calculateZakatForSection(section));
+      updateJumlahJiwa();
+    });
+
+    document.addEventListener("keypress", function (e) {
+      if (!e.target.matches('input[data-display="jumlah_bayar"]')) {
+        return;
+      }
+
+      if (
+        !/[\d]/.test(e.key) &&
+        !["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Enter"].includes(e.key)
+      ) {
+        e.preventDefault();
       }
     });
 
-    // Form validation
-    document
-      .getElementById("muzakkiForm")
-      .addEventListener("submit", function (e) {
-        const jiwa = parseInt(document.getElementById("jumlah_jiwa").value);
-        const tanggal = document.getElementById("tanggal").value;
-        const masterZakatId = document.getElementById("master_zakat_id").value;
-        const jumlahBayar = parseInt(
-          document.getElementById("jumlah_bayar").value
-        );
+    document.getElementById("muzakkiForm").addEventListener("submit", function (e) {
+      const rtId = document.getElementById("rt_id").value;
+      const tanggal = document.getElementById("tanggal").value;
+      const jiwa = parseInt(document.getElementById("jumlah_jiwa").value, 10) || 0;
+      const sections = getMuzakkiSections();
 
-        // Validasi basic fields
-        if (jiwa <= 0) {
-          e.preventDefault();
-          if (typeof Swal !== 'undefined') {
-            Swal.fire({
-              icon: 'error',
-              title: 'Validasi Gagal',
-              text: 'Jumlah jiwa harus lebih dari 0. Tambahkan minimal 1 muzakki.',
-              confirmButtonColor: '#1EAF2F'
-            });
-          } else {
-            alert("Jumlah jiwa harus lebih dari 0");
-          }
-          return false;
-        }
-
-        if (!masterZakatId) {
-          e.preventDefault();
-          if (typeof Swal !== 'undefined') {
-            Swal.fire({
-              icon: 'error',
-              title: 'Validasi Gagal',
-              text: 'Pilih jenis zakat terlebih dahulu',
-              confirmButtonColor: '#1EAF2F'
-            });
-          } else {
-            alert("Pilih jenis zakat terlebih dahulu");
-          }
-          return false;
-        }
-
-        if (!tanggal) {
-          e.preventDefault();
-          if (typeof Swal !== 'undefined') {
-            Swal.fire({
-              icon: 'error',
-              title: 'Validasi Gagal',
-              text: 'Tanggal zakat wajib diisi',
-              confirmButtonColor: '#1EAF2F'
-            });
-          } else {
-            alert("Tanggal zakat wajib diisi");
-          }
-          return false;
-        }
-
-        if (jumlahBayar <= 0 || isNaN(jumlahBayar)) {
-          e.preventDefault();
-          if (typeof Swal !== 'undefined') {
-            Swal.fire({
-              icon: 'error',
-              title: 'Validasi Gagal',
-              text: 'Jumlah bayar harus lebih dari 0',
-              confirmButtonColor: '#1EAF2F'
-            });
-          } else {
-            alert("Jumlah bayar harus lebih dari 0");
-          }
-          return false;
-        }
-
-        // Validasi semua section muzakki
-        const muzakkiSections = document.querySelectorAll(".muzakki-section");
-        let hasEmptyName = false;
-        let emptyNameIndex = -1;
-
-        muzakkiSections.forEach((section, index) => {
-          const namaInput = section.querySelector(
-            `input[name^="muzakki"][name$="[nama]"]`
-          );
-          if (!namaInput.value.trim()) {
-            hasEmptyName = true;
-            emptyNameIndex = index + 1;
-          }
-        });
-
-        if (hasEmptyName) {
-          e.preventDefault();
-          if (typeof Swal !== 'undefined') {
-            Swal.fire({
-              icon: 'error',
-              title: 'Validasi Gagal',
-              text: `Nama muzakki #${emptyNameIndex} tidak boleh kosong`,
-              confirmButtonColor: '#1EAF2F'
-            });
-          } else {
-            alert(`Nama muzakki #${emptyNameIndex} tidak boleh kosong`);
-          }
-          return false;
-        }
-
-        // Konfirmasi final dengan SweetAlert2
+      if (!rtId) {
         e.preventDefault();
-        const muzakkiCount = muzakkiSections.length;
-        const masterZakatSelect = document.getElementById("master_zakat_id");
-        const jenisZakatText = masterZakatSelect.options[masterZakatSelect.selectedIndex].text;
+        alert("Pilih RT terlebih dahulu");
+        return false;
+      }
 
-        if (typeof Swal !== 'undefined') {
-          Swal.fire({
-            title: 'Konfirmasi Data',
-            html: `
-            <div style="text-align: left; padding: 10px;">
-              <p style="margin-bottom: 8px;"><strong>Apakah data yang dimasukkan sudah benar?</strong></p>
-              <ul style="list-style: none; padding-left: 0;">
-                <li style="margin-bottom: 6px;">Tanggal Zakat: <strong>${new Date(`${tanggal}T00:00:00`).toLocaleDateString("id-ID")}</strong></li>
-                <li style="margin-bottom: 6px;">Jumlah Muzakki: <strong>${muzakkiCount} orang</strong></li>
-                <li style="margin-bottom: 6px;">Jumlah Jiwa: <strong>${jiwa} jiwa</strong></li>
-                <li style="margin-bottom: 6px;">Jenis Zakat: <strong>${jenisZakatText}</strong></li>
-                <li style="margin-bottom: 6px;">Jumlah Bayar: <strong>Rp ${jumlahBayar.toLocaleString("id-ID")}</strong></li>
-              </ul>
-            </div>
-          `,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#1EAF2F',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Ya, Simpan',
-            cancelButtonText: 'Periksa Lagi',
-            reverseButtons: true
-          }).then((result) => {
-            if (result.isConfirmed) {
-              // Submit form
-              document.getElementById("muzakkiForm").submit();
-            }
-          });
-        } else {
-          // Fallback ke confirm default
-          const confirmMessage =
-            `Apakah data yang dimasukkan sudah benar?\n\n` +
-            `- Tanggal Zakat: ${new Date(`${tanggal}T00:00:00`).toLocaleDateString("id-ID")}\n` +
-            `- Jumlah Muzakki: ${muzakkiCount} orang\n` +
-            `- Jumlah Jiwa: ${jiwa} jiwa\n` +
-            `- Jenis Zakat: ${jenisZakatText}\n` +
-            `- Jumlah Bayar: Rp ${jumlahBayar.toLocaleString("id-ID")}`;
+      if (!tanggal) {
+        e.preventDefault();
+        alert("Tanggal zakat wajib diisi");
+        return false;
+      }
 
-          if (confirm(confirmMessage)) {
-            document.getElementById("muzakkiForm").submit();
-          }
+      if (jiwa <= 0 || sections.length === 0) {
+        e.preventDefault();
+        alert("Minimal harus ada 1 muzakki");
+        return false;
+      }
+
+      let invalidMessage = "";
+      let invalidInput = null;
+
+      sections.some((section, index) => {
+        const namaInput = getSectionField(section, '[data-field="nama"]');
+        const masterZakatSelect = getSectionField(section, '[data-field="master_zakat_id"]');
+        const jumlahBayarInput = getSectionField(section, '[data-field="jumlah_bayar"]');
+        const jumlahUangInput = getSectionField(section, '[data-field="jumlah_uang"]');
+        const jumlahBerasInput = getSectionField(section, '[data-field="jumlah_beras_kg"]');
+        const jenisZakatInput = getSectionField(section, '[data-field="jenis_zakat"]');
+
+        const nama = namaInput ? namaInput.value.trim() : "";
+        const jumlahBayar = parseInt(jumlahBayarInput?.value, 10) || 0;
+        const jumlahUang = parseInt(jumlahUangInput?.value, 10) || 0;
+        const jumlahBeras = parseFloat(jumlahBerasInput?.value) || 0;
+        const jenisZakat = jenisZakatInput ? jenisZakatInput.value : "";
+
+        if (!nama) {
+          invalidMessage = `Nama muzakki #${index + 1} tidak boleh kosong`;
+          invalidInput = namaInput;
+          return true;
+        }
+
+        if (!masterZakatSelect || !masterZakatSelect.value) {
+          invalidMessage = `Jenis zakat untuk muzakki #${index + 1} wajib dipilih`;
+          invalidInput = masterZakatSelect;
+          return true;
+        }
+
+        if ((jenisZakat === "uang" && jumlahUang <= 0) || (jenisZakat === "beras" && jumlahBeras <= 0)) {
+          invalidMessage = `Perhitungan zakat untuk muzakki #${index + 1} belum valid`;
+          invalidInput = masterZakatSelect;
+          return true;
         }
 
         return false;
       });
+
+      if (invalidMessage) {
+        e.preventDefault();
+        if (invalidInput && typeof invalidInput.focus === "function") {
+          invalidInput.focus();
+        }
+
+        if (typeof Swal !== "undefined") {
+          Swal.fire({
+            icon: "error",
+            title: "Validasi Gagal",
+            text: invalidMessage,
+            confirmButtonColor: "#1EAF2F",
+          });
+        } else {
+          alert(invalidMessage);
+        }
+        return false;
+      }
+
+      e.preventDefault();
+
+      const totalUang = sections.reduce((acc, section) => {
+        return acc + (parseInt(getSectionField(section, '[data-field="jumlah_uang"]')?.value, 10) || 0);
+      }, 0);
+      const totalBeras = sections.reduce((acc, section) => {
+        return acc + (parseFloat(getSectionField(section, '[data-field="jumlah_beras_kg"]')?.value) || 0);
+      }, 0);
+      const totalBayar = sections.reduce((acc, section) => {
+        return acc + (parseInt(getSectionField(section, '[data-field="jumlah_bayar"]')?.value, 10) || 0);
+      }, 0);
+      const totalKembalian = Math.max(0, totalBayar - totalUang);
+      const namaPreview = sections
+        .map((section) => getSectionField(section, '[data-field="nama"]')?.value.trim())
+        .filter(Boolean)
+        .slice(0, 5)
+        .join(", ");
+      const ringkasanNama = sections.length > 5 ? `${namaPreview}, dan lainnya` : namaPreview;
+
+      if (typeof Swal !== "undefined") {
+        Swal.fire({
+          title: "Konfirmasi Data",
+          html: `
+            <div style="text-align: left; padding: 10px;">
+              <p style="margin-bottom: 8px;"><strong>Apakah data yang dimasukkan sudah benar?</strong></p>
+              <ul style="list-style: none; padding-left: 0;">
+                <li style="margin-bottom: 6px;">Tanggal Zakat: <strong>${new Date(`${tanggal}T00:00:00`).toLocaleDateString("id-ID")}</strong></li>
+                <li style="margin-bottom: 6px;">Jumlah Muzakki: <strong>${sections.length} orang</strong></li>
+                <li style="margin-bottom: 6px;">Nama Muzakki: <strong>${ringkasanNama}</strong></li>
+                <li style="margin-bottom: 6px;">Total Zakat Uang: <strong>Rp ${formatToRupiah(totalUang)}</strong></li>
+                <li style="margin-bottom: 6px;">Total Zakat Beras: <strong>${formatKgValue(totalBeras)} kg</strong></li>
+                <li style="margin-bottom: 6px;">Total Bayar: <strong>Rp ${formatToRupiah(totalBayar)}</strong></li>
+                <li style="margin-bottom: 6px;">Estimasi Kembalian: <strong>Rp ${formatToRupiah(totalKembalian)}</strong></li>
+              </ul>
+            </div>
+          `,
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonColor: "#1EAF2F",
+          cancelButtonColor: "#6b7280",
+          confirmButtonText: "Ya, Simpan",
+          cancelButtonText: "Periksa Lagi",
+          reverseButtons: true,
+        }).then((result) => {
+          if (result.isConfirmed) {
+            document.getElementById("muzakkiForm").submit();
+          }
+        });
+      } else {
+        const confirmMessage =
+          `Apakah data yang dimasukkan sudah benar?\n\n` +
+          `- Tanggal Zakat: ${new Date(`${tanggal}T00:00:00`).toLocaleDateString("id-ID")}\n` +
+          `- Jumlah Muzakki: ${sections.length} orang\n` +
+          `- Nama Muzakki: ${ringkasanNama}\n` +
+          `- Total Zakat Uang: Rp ${formatToRupiah(totalUang)}\n` +
+          `- Total Zakat Beras: ${formatKgValue(totalBeras)} kg\n` +
+          `- Total Bayar: Rp ${formatToRupiah(totalBayar)}\n` +
+          `- Estimasi Kembalian: Rp ${formatToRupiah(totalKembalian)}`;
+
+        if (confirm(confirmMessage)) {
+          document.getElementById("muzakkiForm").submit();
+        }
+      }
+
+      return false;
+    });
   </script>
 
   <%- include('../layouts/footer') %>
-

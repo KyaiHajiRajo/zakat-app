@@ -250,9 +250,7 @@ router.get("/:id/detail", async (req, res) => {
       `
       SELECT 
         m.*,
-        (SELECT GROUP_CONCAT(md.nama_muzakki SEPARATOR ', ') 
-         FROM muzakki_details md 
-         WHERE md.muzakki_id = m.id) as nama_muzakki_list,
+        COALESCE(NULLIF(TRIM(m.nama_muzakki), ''), CONCAT('Muzakki #', m.id)) as nama_muzakki_list,
         CASE 
           WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
           ELSE m.jumlah_beras_kg * 12000 

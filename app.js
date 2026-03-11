@@ -136,9 +136,9 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
       SELECT
         (
           SELECT COUNT(*)
-          FROM muzakki_details md
-          WHERE md.nama_muzakki IS NOT NULL
-            AND TRIM(md.nama_muzakki) <> ''
+          FROM muzakki m2
+          WHERE m2.nama_muzakki IS NOT NULL
+            AND TRIM(m2.nama_muzakki) <> ''
         ) as total_muzakki,
         COALESCE(SUM(CASE 
           WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
@@ -166,10 +166,7 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
     // Get recent muzakki
     const [recentMuzakki] = await db.execute(`
       SELECT m.*, rt.nomor_rt as rt_nama,
-        (SELECT GROUP_CONCAT(md.nama_muzakki SEPARATOR ', ') 
-         FROM muzakki_details md 
-         WHERE md.muzakki_id = m.id 
-         LIMIT 3) as nama,
+        COALESCE(NULLIF(TRIM(m.nama_muzakki), ''), CONCAT('Muzakki #', m.id)) as nama,
         CASE 
           WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
           ELSE m.jumlah_beras_kg * 12000 

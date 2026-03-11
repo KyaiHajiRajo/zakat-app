@@ -15,10 +15,7 @@ router.get("/", async (req, res) => {
                 i.keterangan,
                 i.created_at,
                 i.updated_at,
-                (SELECT GROUP_CONCAT(md.nama_muzakki SEPARATOR ', ') 
-                 FROM muzakki_details md 
-                 WHERE md.muzakki_id = m.id 
-                 LIMIT 3) as muzakki_name,
+                COALESCE(NULLIF(TRIM(m.nama_muzakki), ''), CONCAT('Muzakki #', m.id)) as muzakki_name,
                 r.nomor_rt,
                 m.jumlah_jiwa
             FROM infak i
