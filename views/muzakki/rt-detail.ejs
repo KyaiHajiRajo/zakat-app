@@ -10,6 +10,18 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 <%
   const pageRtLabel = isAllTanggalView ? 'Semua RT' : (rt.nomor_rt || '-');
   const pageSubtitlePrefix = isAllTanggalView ? 'Menampilkan seluruh data RT' : `Ketua RT: ${rt.ketua_rt || '-'}`;
+
+  function formatBerasValue(value) {
+    const numericValue = parseFloat(value) || 0;
+    if (numericValue === 0) {
+      return '0';
+    }
+
+    return numericValue.toLocaleString('id-ID', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    });
+  }
 %>
 
 <div class="page-wrapper">
@@ -63,9 +75,9 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
       </div>
       <div class="stat-content-box">
         <div class="stat-value-text" id="stat_total_beras_kg">
-          <%= parseFloat(
+          <%= formatBerasValue(
             muzakki.reduce((total, m) => total + (parseFloat(m.jumlah_beras_kg) || 0), 0)
-          ).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) %> Liter
+          ) %> kg
         </div>
         <div class="stat-label-text">Total Beras</div>
       </div>
@@ -291,18 +303,11 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                             <i class="fas fa-seedling"></i>
                             Beras
                           </span>
-                          <div class="amount-display amount-success">
-                            <i class="fas fa-weight"></i>
-                            <%= item.jumlah_beras_kg %> kg
-                          </div>
                         <% } else { %>
                           <span class="badge-zakat badge-zakat-uang">
                             <i class="fas fa-coins"></i>
                             Uang
                           </span>
-                          <div class="amount-display amount-info">
-                            Rp <%= Math.floor(item.jumlah_uang).toLocaleString('id-ID') %>
-                          </div>
                         <% } %>
                       </div>
                     </td>
@@ -316,7 +321,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                       <% if (parseFloat(item.jumlah_beras_kg) > 0) { %>
                         <div class="amount-display amount-success">
                           <i class="fas fa-weight"></i>
-                          <%= parseFloat(item.jumlah_beras_kg).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) %> Liter
+                          <%= formatBerasValue(item.jumlah_beras_kg) %> kg
                         </div>
                       <% } else { %>
                         <div class="text-gray-400">-</div>
@@ -405,7 +410,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
                     <span class="mobile-card-label">Kewajiban</span>
                     <span class="mobile-card-value">
                       <% if (item.jenis_zakat === 'beras') { %>
-                        <%= item.jumlah_beras_kg %> kg
+                        <%= formatBerasValue(item.jumlah_beras_kg) %> kg
                       <% } else { %>
                         Rp <%= Math.floor(item.jumlah_uang).toLocaleString('id-ID') %>
                       <% } %>
@@ -1138,7 +1143,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   .data-table tbody tr { border-bottom: 1px solid #e5e7eb; transition: all 0.3s ease; opacity: 0; animation: fadeInRow 0.5s ease forwards; }
   @keyframes fadeInRow { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   .data-table tbody tr:hover { background: linear-gradient(to right, #f0fdf4, #dcfce7); }
-  .data-table td { padding: 14px; font-size: 13px; }
+  .data-table td { padding: 14px; font-size: 13px; vertical-align: middle; }
 
   /* Table Cells */
   .number-badge {
@@ -1235,10 +1240,9 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   .badge-zakat-uang { background: #dbeafe; color: #1e40af; }
 
   .jenis-zakat-stack {
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
   }
 
   /* Amount Display */

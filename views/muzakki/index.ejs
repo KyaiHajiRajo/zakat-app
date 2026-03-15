@@ -1,5 +1,18 @@
 <%- include('../layouts/header', { title: 'Data Muzakki - Zakat Fitrah App' , bodyClass: 'bg-gray-50' ,
   currentPage: 'muzakki' }) %>
+<%
+  function formatBerasValue(value) {
+    const numericValue = parseFloat(value) || 0;
+    if (numericValue === 0) {
+      return '0';
+    }
+
+    return numericValue.toLocaleString('id-ID', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    });
+  }
+%>
 
   <div class="page-wrapper">
     <!-- Modern Header -->
@@ -59,12 +72,12 @@
         <div class="stat-icon-wrapper stat-icon-info">
           <i class="fas fa-weight"></i>
         </div>
-        <div class="stat-content-box">
-          <div class="stat-value-text">
-            <%= Math.floor(stats.total_beras_all || 0) %> Liter
+          <div class="stat-content-box">
+            <div class="stat-value-text">
+            <%= formatBerasValue(stats.total_beras_all) %> Liter
+            </div>
+            <div class="stat-label-text">Total Zakat Beras</div>
           </div>
-          <div class="stat-label-text">Total Zakat Beras</div>
-        </div>
         <div class="stat-decoration"></div>
       </div>
 
@@ -167,7 +180,7 @@
                         <% if (group.total_beras> 0) { %>
                           <div class="amount-display amount-success">
                             <i class="fas fa-weight mr-1"></i>
-                            <%= Math.floor(group.total_beras).toLocaleString('id-ID') %> Liter
+                            <%= formatBerasValue(group.total_beras) %> kg
                           </div>
                           <% } else { %>
                             <div class="text-gray-400">-</div>
