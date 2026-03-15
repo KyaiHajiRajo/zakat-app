@@ -77,7 +77,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
         <div class="stat-value-text" id="stat_total_beras_kg">
           <%= formatBerasValue(
             muzakki.reduce((total, m) => total + (parseFloat(m.jumlah_beras_kg) || 0), 0)
-          ) %> kg
+          ) %> Liter
         </div>
         <div class="stat-label-text">Total Beras</div>
       </div>
@@ -259,15 +259,24 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
         <div class="desktop-view">
           <div class="table-responsive-wrapper">
             <table class="data-table">
+              <colgroup>
+                <col class="col-no">
+                <col class="col-nama">
+                <col class="col-jenis">
+                <col class="col-bayar">
+                <col class="col-beras">
+                <col class="col-kembalian">
+                <col class="col-aksi">
+              </colgroup>
               <thead>
                 <tr>
-                  <th>No</th>
+                  <th class="text-center">No</th>
                   <th>Nama Muzakki</th>
-                  <th>Jenis Zakat</th>
-                  <th>Jumlah Bayar</th>
-                  <th>Jumlah Beras</th>
-                  <th>Kembalian</th>
-                  <th>Aksi</th>
+                  <th class="text-center">Jenis Zakat</th>
+                  <th class="text-center">Jumlah Bayar</th>
+                  <th class="text-center">Jumlah Beras</th>
+                  <th class="text-center">Kembalian</th>
+                  <th class="text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -1137,13 +1146,22 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
   /* Data Table */
   .table-responsive-wrapper { overflow-x: auto; }
-  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
   .data-table thead tr { background: linear-gradient(to right, #f9fafb, #f3f4f6); border-bottom: 2px solid #e5e7eb; }
   .data-table th { padding: 12px 14px; text-align: left; font-size: 12px; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.5px; }
   .data-table tbody tr { border-bottom: 1px solid #e5e7eb; transition: all 0.3s ease; opacity: 0; animation: fadeInRow 0.5s ease forwards; }
   @keyframes fadeInRow { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   .data-table tbody tr:hover { background: linear-gradient(to right, #f0fdf4, #dcfce7); }
   .data-table td { padding: 14px; font-size: 13px; vertical-align: middle; }
+  .data-table th,
+  .data-table td { vertical-align: middle; }
+  .data-table .col-no { width: 7%; }
+  .data-table .col-nama { width: 22%; }
+  .data-table .col-jenis { width: 13%; }
+  .data-table .col-bayar { width: 14%; }
+  .data-table .col-beras { width: 13%; }
+  .data-table .col-kembalian { width: 17%; }
+  .data-table .col-aksi { width: 14%; }
 
   /* Table Cells */
   .number-badge {
@@ -1235,6 +1253,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
     border-radius: 8px;
     font-size: 11px;
     font-weight: 600;
+    white-space: nowrap;
   }
   .badge-zakat-beras { background: #d1fae5; color: #065f46; }
   .badge-zakat-uang { background: #dbeafe; color: #1e40af; }
@@ -1246,7 +1265,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   }
 
   /* Amount Display */
-  .amount-display { font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+  .amount-display { font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; }
   .amount-success { color: #059669; }
   .amount-info { color: #2563eb; }
   .amount-warning { color: #d97706; }
@@ -1307,7 +1326,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
   .pencatat-date { font-size: 11px; color: #9ca3af; }
 
   /* Action Buttons */
-  .action-buttons-group { display: flex; gap: 6px; align-items: center; justify-content: center; }
+  .action-buttons-group { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: nowrap; }
   .inline-form { display: inline; }
   .btn-icon {
     width: 32px;
@@ -1566,7 +1585,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
   .data-table td,
   .data-table th {
-    vertical-align: top;
+    vertical-align: middle;
     overflow-wrap: anywhere;
   }
 
