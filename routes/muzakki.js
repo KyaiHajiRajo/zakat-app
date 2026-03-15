@@ -5,6 +5,18 @@ const router = express.Router();
 const ZAKAT_BERAS_PER_JIWA = 2.5; // kg per jiwa
 const ZAKAT_UANG_PER_JIWA = 45000; // Rp per jiwa
 
+function getMasterZakatJenis(masterZakat = {}) {
+  const kg = parseFloat(masterZakat.kg) || 0;
+  const nama = String(masterZakat.nama || "").trim();
+
+  return kg > 0 || /\bberas\b/i.test(nama) ? "beras" : "uang";
+}
+
+function getMasterZakatBerasKg(masterZakat = {}) {
+  const kg = parseFloat(masterZakat.kg) || 0;
+  return kg > 0 ? kg : ZAKAT_BERAS_PER_JIWA;
+}
+
 function sanitizeForExcel(value) {
   if (value === null || value === undefined) return "";
   let safe = String(value);
@@ -948,14 +960,14 @@ router.post("/", async (req, res) => {
 
         const jiwa = 1;
         const bayar = entry.jumlah_bayar;
-        const jenis_zakat = parseFloat(zakatData.kg) > 0 ? "beras" : "uang";
+        const jenis_zakat = getMasterZakatJenis(zakatData);
 
         let jumlah_beras_kg = null;
         let jumlah_uang = null;
         let kewajiban = 0;
 
         if (jenis_zakat === "beras") {
-          jumlah_beras_kg = jiwa * parseFloat(zakatData.kg);
+          jumlah_beras_kg = jiwa * getMasterZakatBerasKg(zakatData);
           kewajiban = jiwa * parseFloat(zakatData.harga);
         } else {
           jumlah_uang = jiwa * parseFloat(zakatData.harga);
@@ -1145,14 +1157,14 @@ router.put("/:id", async (req, res) => {
       }
 
       const zakatData = masterZakat[0];
-      const jenis_zakat = zakatData.kg > 0 ? "beras" : "uang";
+      const jenis_zakat = getMasterZakatJenis(zakatData);
 
       let jumlah_beras_kg = null;
       let jumlah_uang = null;
       let kewajiban = 0;
 
       if (jenis_zakat === "beras") {
-        jumlah_beras_kg = jiwa * parseFloat(zakatData.kg);
+        jumlah_beras_kg = jiwa * getMasterZakatBerasKg(zakatData);
         kewajiban = jiwa * parseFloat(zakatData.harga);
       } else if (jenis_zakat === "uang") {
         jumlah_uang = jiwa * parseFloat(zakatData.harga);

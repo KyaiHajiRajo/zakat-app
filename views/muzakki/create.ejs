@@ -152,14 +152,18 @@
                     data-field="master_zakat_id"
                     required
                     class="form-select"
-                    onchange="calculateZakatForSection(this.closest('.muzakki-section'))"
-                  >
+                    onchange="calculateZakatForSection(this.closest('.muzakki-section'))">
                     <option value="">Pilih jenis zakat</option>
                     <% masterZakatList.forEach(function(zakat) { %>
-                      <option value="<%= zakat.id %>" data-harga="<%= zakat.harga %>" data-kg="<%= zakat.kg %>">
+                      <option
+                        value="<%= zakat.id %>"
+                        data-harga="<%= zakat.harga %>"
+                        data-kg="<%= zakat.kg %>"
+                        data-nama="<%= zakat.nama %>"
+                        data-zakat-type="<%= parseFloat(zakat.kg) > 0 || /beras/i.test(zakat.nama) ? 'beras' : 'uang' %>">
                         <%= zakat.nama %>
                         <% if (parseFloat(zakat.kg) > 0) { %>
-                          (<%= zakat.kg %> Liter/jiwa)
+                          (<%= zakat.kg %> kg/jiwa)
                         <% } else { %>
                           (Rp <%= Math.floor(parseFloat(zakat.harga)).toLocaleString('id-ID') %>/jiwa)
                         <% } %>
@@ -193,7 +197,7 @@
                     <p class="form-hint">Terisi otomatis sesuai jenis zakat muzakki ini</p>
                   </div>
 
-                  <div class="form-group">
+                  <div class="form-group conditional-form-group is-hidden" data-role="jumlah_beras_group" aria-hidden="true">
                     <label for="jumlah_beras_kg_display_0" class="form-label">
                       <i class="fas fa-seedling mr-1"></i>Jumlah Beras
                     </label>
@@ -207,7 +211,7 @@
                         readonly
                         title="Otomatis dihitung dari jenis zakat yang dipilih"
                       />
-                      <span class="input-suffix">Liter</span>
+                      <span class="input-suffix">kg</span>
                       <input type="hidden" id="jumlah_beras_kg_0" name="muzakki[0][jumlah_beras_kg]" data-field="jumlah_beras_kg" value="0" />
                     </div>
                     <p class="form-hint">Terisi otomatis sesuai jenis zakat muzakki ini</p>
@@ -292,7 +296,7 @@
                     </div>
                   <div class="preview-content">
                     <div class="preview-label">Total Zakat (Beras)</div>
-                    <div class="preview-value" id="preview_jumlah_beras_kg">0 Liter</div>
+                    <div class="preview-value" id="preview_jumlah_beras_kg">0 kg</div>
                     </div>
                   </div>
 
@@ -344,7 +348,7 @@
         <div class="info-card-content">
           <h3 class="info-card-title">Zakat Beras</h3>
           <ul class="info-card-list">
-            <li>Kewajiban: 2.5 Liter per jiwa</li>
+            <li>Kewajiban: 2.5 kg per jiwa</li>
             <li>Dapat dibayar dengan beras atau uang senilai</li>
             <li>Lebih mudah untuk distribusi</li>
           </ul>
@@ -627,6 +631,9 @@
     .input-readonly {
       background: #f3f4f6;
       cursor: not-allowed;
+    }
+    .conditional-form-group.is-hidden {
+      display: none;
     }
     .form-hint {
       margin: 0;
@@ -1104,10 +1111,17 @@
 
 
   <script>
+    const DEFAULT_ZAKAT_BERAS_KG = 2.5;
+
     const masterZakatOptionsHtml = `
       <option value="">Pilih jenis zakat</option>
       <% masterZakatList.forEach(function(zakat) { %>
-        <option value="<%= zakat.id %>" data-harga="<%= zakat.harga %>" data-kg="<%= zakat.kg %>">
+        <option
+          value="<%= zakat.id %>"
+          data-harga="<%= zakat.harga %>"
+          data-kg="<%= zakat.kg %>"
+          data-nama="<%= zakat.nama %>"
+          data-zakat-type="<%= parseFloat(zakat.kg) > 0 || /beras/i.test(zakat.nama) ? 'beras' : 'uang' %>">
           <%= zakat.nama %>
           <% if (parseFloat(zakat.kg) > 0) { %>
             (<%= zakat.kg %> kg/jiwa)
@@ -1144,6 +1158,42 @@
         minimumFractionDigits: Number.isInteger(number) ? 0 : 1,
         maximumFractionDigits: 2,
       }).format(number);
+    }
+
+    function getSelectedZakatConfig(option) {
+      if (!option) {
+        return {
+          harga: 0,
+          kg: 0,
+          jenis: "",
+        };
+      }
+
+      const harga = parseFloat(option.getAttribute("data-harga")) || 0;
+      const rawKg = parseFloat(option.getAttribute("data-kg")) || 0;
+      const zakatType = String(option.getAttribute("data-zakat-type") || "").trim().toLowerCase();
+      const zakatName = String(option.getAttribute("data-nama") || option.textContent || "").trim();
+      const isBerasByName = /\bberas\b/i.test(zakatName);
+      const jenis = zakatType === "beras" || (!zakatType && (rawKg > 0 || isBerasByName))
+        ? "beras"
+        : "uang";
+      const kg = jenis === "beras" ? (rawKg > 0 ? rawKg : DEFAULT_ZAKAT_BERAS_KG) : 0;
+
+      return {
+        harga,
+        kg,
+        jenis,
+      };
+    }
+
+    function toggleSectionAmountFields(section, jenisZakat) {
+      const jumlahBerasGroup = getSectionField(section, '[data-role="jumlah_beras_group"]');
+
+      if (jumlahBerasGroup) {
+        const shouldShowBeras = jenisZakat === "beras";
+        jumlahBerasGroup.classList.toggle("is-hidden", !shouldShowBeras);
+        jumlahBerasGroup.setAttribute("aria-hidden", shouldShowBeras ? "false" : "true");
+      }
     }
 
     function buildMuzakkiSection(index) {
@@ -1244,7 +1294,7 @@
               <p class="form-hint">Terisi otomatis sesuai jenis zakat muzakki ini</p>
             </div>
 
-            <div class="form-group">
+            <div class="form-group conditional-form-group is-hidden" data-role="jumlah_beras_group" aria-hidden="true">
               <label for="jumlah_beras_kg_display_${index}" class="form-label">
                 <i class="fas fa-seedling mr-1"></i>Jumlah Beras
               </label>
@@ -1258,7 +1308,7 @@
                   readonly
                   title="Otomatis dihitung dari jenis zakat yang dipilih"
                 />
-                <span class="input-suffix">Liter</span>
+                <span class="input-suffix">kg</span>
                 <input type="hidden" id="jumlah_beras_kg_${index}" name="muzakki[${index}][jumlah_beras_kg]" data-field="jumlah_beras_kg" value="0" />
               </div>
               <p class="form-hint">Terisi otomatis sesuai jenis zakat muzakki ini</p>
@@ -1327,14 +1377,15 @@
         if (jumlahBerasInput) jumlahBerasInput.value = 0;
         if (jumlahUangDisplay) jumlahUangDisplay.value = "0";
         if (jumlahBerasDisplay) jumlahBerasDisplay.value = "0";
+        toggleSectionAmountFields(section, "");
         calculateAllTotals();
         return;
       }
 
-      const harga = parseFloat(selectedOption.getAttribute("data-harga")) || 0;
-      const kg = parseFloat(selectedOption.getAttribute("data-kg")) || 0;
+      const { harga, kg, jenis } = getSelectedZakatConfig(selectedOption);
+      toggleSectionAmountFields(section, jenis);
 
-      if (kg > 0) {
+      if (jenis === "beras") {
         if (jenisZakatInput) jenisZakatInput.value = "beras";
         if (jumlahUangInput) jumlahUangInput.value = Math.floor(harga);
         if (jumlahBerasInput) jumlahBerasInput.value = kg.toFixed(2);

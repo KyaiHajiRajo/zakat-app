@@ -223,6 +223,8 @@
                                 <option value="<%= zakat.id %>" 
                                         data-harga="<%= zakat.harga %>" 
                                         data-kg="<%= zakat.kg %>"
+                                        data-nama="<%= zakat.nama %>"
+                                        data-zakat-type="<%= parseFloat(zakat.kg) > 0 || /beras/i.test(zakat.nama) ? 'beras' : 'uang' %>"
                                         <%= String(zakat.id) === String(selectedMasterZakatId || '') ? 'selected' : '' %>>
                                     <%= zakat.nama %> 
                                     <% if (parseFloat(zakat.kg) > 0) { %>
@@ -1339,12 +1341,40 @@
         return new Intl.NumberFormat("id-ID").format(number);
     }
 
+    const DEFAULT_ZAKAT_BERAS_KG = 2.5;
+
     function formatKgValue(number) {
         if (!number || number === 0) return "0";
         return new Intl.NumberFormat("id-ID", {
             minimumFractionDigits: Number.isInteger(number) ? 0 : 1,
             maximumFractionDigits: 2
         }).format(number);
+    }
+
+    function getSelectedZakatConfig(option) {
+        if (!option) {
+            return {
+                harga: 0,
+                kg: 0,
+                jenis: "",
+            };
+        }
+
+        const harga = parseFloat(option.getAttribute('data-harga')) || 0;
+        const rawKg = parseFloat(option.getAttribute('data-kg')) || 0;
+        const zakatType = String(option.getAttribute('data-zakat-type') || '').trim().toLowerCase();
+        const zakatName = String(option.getAttribute('data-nama') || option.textContent || '').trim();
+        const isBerasByName = /\bberas\b/i.test(zakatName);
+        const jenis = zakatType === 'beras' || (!zakatType && (rawKg > 0 || isBerasByName))
+            ? 'beras'
+            : 'uang';
+        const kg = jenis === 'beras' ? (rawKg > 0 ? rawKg : DEFAULT_ZAKAT_BERAS_KG) : 0;
+
+        return {
+            harga,
+            kg,
+            jenis,
+        };
     }
 
     function parseFromRupiah(rupiahString) {
@@ -1444,12 +1474,9 @@
         setTimeout(() => {
             if (jiwa > 0 && selectedValue) {
                 const selectedOption = masterZakatSelect.options[masterZakatSelect.selectedIndex];
-                const hargaStr = selectedOption.getAttribute('data-harga');
-                const kgStr = selectedOption.getAttribute('data-kg');
-                const harga = parseFloat(hargaStr) || 0;
-                const kg = parseFloat(kgStr) || 0;
+                const { harga, kg, jenis } = getSelectedZakatConfig(selectedOption);
 
-                if (kg > 0) {
+                if (jenis === "beras") {
                     // Jenis beras
                     const totalKg = jiwa * kg;
                     const totalUang = jiwa * harga;
