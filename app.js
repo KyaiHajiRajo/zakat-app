@@ -140,6 +140,8 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
           WHERE m2.nama_muzakki IS NOT NULL
             AND TRIM(m2.nama_muzakki) <> ''
         ) as total_muzakki,
+        COALESCE(SUM(COALESCE(m.jumlah_beras_kg, 0)), 0) as total_beras_kg,
+        COALESCE(SUM(COALESCE(m.jumlah_bayar, 0)), 0) as total_jumlah_bayar,
         COALESCE(SUM(CASE 
           WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
           ELSE m.jumlah_beras_kg * 12000 

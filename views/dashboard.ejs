@@ -66,7 +66,7 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
         <div class="stat-badge">Dana</div>
       </div>
       <div class="stat-content">
-        <div class="stat-value">Rp <%= Math.floor(stats.total_zakat || 0).toLocaleString('id-ID') %></div>
+        <div class="stat-value">Rp <%= Math.floor(stats.total_jumlah_bayar || 0).toLocaleString('id-ID') %></div>
         <div class="stat-label">Zakat Terkumpul</div>
         <div class="stat-description">Total dana zakat fitrah</div>
       </div>
@@ -95,22 +95,22 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
       </div>
     </div>
 
-    <!-- Belum Bayar Card -->
+    <!-- Total Beras Card -->
     <div class="stat-card stat-card-red">
       <div class="stat-card-header">
         <div class="stat-icon">
-          <i class="fas fa-exclamation-triangle"></i>
+          <i class="fas fa-seedling"></i>
         </div>
-        <div class="stat-badge">Alert</div>
+        <div class="stat-badge">Beras</div>
       </div>
       <div class="stat-content">
-        <div class="stat-value"><%= stats.belum_bayar || 0 %></div>
-        <div class="stat-label">Belum Bayar</div>
-        <div class="stat-description">Memerlukan tindak lanjut</div>
+        <div class="stat-value"><%= new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(stats.total_beras_kg || 0)) %> Liter</div>
+        <div class="stat-label">Jumlah Beras</div>
+        <div class="stat-description">Akumulasi langsung dari data muzakki</div>
       </div>
       <div class="stat-footer">
-        <i class="fas fa-clock"></i>
-        <span>Pending</span>
+        <i class="fas fa-database"></i>
+        <span>Tabel Muzakki</span>
       </div>
     </div>
 
