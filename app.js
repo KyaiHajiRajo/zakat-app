@@ -142,6 +142,7 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
         ) as total_muzakki,
         COALESCE(SUM(COALESCE(m.jumlah_beras_kg, 0)), 0) as total_beras_kg,
         COALESCE(SUM(COALESCE(m.jumlah_bayar, 0)), 0) as total_jumlah_bayar,
+        COUNT(DISTINCT CASE WHEN m.rt_id IS NOT NULL THEN m.rt_id END) as total_rt_aktif,
         COALESCE(SUM(CASE 
           WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
           ELSE m.jumlah_beras_kg * 12000 
@@ -163,6 +164,27 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
     // Get total users
     const [usersResult] = await db.execute(`
       SELECT COUNT(*) as total_users FROM users
+    `);
+
+    // Get recent trend for dashboard chart
+    const [trendRows] = await db.execute(`
+      SELECT
+        DATE_FORMAT(chart.payment_date, '%Y-%m-%d') as tanggal,
+        chart.total_muzakki,
+        chart.total_bayar,
+        chart.total_beras_kg
+      FROM (
+        SELECT
+          COALESCE(m.tanggal, DATE(m.created_at)) as payment_date,
+          COUNT(*) as total_muzakki,
+          COALESCE(SUM(COALESCE(m.jumlah_bayar, 0)), 0) as total_bayar,
+          COALESCE(SUM(COALESCE(m.jumlah_beras_kg, 0)), 0) as total_beras_kg
+        FROM muzakki m
+        GROUP BY COALESCE(m.tanggal, DATE(m.created_at))
+        ORDER BY payment_date DESC
+        LIMIT 14
+      ) chart
+      ORDER BY chart.payment_date ASC
     `);
 
     // Get recent muzakki
@@ -221,10 +243,65 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
       total_users: usersResult[0].total_users,
     };
 
+    const dashboardTrend = (trendRows || []).map((row) => {
+      const tanggal = row.tanggal;
+      const parsedDate = tanggal ? new Date(`${tanggal}T00:00:00`) : null;
+
+      return {
+        tanggal,
+        label:
+          parsedDate && !Number.isNaN(parsedDate.getTime())
+            ? parsedDate.toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "short",
+              })
+            : tanggal || "-",
+        total_muzakki: Number(row.total_muzakki || 0),
+        total_bayar: Number(row.total_bayar || 0),
+        total_beras_kg: Number(row.total_beras_kg || 0),
+      };
+    });
+
+    const emptyInsight = {
+      tanggal: null,
+      label: "-",
+      total_muzakki: 0,
+      total_bayar: 0,
+      total_beras_kg: 0,
+    };
+
+    const trendPeakMuzakki =
+      dashboardTrend.reduce((best, row) => {
+        if (!best || row.total_muzakki > best.total_muzakki) {
+          return row;
+        }
+        return best;
+      }, null) || emptyInsight;
+
+    const trendPeakBayar =
+      dashboardTrend.reduce((best, row) => {
+        if (!best || row.total_bayar > best.total_bayar) {
+          return row;
+        }
+        return best;
+      }, null) || emptyInsight;
+
+    const dashboardInsights = {
+      active_days: dashboardTrend.length,
+      avg_bayar_per_muzakki:
+        Number(stats.total_muzakki || 0) > 0
+          ? Number(stats.total_jumlah_bayar || 0) / Number(stats.total_muzakki || 1)
+          : 0,
+      peak_muzakki: trendPeakMuzakki,
+      peak_bayar: trendPeakBayar,
+    };
+
     res.render("dashboard", {
       title: "Dashboard - Zakat Fitrah App",
       user: req.session.user,
       stats: stats || {},
+      dashboardTrend: dashboardTrend || [],
+      dashboardInsights,
       recentMuzakki: recentMuzakki || [],
       rtStats: rtStats || [],
       success: req.flash("success"),

@@ -1,6 +1,17 @@
 <%- include('layouts/header', { title: 'Dashboard - Zakat Fitrah App',
 bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
 
+<%
+  const currencyFormatter = new Intl.NumberFormat('id-ID');
+  const berasFormatter = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const overviewTrend = Array.isArray(dashboardTrend) ? dashboardTrend : [];
+  const overviewInsights = dashboardInsights || {};
+  const averageBayarPerMuzakki = Number(overviewInsights.avg_bayar_per_muzakki || 0);
+  const chartRangeLabel = overviewTrend.length > 0
+    ? `${overviewTrend[0].label} - ${overviewTrend[overviewTrend.length - 1].label}`
+    : 'Belum ada data tren';
+%>
+
 <!-- Dashboard Container with Modern Design -->
 <div class="dashboard-wrapper">
   <!-- Modern Header Section -->
@@ -36,103 +47,212 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     <div class="header-decoration"></div>
   </div>
 
-  <!-- Stats Cards Grid - Revamped -->
-  <div class="stats-grid">
-    <!-- Total Muzakki Card -->
-    <div class="stat-card stat-card-blue">
-      <div class="stat-card-header">
-        <div class="stat-icon">
-          <i class="fas fa-users"></i>
-        </div>
-        <div class="stat-badge">Aktif</div>
+  <section class="overview-shell">
+    <div class="overview-header">
+      <div class="overview-heading">
+        <span class="overview-kicker">Ringkasan Utama</span>
+        <h2 class="overview-title">Statistik pengumpulan zakat yang lebih rapi dan mudah dibaca</h2>
+        <p class="overview-description">Semua angka diringkas dari data aktual muzakki agar panitia cepat membaca kondisi pemasukan, keterlibatan RT, dan perkembangan pencatatan terakhir.</p>
       </div>
-      <div class="stat-content">
-        <div class="stat-value"><%= stats.total_muzakki || 0 %></div>
-        <div class="stat-label">Total Muzakki</div>
-        <div class="stat-description">Terdaftar dalam sistem</div>
-      </div>
-      <div class="stat-footer">
-        <i class="fas fa-arrow-up"></i>
-        <span>Ter Update</span>
+      <div class="overview-meta">
+        <span class="overview-pill">
+          <i class="fas fa-home"></i>
+          <%= stats.total_rt_aktif || 0 %> RT aktif
+        </span>
+        <span class="overview-pill">
+          <i class="fas fa-calendar-days"></i>
+          <%= overviewInsights.active_days || 0 %> hari tercatat
+        </span>
       </div>
     </div>
 
-    <!-- Zakat Terkumpul Card -->
-    <div class="stat-card stat-card-green">
-      <div class="stat-card-header">
-        <div class="stat-icon">
-          <i class="fas fa-coins"></i>
+    <div class="stats-grid stats-grid-modern">
+      <article class="stat-card stat-card-featured stat-card-green" data-stat-card>
+        <div class="stat-card-header">
+          <div class="stat-card-identity">
+            <div class="stat-icon">
+              <i class="fas fa-wallet"></i>
+            </div>
+            <div>
+              <div class="stat-badge">Pembayaran</div>
+              <div class="stat-overline">Sumber: jumlah_bayar muzakki</div>
+            </div>
+          </div>
+          <div class="stat-trend-indicator">
+            <i class="fas fa-sparkles"></i>
+          </div>
         </div>
-        <div class="stat-badge">Dana</div>
+        <div class="stat-content">
+          <div class="stat-value">Rp <%= Math.floor(stats.total_jumlah_bayar || 0).toLocaleString('id-ID') %></div>
+          <div class="stat-label">Zakat Terkumpul</div>
+          <div class="stat-description">Akumulasi pembayaran zakat fitrah yang sudah masuk dan tercatat di dashboard.</div>
+        </div>
+        <div class="stat-feature-points">
+          <span class="stat-chip">
+            <i class="fas fa-scale-balanced"></i>
+            Rata-rata Rp <%= Math.floor(averageBayarPerMuzakki).toLocaleString('id-ID') %> / muzakki
+          </span>
+          <span class="stat-chip">
+            <i class="fas fa-bolt"></i>
+            Puncak bayar: <%= overviewInsights.peak_bayar && overviewInsights.peak_bayar.label ? overviewInsights.peak_bayar.label : '-' %>
+          </span>
+        </div>
+      </article>
+
+      <article class="stat-card stat-card-blue" data-stat-card>
+        <div class="stat-card-header">
+          <div class="stat-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-badge">Muzakki</div>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value"><%= stats.total_muzakki || 0 %></div>
+          <div class="stat-label">Total Muzakki</div>
+          <div class="stat-description">Jumlah nama muzakki yang sudah tercatat dalam sistem.</div>
+        </div>
+        <div class="stat-footer">
+          <i class="fas fa-arrow-trend-up"></i>
+          <span>Puncak aktivitas: <%= overviewInsights.peak_muzakki && overviewInsights.peak_muzakki.label ? overviewInsights.peak_muzakki.label : '-' %></span>
+        </div>
+      </article>
+
+      <article class="stat-card stat-card-purple" data-stat-card>
+        <div class="stat-card-header">
+          <div class="stat-icon">
+            <i class="fas fa-hand-holding-heart"></i>
+          </div>
+          <div class="stat-badge">Infak</div>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">Rp <%= Math.floor(stats.total_infak || 0).toLocaleString('id-ID') %></div>
+          <div class="stat-label">Total Infak</div>
+          <div class="stat-description">Dana infak yang terkumpul dari konversi kembalian atau sedekah.</div>
+        </div>
+        <div class="stat-footer">
+          <i class="fas fa-heart"></i>
+          <span>Rekap donasi tambahan</span>
+        </div>
+      </article>
+
+      <article class="stat-card stat-card-red" data-stat-card>
+        <div class="stat-card-header">
+          <div class="stat-icon">
+            <i class="fas fa-seedling"></i>
+          </div>
+          <div class="stat-badge">Beras</div>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value"><%= berasFormatter.format(Number(stats.total_beras_kg || 0)) %> kg</div>
+          <div class="stat-label">Jumlah Beras</div>
+          <div class="stat-description">Akumulasi beras yang diambil langsung dari kolom `jumlah_beras_kg`.</div>
+        </div>
+        <div class="stat-footer">
+          <i class="fas fa-database"></i>
+          <span>Tabel muzakki</span>
+        </div>
+      </article>
+
+      <article class="stat-card stat-card-orange" data-stat-card>
+        <div class="stat-card-header">
+          <div class="stat-icon">
+            <i class="fas fa-user-shield"></i>
+          </div>
+          <div class="stat-badge">Akses</div>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value"><%= stats.total_users || 0 %></div>
+          <div class="stat-label">Total User</div>
+          <div class="stat-description">Jumlah pengguna aktif yang bisa mengelola proses pencatatan zakat.</div>
+        </div>
+        <div class="stat-footer">
+          <i class="fas fa-users-cog"></i>
+          <span>Panitia terdaftar</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="analytics-section">
+    <div class="analytics-main-card">
+      <div class="analytics-header">
+        <div>
+          <span class="overview-kicker">Statistik Muzakki</span>
+          <h2 class="analytics-title">Tren pencatatan muzakki dan pembayaran</h2>
+          <p class="analytics-description">Pilih metrik yang ingin ditampilkan untuk membaca pola jumlah muzakki, total pembayaran, atau total beras pada data terbaru.</p>
+        </div>
+        <div class="chart-switcher" role="tablist" aria-label="Pilih statistik dashboard">
+          <button type="button" class="chart-switch is-active" data-chart-metric="total_muzakki">Muzakki</button>
+          <button type="button" class="chart-switch" data-chart-metric="total_bayar">Pembayaran</button>
+          <button type="button" class="chart-switch" data-chart-metric="total_beras_kg">Beras</button>
+        </div>
       </div>
-      <div class="stat-content">
-        <div class="stat-value">Rp <%= Math.floor(stats.total_jumlah_bayar || 0).toLocaleString('id-ID') %></div>
-        <div class="stat-label">Zakat Terkumpul</div>
-        <div class="stat-description">Total dana zakat fitrah</div>
-      </div>
-      <div class="stat-footer">
-        <i class="fas fa-check-circle"></i>
-        <span>Terkumpul</span>
-      </div>
+
+      <% if (overviewTrend.length > 0) { %>
+        <div class="analytics-summary-bar">
+          <div class="analytics-summary-item">
+            <span class="analytics-summary-label" id="dashboardChartMetricLabel">Total Muzakki</span>
+            <strong class="analytics-summary-value" id="dashboardChartMetricValue"><%= overviewTrend[overviewTrend.length - 1].total_muzakki %></strong>
+          </div>
+          <div class="analytics-summary-item">
+            <span class="analytics-summary-label">Rentang</span>
+            <strong class="analytics-summary-value"><%= chartRangeLabel %></strong>
+          </div>
+          <div class="analytics-summary-item">
+            <span class="analytics-summary-label">Puncak Data</span>
+            <strong class="analytics-summary-value"><%= overviewInsights.peak_muzakki && overviewInsights.peak_muzakki.label ? overviewInsights.peak_muzakki.label : '-' %></strong>
+          </div>
+        </div>
+
+        <div class="analytics-chart-wrap">
+          <div class="chart-surface">
+            <svg id="dashboardTrendChart" class="dashboard-trend-chart" viewBox="0 0 760 320" preserveAspectRatio="none" role="img" aria-label="Grafik statistik muzakki"></svg>
+            <div id="dashboardChartTooltip" class="chart-tooltip" hidden></div>
+          </div>
+          <div class="chart-axis-labels">
+            <% overviewTrend.forEach((item, index) => { %>
+              <% if (index === 0 || index === overviewTrend.length - 1 || index % 3 === 0) { %>
+                <span><%= item.label %></span>
+              <% } %>
+            <% }); %>
+          </div>
+        </div>
+      <% } else { %>
+        <div class="empty-state analytics-empty-state">
+          <div class="empty-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3 class="empty-title">Belum ada tren muzakki</h3>
+          <p class="empty-desc">Grafik akan muncul otomatis setelah data muzakki mulai tercatat pada beberapa tanggal.</p>
+        </div>
+      <% } %>
     </div>
 
-    <!-- Total Infak Card -->
-    <div class="stat-card stat-card-purple">
-      <div class="stat-card-header">
-        <div class="stat-icon">
-          <i class="fas fa-hand-holding-heart"></i>
-        </div>
-        <div class="stat-badge">Infak</div>
+    <aside class="analytics-side-panel">
+      <div class="insight-card">
+        <span class="insight-label">Puncak Muzakki</span>
+        <strong class="insight-value"><%= overviewInsights.peak_muzakki ? overviewInsights.peak_muzakki.total_muzakki : 0 %> data</strong>
+        <p class="insight-note"><%= overviewInsights.peak_muzakki && overviewInsights.peak_muzakki.label ? overviewInsights.peak_muzakki.label : 'Belum ada data' %></p>
       </div>
-      <div class="stat-content">
-        <div class="stat-value">Rp <%= Math.floor(stats.total_infak || 0).toLocaleString('id-ID') %></div>
-        <div class="stat-label">Total Infak</div>
-        <div class="stat-description">Dana infak terkumpul</div>
+      <div class="insight-card">
+        <span class="insight-label">Puncak Pembayaran</span>
+        <strong class="insight-value">Rp <%= Math.floor(overviewInsights.peak_bayar ? overviewInsights.peak_bayar.total_bayar : 0).toLocaleString('id-ID') %></strong>
+        <p class="insight-note"><%= overviewInsights.peak_bayar && overviewInsights.peak_bayar.label ? overviewInsights.peak_bayar.label : 'Belum ada data' %></p>
       </div>
-      <div class="stat-footer">
-        <i class="fas fa-heart"></i>
-        <span>Sedekah</span>
+      <div class="insight-card">
+        <span class="insight-label">Rata-rata Pembayaran</span>
+        <strong class="insight-value">Rp <%= Math.floor(averageBayarPerMuzakki).toLocaleString('id-ID') %></strong>
+        <p class="insight-note">Per nama muzakki yang tercatat</p>
       </div>
-    </div>
+      <div class="insight-card insight-card-muted">
+        <span class="insight-label">Cakupan Data</span>
+        <strong class="insight-value"><%= overviewInsights.active_days || 0 %> hari</strong>
+        <p class="insight-note"><%= stats.total_rt_aktif || 0 %> RT aktif dan <%= stats.total_users || 0 %> user pengelola</p>
+      </div>
+    </aside>
+  </section>
 
-    <!-- Total Beras Card -->
-    <div class="stat-card stat-card-red">
-      <div class="stat-card-header">
-        <div class="stat-icon">
-          <i class="fas fa-seedling"></i>
-        </div>
-        <div class="stat-badge">Beras</div>
-      </div>
-      <div class="stat-content">
-        <div class="stat-value"><%= new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(stats.total_beras_kg || 0)) %> Liter</div>
-        <div class="stat-label">Jumlah Beras</div>
-        <div class="stat-description">Akumulasi langsung dari data muzakki</div>
-      </div>
-      <div class="stat-footer">
-        <i class="fas fa-database"></i>
-        <span>Tabel Muzakki</span>
-      </div>
-    </div>
-
-    <!-- Total Users Card -->
-    <div class="stat-card stat-card-orange">
-      <div class="stat-card-header">
-        <div class="stat-icon">
-          <i class="fas fa-user-shield"></i>
-        </div>
-        <div class="stat-badge">Users</div>
-      </div>
-      <div class="stat-content">
-        <div class="stat-value"><%= stats.total_users || 0 %></div>
-        <div class="stat-label">Total User</div>
-        <div class="stat-description">Pengguna sistem aktif</div>
-      </div>
-      <div class="stat-footer">
-        <i class="fas fa-users-cog"></i>
-        <span>Terdaftar</span>
-      </div>
-    </div>
-  </div>
+  <script id="dashboardTrendData" type="application/json"><%- JSON.stringify(overviewTrend) %></script>
 
   <!-- Quick Actions Section - Revamped -->
   <div class="quick-actions-section">
@@ -2086,11 +2206,790 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
       padding: 9px 10px;
     }
   }
+
+  /* Dashboard Overview Refresh */
+  .overview-shell,
+  .analytics-main-card,
+  .analytics-side-panel {
+    position: relative;
+    border: 1px solid #dbe7e1;
+    border-radius: 22px;
+    background:
+      radial-gradient(circle at top right, rgba(22, 163, 74, 0.08), transparent 34%),
+      linear-gradient(180deg, #ffffff 0%, #f8fbf7 100%);
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+  }
+
+  .overview-shell {
+    padding: 18px;
+    overflow: hidden;
+  }
+
+  .overview-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .overview-heading {
+    max-width: 760px;
+  }
+
+  .overview-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: #ebf8ef;
+    color: #166534;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+  .overview-title,
+  .analytics-title {
+    margin: 10px 0 6px;
+    font-size: clamp(1.15rem, 2vw, 1.65rem);
+    line-height: 1.28;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  .overview-description,
+  .analytics-description {
+    margin: 0;
+    font-size: 0.94rem;
+    line-height: 1.7;
+    color: #64748b;
+    max-width: 760px;
+  }
+
+  .overview-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+
+  .overview-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid #d9e7dd;
+    color: #14532d;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+  }
+
+  .stats-grid-modern {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .stats-grid-modern .stat-card {
+    grid-column: span 3;
+    border-radius: 20px;
+    padding: 18px;
+    min-height: 198px;
+    border: 1px solid rgba(219, 231, 225, 0.95);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.05);
+  }
+
+  .stats-grid-modern .stat-card::after {
+    content: "";
+    position: absolute;
+    inset: auto -20px -36px auto;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 72%);
+    pointer-events: none;
+  }
+
+  .stats-grid-modern .stat-card-featured {
+    grid-column: span 6;
+    min-height: 220px;
+    background:
+      radial-gradient(circle at top right, rgba(255, 255, 255, 0.35), transparent 34%),
+      linear-gradient(135deg, #14863a 0%, #0f7a50 55%, #0f766e 100%);
+    border-color: transparent;
+    color: #ffffff;
+  }
+
+  .stat-card-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .stat-overline {
+    margin-top: 4px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.78);
+  }
+
+  .stat-card-featured .stat-badge {
+    background: rgba(255, 255, 255, 0.16);
+    color: #f8fafc;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .stat-card-featured .stat-icon {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  }
+
+  .stat-card-featured .stat-value,
+  .stat-card-featured .stat-label,
+  .stat-card-featured .stat-description,
+  .stat-card-featured .stat-footer {
+    color: #ffffff;
+  }
+
+  .stat-card-featured .stat-description,
+  .stat-card-featured .stat-footer {
+    color: rgba(255, 255, 255, 0.88);
+  }
+
+  .stat-trend-indicator {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+  }
+
+  .stat-feature-points {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+
+  .stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .stats-grid-modern .stat-card:not(.stat-card-featured) .stat-card-header {
+    margin-bottom: 16px;
+  }
+
+  .stats-grid-modern .stat-card:not(.stat-card-featured) .stat-badge {
+    border: 1px solid rgba(15, 23, 42, 0.06);
+  }
+
+  .stats-grid-modern .stat-card:not(.stat-card-featured) .stat-value {
+    font-size: clamp(1.15rem, 1.8vw, 1.55rem);
+  }
+
+  .stats-grid-modern .stat-card:not(.stat-card-featured) .stat-description {
+    min-height: 44px;
+    font-size: 11px;
+    line-height: 1.55;
+    color: #64748b;
+  }
+
+  .analytics-section {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) minmax(280px, 0.9fr);
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  .analytics-main-card {
+    padding: 18px;
+  }
+
+  .analytics-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .chart-switcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    border-radius: 999px;
+    background: #eff6f1;
+    border: 1px solid #dbe7de;
+    flex-wrap: wrap;
+  }
+
+  .chart-switch {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 9px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .chart-switch:hover,
+  .chart-switch.is-active {
+    background: linear-gradient(135deg, #15803d 0%, #0f766e 100%);
+    color: #ffffff;
+    box-shadow: 0 10px 18px rgba(21, 128, 61, 0.22);
+  }
+
+  .analytics-summary-bar {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .analytics-summary-item {
+    padding: 14px;
+    border-radius: 16px;
+    border: 1px solid #dce7df;
+    background: linear-gradient(180deg, #ffffff 0%, #f7fbf7 100%);
+  }
+
+  .analytics-summary-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    margin-bottom: 6px;
+  }
+
+  .analytics-summary-value {
+    display: block;
+    font-size: 1rem;
+    color: #0f172a;
+    font-weight: 800;
+    line-height: 1.35;
+  }
+
+  .analytics-chart-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .chart-surface {
+    position: relative;
+    min-height: 340px;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid #dbe7e0;
+    background:
+      linear-gradient(180deg, rgba(22, 163, 74, 0.04) 0%, rgba(248, 250, 252, 0.96) 100%),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.14) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+    background-size: auto, 20% 100%, 100% 25%;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  }
+
+  .dashboard-trend-chart {
+    width: 100%;
+    height: 340px;
+    display: block;
+  }
+
+  .chart-axis-labels {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .chart-axis-labels span {
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .chart-tooltip {
+    position: absolute;
+    pointer-events: none;
+    z-index: 4;
+    min-width: 148px;
+    max-width: 220px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    background: rgba(255, 255, 255, 0.96);
+    color: #0f172a;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
+    transform: translate(-50%, calc(-100% - 14px));
+    backdrop-filter: blur(12px);
+  }
+
+  .chart-tooltip-date {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 6px;
+  }
+
+  .chart-tooltip-value {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.35;
+    margin-bottom: 6px;
+  }
+
+  .chart-tooltip-meta {
+    display: grid;
+    gap: 4px;
+    font-size: 11px;
+    color: #475569;
+  }
+
+  .analytics-side-panel {
+    display: grid;
+    gap: 12px;
+    padding: 18px;
+  }
+
+  .insight-card {
+    padding: 16px;
+    border-radius: 18px;
+    border: 1px solid #dce7df;
+    background: linear-gradient(180deg, #ffffff 0%, #f9fbfa 100%);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+  }
+
+  .insight-card-muted {
+    background: linear-gradient(180deg, #f6fbf7 0%, #eef7f2 100%);
+  }
+
+  .insight-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #64748b;
+    margin-bottom: 8px;
+  }
+
+  .insight-value {
+    display: block;
+    font-size: 1.32rem;
+    line-height: 1.3;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+
+  .insight-note {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #64748b;
+  }
+
+  .analytics-empty-state {
+    padding: 32px 18px;
+  }
+
+  html.dark-mode .overview-shell,
+  html.dark-mode .analytics-main-card,
+  html.dark-mode .analytics-side-panel {
+    background:
+      radial-gradient(circle at top right, rgba(34, 197, 94, 0.1), transparent 34%),
+      linear-gradient(180deg, #0f172a 0%, #111827 100%);
+    border-color: #243244;
+    box-shadow: none;
+  }
+
+  html.dark-mode .overview-title,
+  html.dark-mode .analytics-title,
+  html.dark-mode .analytics-summary-value,
+  html.dark-mode .insight-value {
+    color: #f8fafc;
+  }
+
+  html.dark-mode .overview-description,
+  html.dark-mode .analytics-description,
+  html.dark-mode .analytics-summary-label,
+  html.dark-mode .insight-label,
+  html.dark-mode .insight-note,
+  html.dark-mode .chart-axis-labels {
+    color: #94a3b8;
+  }
+
+  html.dark-mode .overview-pill,
+  html.dark-mode .analytics-summary-item,
+  html.dark-mode .insight-card {
+    background: rgba(15, 23, 42, 0.76);
+    border-color: #243244;
+    box-shadow: none;
+  }
+
+  html.dark-mode .chart-switcher {
+    background: #111827;
+    border-color: #243244;
+  }
+
+  html.dark-mode .chart-surface {
+    border-color: #243244;
+    background:
+      linear-gradient(180deg, rgba(34, 197, 94, 0.08) 0%, rgba(15, 23, 42, 0.96) 100%),
+      linear-gradient(90deg, rgba(71, 85, 105, 0.22) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(71, 85, 105, 0.18) 1px, transparent 1px);
+    background-size: auto, 20% 100%, 100% 25%;
+  }
+
+  html.dark-mode .chart-tooltip {
+    background: rgba(15, 23, 42, 0.96);
+    border-color: #243244;
+    color: #f8fafc;
+  }
+
+  html.dark-mode .chart-tooltip-date,
+  html.dark-mode .chart-tooltip-meta {
+    color: #cbd5e1;
+  }
+
+  @media (max-width: 1200px) {
+    .stats-grid-modern .stat-card {
+      grid-column: span 4;
+    }
+
+    .stats-grid-modern .stat-card-featured {
+      grid-column: span 12;
+    }
+
+    .analytics-section {
+      grid-template-columns: 1fr;
+    }
+
+    .analytics-side-panel {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 900px) {
+    .overview-shell,
+    .analytics-main-card,
+    .analytics-side-panel {
+      border-radius: 18px;
+    }
+
+    .stats-grid-modern .stat-card {
+      grid-column: span 6;
+      min-height: 186px;
+    }
+
+    .analytics-summary-bar {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .overview-shell,
+    .analytics-main-card,
+    .analytics-side-panel {
+      padding: 14px;
+      border-radius: 16px;
+    }
+
+    .overview-header,
+    .analytics-header {
+      gap: 12px;
+    }
+
+    .overview-title,
+    .analytics-title {
+      font-size: 1.08rem;
+    }
+
+    .overview-description,
+    .analytics-description {
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+
+    .stats-grid-modern {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .stats-grid-modern .stat-card,
+    .stats-grid-modern .stat-card-featured {
+      grid-column: span 1;
+      min-height: auto;
+      padding: 14px;
+    }
+
+    .stat-feature-points,
+    .overview-meta,
+    .chart-switcher {
+      width: 100%;
+    }
+
+    .chart-switcher {
+      justify-content: space-between;
+    }
+
+    .chart-switch {
+      flex: 1 1 calc(33.333% - 6px);
+      text-align: center;
+      padding: 8px 10px;
+    }
+
+    .chart-surface,
+    .dashboard-trend-chart {
+      min-height: 260px;
+      height: 260px;
+    }
+
+    .analytics-side-panel {
+      grid-template-columns: 1fr;
+      padding-top: 14px;
+    }
+
+    .chart-axis-labels {
+      font-size: 10px;
+    }
+  }
 </style>
 
 <!-- Enhanced JavaScript -->
 <script>
-  // Set current date with better formatting
+  const dashboardTrendDataElement = document.getElementById('dashboardTrendData');
+  let dashboardTrendData = [];
+
+  if (dashboardTrendDataElement) {
+    try {
+      dashboardTrendData = JSON.parse(dashboardTrendDataElement.textContent || '[]');
+    } catch (error) {
+      dashboardTrendData = [];
+    }
+  }
+
+  function formatDashboardChartValue(metric, value) {
+    const safeValue = Number(value || 0);
+
+    if (metric === 'total_bayar') {
+      return `Rp ${Math.round(safeValue).toLocaleString('id-ID')}`;
+    }
+
+    if (metric === 'total_beras_kg') {
+      return `${new Intl.NumberFormat('id-ID', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      }).format(safeValue)} kg`;
+    }
+
+    return `${Math.round(safeValue).toLocaleString('id-ID')} data`;
+  }
+
+  function getDashboardChartMetricConfig(metric) {
+    const metricMap = {
+      total_muzakki: {
+        label: 'Akumulasi Muzakki',
+        lineColor: '#16a34a',
+        areaColor: 'rgba(22, 163, 74, 0.18)',
+        pointColor: '#166534'
+      },
+      total_bayar: {
+        label: 'Akumulasi Pembayaran',
+        lineColor: '#0f766e',
+        areaColor: 'rgba(15, 118, 110, 0.16)',
+        pointColor: '#115e59'
+      },
+      total_beras_kg: {
+        label: 'Akumulasi Beras',
+        lineColor: '#ea580c',
+        areaColor: 'rgba(234, 88, 12, 0.14)',
+        pointColor: '#c2410c'
+      }
+    };
+
+    return metricMap[metric] || metricMap.total_muzakki;
+  }
+
+  function buildDashboardLinePath(points) {
+    if (!points.length) {
+      return '';
+    }
+
+    return points
+      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+      .join(' ');
+  }
+
+  function renderDashboardTrendChart(metric = 'total_muzakki') {
+    const svg = document.getElementById('dashboardTrendChart');
+    const tooltip = document.getElementById('dashboardChartTooltip');
+    const metricLabelElement = document.getElementById('dashboardChartMetricLabel');
+    const metricValueElement = document.getElementById('dashboardChartMetricValue');
+    const switches = document.querySelectorAll('.chart-switch');
+
+    if (!svg || !dashboardTrendData.length) {
+      return;
+    }
+
+    const config = getDashboardChartMetricConfig(metric);
+    const width = 760;
+    const height = 320;
+    const padding = { top: 24, right: 18, bottom: 38, left: 18 };
+    const plotWidth = width - padding.left - padding.right;
+    const plotHeight = height - padding.top - padding.bottom;
+    const values = dashboardTrendData.map((item) => Number(item[metric] || 0));
+    const maxValue = Math.max(...values, 1);
+    const sumValue = values.reduce((total, value) => total + value, 0);
+
+    const points = values.map((value, index) => {
+      const x =
+        values.length === 1
+          ? padding.left + plotWidth / 2
+          : padding.left + (plotWidth * index) / (values.length - 1);
+      const y = padding.top + plotHeight - (value / maxValue) * plotHeight;
+      return {
+        x: Number(x.toFixed(2)),
+        y: Number(y.toFixed(2)),
+        value,
+        item: dashboardTrendData[index],
+      };
+    });
+
+    const baselineY = padding.top + plotHeight;
+    const linePath = buildDashboardLinePath(points);
+    const areaPath = points.length
+      ? `${linePath} L ${points[points.length - 1].x} ${baselineY} L ${points[0].x} ${baselineY} Z`
+      : '';
+
+    const guideLines = Array.from({ length: 5 }, (_, index) => {
+      const ratio = index / 4;
+      const y = padding.top + plotHeight - ratio * plotHeight;
+      const labelValue = Math.round(maxValue * ratio);
+      return `
+        <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(148, 163, 184, 0.22)" stroke-dasharray="4 8" />
+        <text x="${padding.left}" y="${y - 8}" fill="rgba(100, 116, 139, 0.9)" font-size="11" font-weight="700">${formatDashboardChartValue(metric, labelValue)}</text>
+      `;
+    }).join('');
+
+    const pointMarkers = points.map((point, index) => `
+      <circle cx="${point.x}" cy="${point.y}" r="5.5" fill="${config.pointColor}" stroke="#ffffff" stroke-width="3"></circle>
+      <circle
+        class="chart-hit-point"
+        data-point-index="${index}"
+        cx="${point.x}"
+        cy="${point.y}"
+        r="16"
+        fill="transparent"
+        style="cursor: pointer;"
+      ></circle>
+    `).join('');
+
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="dashboardAreaGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${config.areaColor.replace('0.18', '0.32').replace('0.16', '0.28').replace('0.14', '0.24')}" />
+          <stop offset="100%" stop-color="rgba(255, 255, 255, 0)" />
+        </linearGradient>
+      </defs>
+      ${guideLines}
+      <path d="${areaPath}" fill="url(#dashboardAreaGradient)"></path>
+      <path d="${linePath}" fill="none" stroke="${config.lineColor}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      ${pointMarkers}
+    `;
+
+    if (metricLabelElement) {
+      metricLabelElement.textContent = config.label;
+    }
+
+    if (metricValueElement) {
+      metricValueElement.textContent = formatDashboardChartValue(metric, sumValue);
+    }
+
+    switches.forEach((button) => {
+      button.classList.toggle('is-active', button.dataset.chartMetric === metric);
+    });
+
+    const showTooltip = (point) => {
+      if (!tooltip) {
+        return;
+      }
+
+      tooltip.hidden = false;
+      tooltip.innerHTML = `
+        <span class="chart-tooltip-date">${point.item.label}</span>
+        <div class="chart-tooltip-value">${formatDashboardChartValue(metric, point.value)}</div>
+        <div class="chart-tooltip-meta">
+          <span>Muzakki: ${formatDashboardChartValue('total_muzakki', point.item.total_muzakki)}</span>
+          <span>Pembayaran: ${formatDashboardChartValue('total_bayar', point.item.total_bayar)}</span>
+          <span>Beras: ${formatDashboardChartValue('total_beras_kg', point.item.total_beras_kg)}</span>
+        </div>
+      `;
+      tooltip.style.left = `${(point.x / width) * 100}%`;
+      tooltip.style.top = `${(point.y / height) * 100}%`;
+    };
+
+    const hideTooltip = () => {
+      if (tooltip) {
+        tooltip.hidden = true;
+      }
+    };
+
+    svg.querySelectorAll('.chart-hit-point').forEach((element) => {
+      element.addEventListener('mouseenter', () => {
+        const pointIndex = Number(element.getAttribute('data-point-index'));
+        if (Number.isInteger(pointIndex) && points[pointIndex]) {
+          showTooltip(points[pointIndex]);
+        }
+      });
+
+      element.addEventListener('mouseleave', hideTooltip);
+      element.addEventListener('focus', () => {
+        const pointIndex = Number(element.getAttribute('data-point-index'));
+        if (Number.isInteger(pointIndex) && points[pointIndex]) {
+          showTooltip(points[pointIndex]);
+        }
+      });
+      element.addEventListener('blur', hideTooltip);
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
     const dateElement = document.getElementById('current-date');
     const hijriDateElement = document.getElementById('current-hijri-date');
@@ -2153,8 +3052,7 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
       }
     }
 
-    // Add entrance animations
-    const animateElements = document.querySelectorAll('.stat-card, .action-card, .data-item');
+    const animateElements = document.querySelectorAll('.stat-card, .action-card, .data-item, .insight-card, .analytics-summary-item');
     animateElements.forEach((el, index) => {
       el.style.opacity = '0';
       el.style.transform = 'translateY(20px)';
@@ -2165,13 +3063,11 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
       }, index * 50);
     });
 
-    // Add Islamic glow effect on important elements
     const importantElements = document.querySelectorAll("[data-islamic-glow]");
     importantElements.forEach(el => {
       el.classList.add("islamic-glow");
     });
 
-    // Enhanced tooltip effects for Islamic elements
     const tooltips = document.querySelectorAll("[data-tooltip]");
     tooltips.forEach(el => {
       el.addEventListener("mouseenter", function() {
@@ -2182,7 +3078,16 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
       });
     });
 
-    // Smooth scroll behavior
+    if (dashboardTrendData.length > 0) {
+      renderDashboardTrendChart('total_muzakki');
+
+      document.querySelectorAll('.chart-switch').forEach((button) => {
+        button.addEventListener('click', function () {
+          renderDashboardTrendChart(this.dataset.chartMetric || 'total_muzakki');
+        });
+      });
+    }
+
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener("click", function (e) {
         e.preventDefault();
@@ -2196,7 +3101,6 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
       });
     });
 
-    // Add ripple effect on button clicks
     const buttons = document.querySelectorAll("button, .btn-gradient-emerald, .btn-gradient-teal, .btn-gradient-cyan");
     buttons.forEach(button => {
       button.addEventListener("click", function(e) {
@@ -2205,14 +3109,14 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
         const size = Math.max(rect.width, rect.height);
         const x = e.clientX - rect.left - size / 2;
         const y = e.clientY - rect.top - size / 2;
-        
+
         ripple.style.width = ripple.style.height = size + "px";
         ripple.style.left = x + "px";
         ripple.style.top = y + "px";
         ripple.classList.add("ripple");
-        
+
         this.appendChild(ripple);
-        
+
         setTimeout(() => {
           ripple.remove();
         }, 600);
@@ -2220,7 +3124,6 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     });
   });
 
-  // Auto-refresh stats every 5 minutes
   setInterval(() => {
     const statsCards = document.querySelectorAll("[data-stat-card]");
     statsCards.forEach(card => {
