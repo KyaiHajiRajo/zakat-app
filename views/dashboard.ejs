@@ -7,6 +7,7 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
   const overviewTrend = Array.isArray(dashboardTrend) ? dashboardTrend : [];
   const overviewInsights = dashboardInsights || {};
   const averageBayarPerMuzakki = Number(overviewInsights.avg_bayar_per_muzakki || 0);
+  const latestTrendPoint = overviewTrend.length > 0 ? overviewTrend[overviewTrend.length - 1] : null;
   const chartRangeLabel = overviewTrend.length > 0
     ? `${overviewTrend[0].label} - ${overviewTrend[overviewTrend.length - 1].label}`
     : 'Belum ada data tren';
@@ -191,29 +192,65 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
       <% if (overviewTrend.length > 0) { %>
         <div class="analytics-summary-bar">
           <div class="analytics-summary-item">
-            <span class="analytics-summary-label" id="dashboardChartMetricLabel">Total Muzakki</span>
-            <strong class="analytics-summary-value" id="dashboardChartMetricValue"><%= overviewTrend[overviewTrend.length - 1].total_muzakki %></strong>
+            <span class="analytics-summary-label" id="dashboardChartMetricLabel">Statistik Aktif</span>
+            <strong class="analytics-summary-value" id="dashboardChartMetricValue"><%= latestTrendPoint ? `${latestTrendPoint.total_muzakki} data` : '0 data' %></strong>
           </div>
           <div class="analytics-summary-item">
-            <span class="analytics-summary-label">Rentang</span>
+            <span class="analytics-summary-label">Rentang Data</span>
             <strong class="analytics-summary-value"><%= chartRangeLabel %></strong>
           </div>
           <div class="analytics-summary-item">
-            <span class="analytics-summary-label">Puncak Data</span>
-            <strong class="analytics-summary-value"><%= overviewInsights.peak_muzakki && overviewInsights.peak_muzakki.label ? overviewInsights.peak_muzakki.label : '-' %></strong>
+            <span class="analytics-summary-label" id="dashboardChartPeakLabel">Puncak Harian</span>
+            <strong class="analytics-summary-value" id="dashboardChartPeakValue">
+              <% if (overviewInsights.peak_muzakki) { %>
+                <%= overviewInsights.peak_muzakki.total_muzakki %> data / <%= overviewInsights.peak_muzakki.label || '-' %>
+              <% } else { %>
+                -
+              <% } %>
+            </strong>
           </div>
         </div>
 
         <div class="analytics-chart-wrap">
-          <div class="chart-surface">
-            <svg id="dashboardTrendChart" class="dashboard-trend-chart" viewBox="0 0 760 320" preserveAspectRatio="none" role="img" aria-label="Grafik statistik muzakki"></svg>
-            <div id="dashboardChartTooltip" class="chart-tooltip" hidden></div>
+          <div class="analytics-chart-stage">
+            <div class="chart-surface">
+              <div class="chart-surface-glow chart-surface-glow-left" aria-hidden="true"></div>
+              <div class="chart-surface-glow chart-surface-glow-right" aria-hidden="true"></div>
+
+              <div class="chart-surface-header">
+                <div class="chart-surface-heading">
+                  <span class="chart-surface-kicker">Visual Tren Harian</span>
+                  <h3 class="chart-surface-title" id="dashboardChartHeadline">Pergerakan jumlah muzakki per hari terakhir</h3>
+                </div>
+                <div class="chart-surface-badge" id="dashboardChartPeakBadge">
+                  Puncak: <%= overviewInsights.peak_muzakki && overviewInsights.peak_muzakki.label ? overviewInsights.peak_muzakki.label : '-' %>
+                </div>
+              </div>
+
+              <div class="chart-surface-body">
+                <div class="chart-y-axis" id="dashboardChartYAxis" aria-hidden="true"></div>
+
+                <div class="chart-plot-area">
+                  <div class="chart-plot-overlay" aria-hidden="true"></div>
+                  <svg id="dashboardTrendChart" class="dashboard-trend-chart" viewBox="0 0 760 320" preserveAspectRatio="none" role="img" aria-label="Grafik statistik muzakki"></svg>
+                  <div id="dashboardChartTooltip" class="chart-tooltip" hidden></div>
+
+                  <div class="chart-focus-card">
+                    <span class="chart-focus-label" id="dashboardChartFocusLabel">Catatan terakhir</span>
+                    <strong class="chart-focus-value" id="dashboardChartFocusValue">
+                      <%= latestTrendPoint ? `${latestTrendPoint.total_muzakki} data` : '0 data' %>
+                    </strong>
+                    <p class="chart-focus-meta" id="dashboardChartFocusMeta">
+                      <%= latestTrendPoint ? `Tercatat pada ${latestTrendPoint.label}` : 'Belum ada sorotan data' %>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="chart-axis-labels">
             <% overviewTrend.forEach((item, index) => { %>
-              <% if (index === 0 || index === overviewTrend.length - 1 || index % 3 === 0) { %>
-                <span><%= item.label %></span>
-              <% } %>
+              <span data-axis-index="<%= index %>" class="<%= index === overviewTrend.length - 1 ? 'is-active' : '' %>"><%= item.label %></span>
             <% }); %>
           </div>
         </div>
@@ -2470,15 +2507,28 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
   .analytics-summary-bar {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: 12px;
+    margin-bottom: 18px;
   }
 
   .analytics-summary-item {
-    padding: 14px;
-    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+    padding: 15px 16px;
+    border-radius: 18px;
     border: 1px solid #dce7df;
-    background: linear-gradient(180deg, #ffffff 0%, #f7fbf7 100%);
+    background:
+      radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 42%),
+      linear-gradient(180deg, #ffffff 0%, #f7fbf7 100%);
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.05);
+  }
+
+  .analytics-summary-item::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 3px;
+    background: linear-gradient(90deg, rgba(22, 163, 74, 0.82), rgba(13, 148, 136, 0.4));
   }
 
   .analytics-summary-label {
@@ -2502,44 +2552,198 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
   .analytics-chart-wrap {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
+  }
+
+  .analytics-chart-stage {
+    border-radius: 28px;
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(243, 248, 245, 0.94)),
+      radial-gradient(circle at top left, rgba(34, 197, 94, 0.16), transparent 34%);
+    border: 1px solid rgba(207, 226, 214, 0.9);
+    box-shadow: 0 24px 52px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
   }
 
   .chart-surface {
     position: relative;
-    min-height: 340px;
-    border-radius: 20px;
+    min-height: 396px;
+    padding: 20px;
+    border-radius: 28px;
     overflow: hidden;
-    border: 1px solid #dbe7e0;
     background:
-      linear-gradient(180deg, rgba(22, 163, 74, 0.04) 0%, rgba(248, 250, 252, 0.96) 100%),
-      linear-gradient(90deg, rgba(148, 163, 184, 0.14) 1px, transparent 1px),
+      radial-gradient(circle at 0% 0%, rgba(134, 239, 172, 0.24), transparent 36%),
+      radial-gradient(circle at 100% 0%, rgba(45, 212, 191, 0.18), transparent 34%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(244, 250, 246, 0.92) 100%);
+    isolation: isolate;
+  }
+
+  .chart-surface-glow {
+    position: absolute;
+    width: 240px;
+    height: 240px;
+    border-radius: 999px;
+    filter: blur(10px);
+    opacity: 0.55;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .chart-surface-glow-left {
+    top: -110px;
+    left: -70px;
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.34) 0%, rgba(34, 197, 94, 0) 70%);
+  }
+
+  .chart-surface-glow-right {
+    bottom: -120px;
+    right: -40px;
+    background: radial-gradient(circle, rgba(13, 148, 136, 0.24) 0%, rgba(13, 148, 136, 0) 72%);
+  }
+
+  .chart-surface-header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .chart-surface-heading {
+    min-width: 0;
+  }
+
+  .chart-surface-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(240, 253, 244, 0.92);
+    border: 1px solid rgba(187, 247, 208, 0.9);
+    color: #166534;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .chart-surface-title {
+    margin: 0;
+    font-size: 1.16rem;
+    line-height: 1.45;
+    font-weight: 800;
+    color: #0f172a;
+    max-width: 520px;
+  }
+
+  .chart-surface-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 10px 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(203, 213, 225, 0.74);
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(12px);
+  }
+
+  .chart-surface-body {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr);
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  .chart-y-axis {
+    display: grid;
+    grid-template-rows: repeat(5, minmax(0, 1fr));
+    padding: 10px 0 42px;
+  }
+
+  .chart-y-axis-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    line-height: 1;
+  }
+
+  .chart-plot-area {
+    position: relative;
+    min-height: 300px;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid rgba(219, 231, 224, 0.95);
+    background: linear-gradient(180deg, rgba(250, 252, 250, 0.94) 0%, rgba(242, 247, 244, 0.94) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.88),
+      0 16px 30px rgba(15, 23, 42, 0.05);
+  }
+
+  .chart-plot-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(34, 197, 94, 0.04) 0%, rgba(255, 255, 255, 0) 100%),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
       linear-gradient(180deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
-    background-size: auto, 20% 100%, 100% 25%;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    background-size: auto, 16.66% 100%, 100% 25%;
+    pointer-events: none;
+    z-index: 0;
   }
 
   .dashboard-trend-chart {
     width: 100%;
-    height: 340px;
+    height: 320px;
     display: block;
+    position: relative;
+    z-index: 1;
   }
 
   .chart-axis-labels {
-    display: flex;
-    justify-content: space-between;
-    gap: 8px;
-    color: #64748b;
-    font-size: 11px;
-    font-weight: 700;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(72px, 1fr);
+    gap: 10px;
     overflow-x: auto;
-    padding-bottom: 2px;
+    padding: 2px 2px 4px;
   }
 
   .chart-axis-labels span {
-    flex: 1 1 0;
-    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 72px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(219, 231, 224, 0.95);
+    background: rgba(255, 255, 255, 0.86);
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
     white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+
+  .chart-axis-labels span.is-active {
+    background: linear-gradient(135deg, #15803d 0%, #0f766e 100%);
+    border-color: transparent;
+    color: #ffffff;
+    box-shadow: 0 12px 24px rgba(15, 118, 110, 0.18);
   }
 
   .chart-tooltip {
@@ -2578,6 +2782,46 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     display: grid;
     gap: 4px;
     font-size: 11px;
+    color: #475569;
+  }
+
+  .chart-focus-card {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    z-index: 3;
+    width: min(240px, calc(100% - 32px));
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(219, 231, 224, 0.95);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.1);
+    backdrop-filter: blur(14px);
+  }
+
+  .chart-focus-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.35px;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 6px;
+  }
+
+  .chart-focus-value {
+    display: block;
+    font-size: 1.16rem;
+    line-height: 1.35;
+    color: #0f172a;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .chart-focus-meta {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.55;
     color: #475569;
   }
 
@@ -2651,7 +2895,10 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
   html.dark-mode .analytics-summary-label,
   html.dark-mode .insight-label,
   html.dark-mode .insight-note,
-  html.dark-mode .chart-axis-labels {
+  html.dark-mode .chart-axis-labels span,
+  html.dark-mode .chart-y-axis-item,
+  html.dark-mode .chart-focus-label,
+  html.dark-mode .chart-focus-meta {
     color: #94a3b8;
   }
 
@@ -2663,18 +2910,64 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     box-shadow: none;
   }
 
+  html.dark-mode .analytics-chart-stage {
+    background:
+      linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.94)),
+      radial-gradient(circle at top left, rgba(34, 197, 94, 0.14), transparent 36%);
+    border-color: #243244;
+    box-shadow: none;
+  }
+
+  html.dark-mode .chart-surface {
+    background:
+      radial-gradient(circle at 0% 0%, rgba(34, 197, 94, 0.16), transparent 36%),
+      radial-gradient(circle at 100% 0%, rgba(45, 212, 191, 0.14), transparent 34%),
+      linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(17, 24, 39, 0.95) 100%);
+  }
+
+  html.dark-mode .chart-surface-title,
+  html.dark-mode .chart-surface-badge,
+  html.dark-mode .chart-focus-value {
+    color: #f8fafc;
+  }
+
+  html.dark-mode .chart-surface-kicker {
+    background: rgba(20, 83, 45, 0.4);
+    border-color: rgba(34, 197, 94, 0.18);
+    color: #bbf7d0;
+  }
+
+  html.dark-mode .chart-surface-badge,
+  html.dark-mode .chart-focus-card,
+  html.dark-mode .chart-axis-labels span,
+  html.dark-mode .chart-y-axis-item {
+    background: rgba(15, 23, 42, 0.76);
+    border-color: #243244;
+    box-shadow: none;
+  }
+
+  html.dark-mode .chart-axis-labels span.is-active {
+    background: linear-gradient(135deg, #15803d 0%, #0f766e 100%);
+    color: #ffffff;
+  }
+
   html.dark-mode .chart-switcher {
     background: #111827;
     border-color: #243244;
   }
 
-  html.dark-mode .chart-surface {
+  html.dark-mode .chart-plot-area {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.82) 0%, rgba(17, 24, 39, 0.88) 100%);
     border-color: #243244;
+    box-shadow: none;
+  }
+
+  html.dark-mode .chart-plot-overlay {
     background:
       linear-gradient(180deg, rgba(34, 197, 94, 0.08) 0%, rgba(15, 23, 42, 0.96) 100%),
       linear-gradient(90deg, rgba(71, 85, 105, 0.22) 1px, transparent 1px),
       linear-gradient(180deg, rgba(71, 85, 105, 0.18) 1px, transparent 1px);
-    background-size: auto, 20% 100%, 100% 25%;
+    background-size: auto, 16.66% 100%, 100% 25%;
   }
 
   html.dark-mode .chart-tooltip {
@@ -2684,7 +2977,8 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
   }
 
   html.dark-mode .chart-tooltip-date,
-  html.dark-mode .chart-tooltip-meta {
+  html.dark-mode .chart-tooltip-meta,
+  html.dark-mode .chart-tooltip-value {
     color: #cbd5e1;
   }
 
@@ -2720,6 +3014,34 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
 
     .analytics-summary-bar {
       grid-template-columns: 1fr;
+    }
+
+    .chart-surface {
+      padding: 16px;
+      min-height: 372px;
+    }
+
+    .chart-surface-body {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .chart-y-axis {
+      grid-template-columns: repeat(5, minmax(72px, 1fr));
+      grid-template-rows: none;
+      padding: 0;
+      overflow-x: auto;
+      gap: 8px;
+    }
+
+    .chart-y-axis-item {
+      min-height: 34px;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(219, 231, 224, 0.95);
+      background: rgba(255, 255, 255, 0.82);
     }
   }
 
@@ -2775,9 +3097,26 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
       padding: 8px 10px;
     }
 
-    .chart-surface,
-    .dashboard-trend-chart {
+    .chart-surface {
+      padding: 14px;
+      min-height: 348px;
+    }
+
+    .chart-surface-title {
+      font-size: 1rem;
+    }
+
+    .chart-surface-badge {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .chart-plot-area {
       min-height: 260px;
+      border-radius: 20px;
+    }
+
+    .dashboard-trend-chart {
       height: 260px;
     }
 
@@ -2787,7 +3126,21 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     }
 
     .chart-axis-labels {
+      grid-auto-columns: minmax(66px, 1fr);
+      gap: 8px;
+    }
+
+    .chart-axis-labels span {
+      min-width: 66px;
+      padding: 9px 10px;
       font-size: 10px;
+    }
+
+    .chart-focus-card {
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      width: auto;
     }
   }
 </style>
@@ -2825,26 +3178,69 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
   function getDashboardChartMetricConfig(metric) {
     const metricMap = {
       total_muzakki: {
-        label: 'Akumulasi Muzakki',
+        label: 'Catatan Terbaru',
+        headline: 'Pergerakan jumlah muzakki per hari terakhir',
+        peakLabel: 'Puncak Muzakki',
         lineColor: '#16a34a',
-        areaColor: 'rgba(22, 163, 74, 0.18)',
-        pointColor: '#166534'
+        lineGlow: 'rgba(22, 163, 74, 0.24)',
+        areaColorStart: 'rgba(22, 163, 74, 0.32)',
+        areaColorEnd: 'rgba(34, 197, 94, 0.02)',
+        pointColor: '#166534',
+        pointHalo: 'rgba(22, 163, 74, 0.18)',
+        badgeTone: 'rgba(220, 252, 231, 0.92)'
       },
       total_bayar: {
-        label: 'Akumulasi Pembayaran',
+        label: 'Catatan Terbaru',
+        headline: 'Pola pembayaran zakat harian yang sudah masuk',
+        peakLabel: 'Puncak Pembayaran',
         lineColor: '#0f766e',
-        areaColor: 'rgba(15, 118, 110, 0.16)',
-        pointColor: '#115e59'
+        lineGlow: 'rgba(15, 118, 110, 0.24)',
+        areaColorStart: 'rgba(15, 118, 110, 0.28)',
+        areaColorEnd: 'rgba(45, 212, 191, 0.02)',
+        pointColor: '#115e59',
+        pointHalo: 'rgba(15, 118, 110, 0.18)',
+        badgeTone: 'rgba(204, 251, 241, 0.92)'
       },
       total_beras_kg: {
-        label: 'Akumulasi Beras',
+        label: 'Catatan Terbaru',
+        headline: 'Pergerakan stok beras zakat yang tercatat per hari',
+        peakLabel: 'Puncak Beras',
         lineColor: '#ea580c',
-        areaColor: 'rgba(234, 88, 12, 0.14)',
-        pointColor: '#c2410c'
+        lineGlow: 'rgba(234, 88, 12, 0.22)',
+        areaColorStart: 'rgba(234, 88, 12, 0.24)',
+        areaColorEnd: 'rgba(251, 146, 60, 0.02)',
+        pointColor: '#c2410c',
+        pointHalo: 'rgba(234, 88, 12, 0.16)',
+        badgeTone: 'rgba(255, 237, 213, 0.92)'
       }
     };
 
     return metricMap[metric] || metricMap.total_muzakki;
+  }
+
+  function formatDashboardChartShortValue(metric, value) {
+    const safeValue = Number(value || 0);
+
+    if (metric === 'total_bayar') {
+      if (safeValue >= 1000000) {
+        return `Rp ${(safeValue / 1000000).toFixed(safeValue % 1000000 === 0 ? 0 : 1)} jt`;
+      }
+
+      if (safeValue >= 1000) {
+        return `Rp ${(safeValue / 1000).toFixed(safeValue % 1000 === 0 ? 0 : 1)} rb`;
+      }
+
+      return `Rp ${Math.round(safeValue).toLocaleString('id-ID')}`;
+    }
+
+    if (metric === 'total_beras_kg') {
+      return `${new Intl.NumberFormat('id-ID', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 1
+      }).format(safeValue)} kg`;
+    }
+
+    return `${Math.round(safeValue).toLocaleString('id-ID')} data`;
   }
 
   function buildDashboardLinePath(points) {
@@ -2852,9 +3248,21 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
       return '';
     }
 
-    return points
-      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
-      .join(' ');
+    if (points.length === 1) {
+      return `M ${points[0].x} ${points[0].y}`;
+    }
+
+    let path = `M ${points[0].x} ${points[0].y}`;
+
+    for (let index = 0; index < points.length - 1; index += 1) {
+      const currentPoint = points[index];
+      const nextPoint = points[index + 1];
+      const controlPointX = Number(((currentPoint.x + nextPoint.x) / 2).toFixed(2));
+
+      path += ` C ${controlPointX} ${currentPoint.y}, ${controlPointX} ${nextPoint.y}, ${nextPoint.x} ${nextPoint.y}`;
+    }
+
+    return path;
   }
 
   function renderDashboardTrendChart(metric = 'total_muzakki') {
@@ -2862,7 +3270,16 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     const tooltip = document.getElementById('dashboardChartTooltip');
     const metricLabelElement = document.getElementById('dashboardChartMetricLabel');
     const metricValueElement = document.getElementById('dashboardChartMetricValue');
+    const peakLabelElement = document.getElementById('dashboardChartPeakLabel');
+    const peakValueElement = document.getElementById('dashboardChartPeakValue');
+    const headlineElement = document.getElementById('dashboardChartHeadline');
+    const peakBadgeElement = document.getElementById('dashboardChartPeakBadge');
+    const yAxisElement = document.getElementById('dashboardChartYAxis');
+    const focusLabelElement = document.getElementById('dashboardChartFocusLabel');
+    const focusValueElement = document.getElementById('dashboardChartFocusValue');
+    const focusMetaElement = document.getElementById('dashboardChartFocusMeta');
     const switches = document.querySelectorAll('.chart-switch');
+    const axisLabels = document.querySelectorAll('.chart-axis-labels span');
 
     if (!svg || !dashboardTrendData.length) {
       return;
@@ -2871,12 +3288,11 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     const config = getDashboardChartMetricConfig(metric);
     const width = 760;
     const height = 320;
-    const padding = { top: 24, right: 18, bottom: 38, left: 18 };
+    const padding = { top: 24, right: 22, bottom: 34, left: 16 };
     const plotWidth = width - padding.left - padding.right;
     const plotHeight = height - padding.top - padding.bottom;
     const values = dashboardTrendData.map((item) => Number(item[metric] || 0));
     const maxValue = Math.max(...values, 1);
-    const sumValue = values.reduce((total, value) => total + value, 0);
 
     const points = values.map((value, index) => {
       const x =
@@ -2897,19 +3313,25 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     const areaPath = points.length
       ? `${linePath} L ${points[points.length - 1].x} ${baselineY} L ${points[0].x} ${baselineY} Z`
       : '';
+    const latestPoint = points[points.length - 1];
+    const peakPoint = points.reduce((bestPoint, point) => {
+      if (!bestPoint || point.value > bestPoint.value) {
+        return point;
+      }
+
+      return bestPoint;
+    }, null) || latestPoint;
 
     const guideLines = Array.from({ length: 5 }, (_, index) => {
       const ratio = index / 4;
       const y = padding.top + plotHeight - ratio * plotHeight;
-      const labelValue = Math.round(maxValue * ratio);
       return `
-        <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(148, 163, 184, 0.22)" stroke-dasharray="4 8" />
-        <text x="${padding.left}" y="${y - 8}" fill="rgba(100, 116, 139, 0.9)" font-size="11" font-weight="700">${formatDashboardChartValue(metric, labelValue)}</text>
+        <line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="rgba(148, 163, 184, 0.2)" stroke-dasharray="4 8" />
       `;
     }).join('');
 
     const pointMarkers = points.map((point, index) => `
-      <circle cx="${point.x}" cy="${point.y}" r="5.5" fill="${config.pointColor}" stroke="#ffffff" stroke-width="3"></circle>
+      <circle cx="${point.x}" cy="${point.y}" r="6" fill="${config.pointColor}" stroke="#ffffff" stroke-width="3"></circle>
       <circle
         class="chart-hit-point"
         data-point-index="${index}"
@@ -2917,20 +3339,38 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
         cy="${point.y}"
         r="16"
         fill="transparent"
+        tabindex="0"
+        role="button"
+        aria-label="${point.item.label}: ${formatDashboardChartValue(metric, point.value)}"
         style="cursor: pointer;"
       ></circle>
     `).join('');
 
+    if (yAxisElement) {
+      yAxisElement.innerHTML = Array.from({ length: 5 }, (_, index) => {
+        const ratio = (4 - index) / 4;
+        const labelValue = maxValue * ratio;
+
+        return `<div class="chart-y-axis-item">${formatDashboardChartShortValue(metric, labelValue)}</div>`;
+      }).join('');
+    }
+
     svg.innerHTML = `
       <defs>
         <linearGradient id="dashboardAreaGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${config.areaColor.replace('0.18', '0.32').replace('0.16', '0.28').replace('0.14', '0.24')}" />
-          <stop offset="100%" stop-color="rgba(255, 255, 255, 0)" />
+          <stop offset="0%" stop-color="${config.areaColorStart}" />
+          <stop offset="100%" stop-color="${config.areaColorEnd}" />
         </linearGradient>
+        <filter id="dashboardLineGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="${config.lineGlow}" flood-opacity="1" />
+        </filter>
       </defs>
       ${guideLines}
+      <line id="dashboardChartActiveGuide" x1="${latestPoint.x}" y1="${padding.top}" x2="${latestPoint.x}" y2="${baselineY}" stroke="${config.lineGlow}" stroke-width="1.5" stroke-dasharray="5 8"></line>
       <path d="${areaPath}" fill="url(#dashboardAreaGradient)"></path>
-      <path d="${linePath}" fill="none" stroke="${config.lineColor}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      <path d="${linePath}" fill="none" stroke="${config.lineColor}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#dashboardLineGlow)"></path>
+      <circle id="dashboardChartActiveHalo" cx="${latestPoint.x}" cy="${latestPoint.y}" r="13" fill="${config.pointHalo}"></circle>
+      <circle id="dashboardChartActiveDot" cx="${latestPoint.x}" cy="${latestPoint.y}" r="7" fill="${config.pointColor}" stroke="#ffffff" stroke-width="3"></circle>
       ${pointMarkers}
     `;
 
@@ -2939,18 +3379,82 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
     }
 
     if (metricValueElement) {
-      metricValueElement.textContent = formatDashboardChartValue(metric, sumValue);
+      metricValueElement.textContent = formatDashboardChartValue(metric, latestPoint.value);
+    }
+
+    if (peakLabelElement) {
+      peakLabelElement.textContent = config.peakLabel;
+    }
+
+    if (peakValueElement) {
+      peakValueElement.textContent = `${formatDashboardChartValue(metric, peakPoint.value)} / ${peakPoint.item.label}`;
+    }
+
+    if (headlineElement) {
+      headlineElement.textContent = config.headline;
+    }
+
+    if (peakBadgeElement) {
+      peakBadgeElement.textContent = `${config.peakLabel}: ${peakPoint.item.label}`;
+      peakBadgeElement.style.background = config.badgeTone;
+      peakBadgeElement.style.borderColor = config.lineGlow;
     }
 
     switches.forEach((button) => {
       button.classList.toggle('is-active', button.dataset.chartMetric === metric);
     });
 
+    const setActivePointVisual = (point) => {
+      const activeGuide = document.getElementById('dashboardChartActiveGuide');
+      const activeHalo = document.getElementById('dashboardChartActiveHalo');
+      const activeDot = document.getElementById('dashboardChartActiveDot');
+
+      if (activeGuide) {
+        activeGuide.setAttribute('x1', point.x);
+        activeGuide.setAttribute('x2', point.x);
+      }
+
+      if (activeHalo) {
+        activeHalo.setAttribute('cx', point.x);
+        activeHalo.setAttribute('cy', point.y);
+        activeHalo.setAttribute('fill', config.pointHalo);
+      }
+
+      if (activeDot) {
+        activeDot.setAttribute('cx', point.x);
+        activeDot.setAttribute('cy', point.y);
+        activeDot.setAttribute('fill', config.pointColor);
+      }
+    };
+
+    const setActiveAxisLabel = (activeIndex) => {
+      axisLabels.forEach((element) => {
+        element.classList.toggle('is-active', Number(element.dataset.axisIndex) === activeIndex);
+      });
+    };
+
+    const updateFocusCard = (point, stateLabel = 'Catatan terakhir') => {
+      if (focusLabelElement) {
+        focusLabelElement.textContent = stateLabel;
+      }
+
+      if (focusValueElement) {
+        focusValueElement.textContent = formatDashboardChartValue(metric, point.value);
+      }
+
+      if (focusMetaElement) {
+        focusMetaElement.textContent = `${point.item.label} / Muzakki ${Math.round(Number(point.item.total_muzakki || 0)).toLocaleString('id-ID')} / Pembayaran ${formatDashboardChartShortValue('total_bayar', point.item.total_bayar)} / Beras ${formatDashboardChartShortValue('total_beras_kg', point.item.total_beras_kg)}`;
+      }
+    };
+
     const showTooltip = (point) => {
       if (!tooltip) {
         return;
       }
 
+      setActivePointVisual(point);
+      setActiveAxisLabel(dashboardTrendData.indexOf(point.item));
+      updateFocusCard(point, 'Sorotan titik aktif');
       tooltip.hidden = false;
       tooltip.innerHTML = `
         <span class="chart-tooltip-date">${point.item.label}</span>
@@ -2969,7 +3473,15 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
       if (tooltip) {
         tooltip.hidden = true;
       }
+
+      setActivePointVisual(latestPoint);
+      setActiveAxisLabel(points.length - 1);
+      updateFocusCard(latestPoint, 'Catatan terakhir');
     };
+
+    setActivePointVisual(latestPoint);
+    setActiveAxisLabel(points.length - 1);
+    updateFocusCard(latestPoint, 'Catatan terakhir');
 
     svg.querySelectorAll('.chart-hit-point').forEach((element) => {
       element.addEventListener('mouseenter', () => {

@@ -1,6 +1,11 @@
 <%- include('../layouts/header', { title: 'Data Infak - Zakat Fitrah App',
 bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
 
+<%
+  const availableMuzakkiList = Array.isArray(availableMuzakki) ? availableMuzakki : [];
+  const hasAvailableInfakTargets = availableMuzakkiList.length > 0;
+%>
+
 <div class="page-wrapper">
   <!-- Modern Header -->
   <div class="page-header">
@@ -14,8 +19,35 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
           <p class="header-subtitle-text">Daftar infak yang terkumpul dari kembalian zakat</p>
         </div>
       </div>
+      <div class="header-actions">
+        <button
+          type="button"
+          id="openInfakModalBtn"
+          class="btn-add-infak"
+          <%= hasAvailableInfakTargets ? "" : "disabled" %>
+        >
+          <i class="fas fa-hand-holding-heart mr-2"></i>
+          Tambah Sodakoh
+        </button>
+        <span class="header-action-hint">
+          <%= hasAvailableInfakTargets ? "Tambah entri infak baru dari muzakki tanpa catatan sebelumnya" : "Semua muzakki sudah memiliki catatan infak" %>
+        </span>
+      </div>
     </div>
   </div>
+
+  <% if (success_msg && success_msg.length > 0) { %>
+    <div class="alert-banner alert-success">
+      <i class="fas fa-check-circle"></i>
+      <span><%= success_msg.join(" ") %></span>
+    </div>
+  <% } %>
+  <% if (error_msg && error_msg.length > 0) { %>
+    <div class="alert-banner alert-error">
+      <i class="fas fa-exclamation-circle"></i>
+      <span><%= error_msg.join(" ") %></span>
+    </div>
+  <% } %>
 
   <!-- Statistics Cards -->
   <div class="stats-container">
@@ -64,8 +96,6 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
     </div>
   </div>
 
-  </div>
-
   <!-- Data Table Section -->
   <div class="table-section">
     <div class="table-header-wrapper">
@@ -109,6 +139,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
                 <th>RT</th>
                 <th>Jumlah Infak</th>
                 <th>Keterangan</th>
+                <th class="text-center">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -161,6 +192,20 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
                     <%= item.keterangan || '-' %>
                   </div>
                 </td>
+                <td class="text-center infak-action-cell">
+                  <form
+                    method="POST"
+                    action="/infak/<%= item.id %>?_method=DELETE"
+                    class="infak-delete-form"
+                    data-muzakki-name="<%= item.muzakki_name || ('Muzakki #' + item.muzakki_id) %>"
+                    data-jumlah="<%= Math.floor(item.jumlah).toLocaleString('id-ID') %>"
+                  >
+                    <button type="submit" class="infak-delete-btn" aria-label="Hapus data infak">
+                      <i class="fas fa-trash-alt"></i>
+                      <span>Hapus</span>
+                    </button>
+                  </form>
+                </td>
               </tr>
               <% }); %>
             </tbody>
@@ -178,8 +223,6 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
         </div>
       <% } %>
     </div>
-  </div>
-
   </div>
 
   <!-- Information Card -->
@@ -217,7 +260,9 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
   </div>
 </div>
 
-<!-- Modern Styles -->
+<%- include('./partials/modal-add-infak', { availableMuzakki: availableMuzakkiList }) %>
+
+  <!-- Modern Styles -->
 <style>
   /* Page Wrapper */
   .page-wrapper {
@@ -268,6 +313,72 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
     align-items: center;
     flex-wrap: wrap;
     gap: 20px;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-add-infak {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 18px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, #FEBD2E 0%, #F97316 100%);
+    color: #1d2632;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 12px 30px rgba(248, 113, 113, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .btn-add-infak:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .btn-add-infak:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 36px rgba(249, 115, 22, 0.35);
+  }
+
+  .header-action-hint {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .alert-banner i {
+    font-size: 16px;
+  }
+
+  .alert-success {
+    background: rgba(16, 185, 129, 0.14);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #047857;
+  }
+
+  .alert-error {
+    background: rgba(239, 68, 68, 0.14);
+    border-color: rgba(239, 68, 68, 0.45);
+    color: #b91c1c;
   }
 
   .header-left-section {
@@ -734,6 +845,42 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
     line-height: 1.5;
   }
 
+  .infak-action-cell {
+    min-width: 120px;
+  }
+
+  .infak-delete-form {
+    margin: 0;
+    display: inline-flex;
+  }
+
+  .infak-delete-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #b91c1c;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .infak-delete-btn:hover {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.28);
+  }
+
+  .infak-delete-btn:active {
+    transform: translateY(0);
+  }
+
   html.dark-mode .table-responsive-wrapper {
     border-color: #1f2937;
     background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
@@ -801,6 +948,60 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
 
   html.dark-mode .amount-primary {
     color: #86efac;
+  }
+
+  html.dark-mode .infak-delete-btn {
+    background: rgba(239, 68, 68, 0.16);
+    color: #fca5a5;
+  }
+
+  html.dark-mode .infak-delete-btn:hover {
+    background: #dc2626;
+    color: #fff;
+  }
+
+  html.dark-mode .select2-container.infak-select2-wrapper .select2-selection--single {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+  }
+
+  html.dark-mode .select2-container.infak-select2-wrapper .select2-selection__rendered {
+    color: #f1f5f9 !important;
+  }
+
+  html.dark-mode .select2-container.infak-select2-wrapper .select2-selection__placeholder {
+    color: #94a3b8 !important;
+  }
+
+  html.dark-mode .select2-dropdown.infak-select2-dropdown,
+  html.dark-mode .select2-container--default .select2-search--dropdown {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+  }
+
+  html.dark-mode .select2-container--default .select2-search--dropdown {
+    border-bottom-color: #1f2937 !important;
+  }
+
+  html.dark-mode .select2-container--default .select2-search--dropdown .select2-search__field {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
+  }
+
+  html.dark-mode .select2-container--default .select2-results__option {
+    background: #0f172a !important;
+    color: #e2e8f0 !important;
+  }
+
+  html.dark-mode .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    background: #1d4ed8 !important;
+    color: #eff6ff !important;
+  }
+
+  html.dark-mode .select2-container--default .select2-results__option--selected {
+    background: #14532d !important;
+    color: #dcfce7 !important;
   }
 
   /* Information Card */
@@ -1025,12 +1226,353 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
       width: 100%;
     }
   }
-</style>
+    .infak-modal-overlay {
+      --modal-buffer: 24px;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--modal-buffer);
+      z-index: 50;
+    }
+
+    .infak-modal-overlay.hidden {
+      display: none;
+    }
+
+    .infak-modal-card {
+      width: min(680px, 100%);
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      position: relative;
+    }
+
+    .infak-modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .infak-modal-kicker {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.35px;
+      text-transform: uppercase;
+      color: #34d399;
+    }
+
+    .infak-modal-title {
+      margin: 4px 0;
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .infak-modal-subtitle {
+      margin: 0;
+      font-size: 13px;
+      color: #475569;
+    }
+
+    .infak-modal-close {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      border: none;
+      background: rgba(15, 23, 42, 0.07);
+      color: #0f172a;
+      font-size: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .infak-modal-close:hover {
+      background: rgba(15, 23, 42, 0.14);
+    }
+
+    .infak-modal-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .infak-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .infak-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .infak-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .infak-field-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .infak-modal-select,
+    .infak-modal-input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+      background: #f9fafb;
+    }
+
+    .infak-select2-wrapper {
+      width: 100% !important;
+    }
+
+    .infak-modal-select:focus,
+    .infak-modal-input:focus {
+      outline: none;
+      border-color: #1d4ed8;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+      background: #ffffff;
+    }
+
+    .select2-container.infak-select2-wrapper .select2-selection--single {
+      height: auto !important;
+      min-height: 44px;
+      border-radius: 14px !important;
+      border: 1px solid rgba(148, 163, 184, 0.55) !important;
+      background: #f9fafb !important;
+      padding: 10px 40px 10px 14px !important;
+      display: flex !important;
+      align-items: center !important;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease,
+        background 0.2s ease !important;
+    }
+
+    .select2-container.infak-select2-wrapper .select2-selection__rendered {
+      padding: 0 !important;
+      line-height: 1.4 !important;
+      color: #0f172a !important;
+      font-size: 14px !important;
+      font-weight: 600 !important;
+    }
+
+    .select2-container.infak-select2-wrapper .select2-selection__placeholder {
+      color: #64748b !important;
+      font-weight: 500 !important;
+    }
+
+    .select2-container.infak-select2-wrapper .select2-selection__arrow {
+      height: 100% !important;
+      right: 12px !important;
+    }
+
+    .select2-container--default.infak-select2-wrapper.select2-container--focus .select2-selection--single,
+    .select2-container--default.infak-select2-wrapper.select2-container--open .select2-selection--single {
+      border-color: #1d4ed8 !important;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+      background: #ffffff !important;
+    }
+
+    .select2-container--default.infak-select2-wrapper.select2-container--disabled .select2-selection--single {
+      opacity: 0.7;
+      cursor: not-allowed !important;
+      background: #f3f4f6 !important;
+    }
+
+    .select2-dropdown.infak-select2-dropdown {
+      border: 1px solid rgba(59, 130, 246, 0.35) !important;
+      border-radius: 14px !important;
+      overflow: hidden !important;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16) !important;
+    }
+
+    .select2-container--default .select2-search--dropdown {
+      padding: 10px !important;
+      background: #f8fafc !important;
+      border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    .select2-container--default .select2-search--dropdown .select2-search__field {
+      border: 1px solid #cbd5e1 !important;
+      border-radius: 10px !important;
+      padding: 10px 12px !important;
+      font-size: 14px !important;
+      outline: none !important;
+    }
+
+    .select2-container--default .select2-search--dropdown .select2-search__field:focus {
+      border-color: #1d4ed8 !important;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12) !important;
+    }
+
+    .select2-container--default .select2-results__option {
+      padding: 10px 14px !important;
+      font-size: 14px !important;
+    }
+
+    .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+      background: #eff6ff !important;
+      color: #1d4ed8 !important;
+    }
+
+    .select2-container--default .select2-results__option--selected {
+      background: #ecfdf5 !important;
+      color: #047857 !important;
+    }
+
+    .select2-container--default .select2-results__option[aria-disabled="true"] {
+      color: #94a3b8 !important;
+    }
+
+    .infak-remove-row {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      border: none;
+      background: rgba(239, 68, 68, 0.12);
+      color: #b91c1c;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .infak-remove-row:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .infak-remove-row:not(:disabled):hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+
+    .infak-row-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .infak-add-row-btn {
+      border: none;
+      border-radius: 14px;
+      padding: 10px 18px;
+      background: rgba(37, 99, 235, 0.12);
+      color: #1d4ed8;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s ease;
+    }
+
+    .infak-add-row-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .infak-add-row-btn:not(:disabled):hover {
+      background: rgba(37, 99, 235, 0.2);
+    }
+
+    .infak-form-footer {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .infak-form-hint {
+      margin: 0;
+      font-size: 12px;
+      color: #475569;
+    }
+
+    .infak-form-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .infak-modal-cancel,
+    .infak-modal-submit {
+      border-radius: 14px;
+      padding: 10px 20px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .infak-modal-cancel {
+      background: rgba(15, 23, 42, 0.08);
+      color: #0f172a;
+    }
+
+    .infak-modal-submit {
+      background: linear-gradient(135deg, #16a34a, #0f766e);
+      color: #ffffff;
+      box-shadow: 0 12px 28px rgba(16, 185, 129, 0.25);
+    }
+
+    .infak-modal-cancel:hover {
+      transform: translateY(-1px);
+    }
+
+    .infak-modal-submit:hover {
+      transform: translateY(-1px);
+    }
+
+    .infak-no-options-text {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(239, 68, 68, 0.08);
+      color: #991b1b;
+      font-weight: 600;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .infak-row {
+        grid-template-columns: 1fr;
+      }
+
+      .infak-row-actions,
+      .infak-form-buttons {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+  </style>
 <!-- JavaScript -->
-<script>
-  // Add entrance animations on load
-  document.addEventListener('DOMContentLoaded', function () {
-    // Animate stat boxes
+  <script>
+    // Add entrance animations on load
+    document.addEventListener('DOMContentLoaded', function () {
+      // Animate stat boxes
     const statBoxes = document.querySelectorAll('.stat-box');
     statBoxes.forEach((box, index) => {
       box.style.opacity = '0';
@@ -1052,8 +1594,290 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
         box.style.opacity = '1';
         box.style.transform = 'translateY(0)';
       }, (statBoxes.length * 100) + (index * 150));
+      });
     });
-  });
-</script>
+  </script>
+
+  <script>
+    (function () {
+      const overlay = document.getElementById("infakModalOverlay");
+      if (!overlay) return;
+
+      const openButton = document.getElementById("openInfakModalBtn");
+      const addRowButton = document.getElementById("addInfakRowBtn");
+      const rowContainer = document.getElementById("infakRows");
+      const rowTemplate = document.getElementById("infakRowTemplate");
+      const body = document.body;
+      const modalCard = overlay.querySelector(".infak-modal-card");
+      const hasJQuery = typeof window.jQuery !== "undefined";
+      const canUseSelect2 =
+        hasJQuery &&
+        typeof window.jQuery.fn !== "undefined" &&
+        typeof window.jQuery.fn.select2 === "function";
+      let rowIdCounter = 0;
+
+      function toggleBodyScroll(disable) {
+        body.style.overflow = disable ? "hidden" : "";
+      }
+
+      function assignRowIdentifiers(row) {
+        if (!row) return;
+
+        rowIdCounter += 1;
+
+        const select = row.querySelector("select[name='muzakki_id[]']");
+        const jumlahInput = row.querySelector("input[name='jumlah[]']");
+        const keteranganInput = row.querySelector("input[name='keterangan[]']");
+        const labels = row.querySelectorAll(".infak-field-label");
+
+        if (select) {
+          const selectId = `muzakkiSelect${rowIdCounter}`;
+          select.id = selectId;
+          if (labels[0]) {
+            labels[0].setAttribute("for", selectId);
+          }
+        }
+
+        if (jumlahInput) {
+          const jumlahId = `jumlahInfak${rowIdCounter}`;
+          jumlahInput.id = jumlahId;
+          if (labels[1]) {
+            labels[1].setAttribute("for", jumlahId);
+          }
+        }
+
+        if (keteranganInput) {
+          const keteranganId = `keteranganInfak${rowIdCounter}`;
+          keteranganInput.id = keteranganId;
+          if (labels[2]) {
+            labels[2].setAttribute("for", keteranganId);
+          }
+        }
+      }
+
+      function initializeSearchableSelect(select) {
+        if (!select || !canUseSelect2) {
+          return;
+        }
+
+        const $select = window.jQuery(select);
+        if ($select.hasClass("select2-hidden-accessible")) {
+          return;
+        }
+
+        $select.select2({
+          width: "100%",
+          placeholder: "Cari atau pilih muzakki",
+          allowClear: true,
+          minimumResultsForSearch: 0,
+          dropdownParent: window.jQuery(modalCard),
+          containerCssClass: "infak-select2-wrapper",
+          dropdownCssClass: "infak-select2-dropdown",
+          language: {
+            noResults: function () {
+              return "Muzakki tidak ditemukan";
+            },
+            searching: function () {
+              return "Mencari muzakki...";
+            },
+          },
+        });
+
+        $select.on("select2:open", function () {
+          const searchField = document.querySelector(
+            ".select2-container--open .select2-search__field"
+          );
+          if (searchField) {
+            searchField.focus();
+          }
+        });
+      }
+
+      function initializeAllSearchableSelects() {
+        rowContainer
+          .querySelectorAll("select[name='muzakki_id[]']")
+          .forEach(initializeSearchableSelect);
+      }
+
+      function refreshSelectOptions() {
+        const selects = rowContainer.querySelectorAll("select[name='muzakki_id[]']");
+        const selected = Array.from(selects)
+          .map((select) => select.value)
+          .filter(Boolean);
+
+        selects.forEach((select) => {
+          select.querySelectorAll("option").forEach((option) => {
+            option.disabled =
+              option.value &&
+              option.value !== select.value &&
+              selected.includes(option.value);
+          });
+
+          if (canUseSelect2) {
+            window.jQuery(select).trigger("change.select2");
+          }
+        });
+      }
+
+      function updateRemoveButtons() {
+        const rows = rowContainer.querySelectorAll(".infak-row");
+        const disable = rows.length === 1;
+        rows.forEach((row) => {
+          const button = row.querySelector(".infak-remove-row");
+          if (button) {
+            button.disabled = disable;
+          }
+        });
+      }
+
+      function appendRow() {
+        if (!rowTemplate) return;
+        const clone = rowTemplate.content.cloneNode(true);
+        const row = clone.querySelector(".infak-row");
+        rowContainer.appendChild(clone);
+        assignRowIdentifiers(row);
+        initializeSearchableSelect(
+          row && row.querySelector("select[name='muzakki_id[]']")
+        );
+        refreshSelectOptions();
+        updateRemoveButtons();
+      }
+
+      function removeRow(button) {
+        const row = button.closest(".infak-row");
+        if (!row) return;
+        if (rowContainer.querySelectorAll(".infak-row").length === 1) {
+          return;
+        }
+
+        const select = row.querySelector("select[name='muzakki_id[]']");
+        if (select && canUseSelect2) {
+          const $select = window.jQuery(select);
+          if ($select.hasClass("select2-hidden-accessible")) {
+            $select.select2("destroy");
+          }
+        }
+
+        row.remove();
+        refreshSelectOptions();
+        updateRemoveButtons();
+      }
+
+      function openInfakModal() {
+        overlay.classList.remove("hidden");
+        toggleBodyScroll(true);
+        initializeAllSearchableSelects();
+        refreshSelectOptions();
+        updateRemoveButtons();
+      }
+
+      function closeInfakModal() {
+        if (canUseSelect2) {
+          window
+            .jQuery(rowContainer.querySelectorAll("select[name='muzakki_id[]']"))
+            .select2("close");
+        }
+        overlay.classList.add("hidden");
+        toggleBodyScroll(false);
+      }
+
+      overlay.addEventListener("click", (event) => {
+        if (event.target === overlay) {
+          closeInfakModal();
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !overlay.classList.contains("hidden")) {
+          closeInfakModal();
+        }
+      });
+
+      rowContainer.addEventListener("click", (event) => {
+        if (event.target.closest(".infak-remove-row")) {
+          event.preventDefault();
+          removeRow(event.target.closest(".infak-remove-row"));
+        }
+      });
+
+      rowContainer.addEventListener("change", (event) => {
+        if (event.target.matches("select[name='muzakki_id[]']")) {
+          refreshSelectOptions();
+        }
+      });
+
+      if (openButton) {
+        openButton.addEventListener("click", (event) => {
+          event.preventDefault();
+          openInfakModal();
+        });
+      }
+
+      if (addRowButton) {
+        addRowButton.addEventListener("click", (event) => {
+          event.preventDefault();
+          appendRow();
+        });
+      }
+
+      rowContainer.querySelectorAll(".infak-row").forEach(assignRowIdentifiers);
+      initializeAllSearchableSelects();
+      refreshSelectOptions();
+      updateRemoveButtons();
+
+      window.closeInfakModal = closeInfakModal;
+    })();
+  </script>
+
+  <script>
+    (function () {
+      const deleteForms = document.querySelectorAll(".infak-delete-form");
+      if (!deleteForms.length) return;
+
+      deleteForms.forEach((form) => {
+        form.addEventListener("submit", async (event) => {
+          if (form.dataset.submitting === "true") {
+            return;
+          }
+
+          event.preventDefault();
+
+          const muzakkiName = form.dataset.muzakkiName || "muzakki ini";
+          const jumlah = form.dataset.jumlah ? `Rp ${form.dataset.jumlah}` : "";
+          const deleteMessage = jumlah
+            ? `Data infak ${muzakkiName} (${jumlah}) akan dihapus permanen.`
+            : `Data infak ${muzakkiName} akan dihapus permanen.`;
+
+          let confirmationResult = { isConfirmed: false };
+          if (typeof showDeleteConfirm === "function") {
+            confirmationResult = await showDeleteConfirm(
+              `infak ${muzakkiName}`,
+              deleteMessage
+            );
+          } else if (typeof Swal !== "undefined") {
+            confirmationResult = await Swal.fire({
+              icon: "warning",
+              title: "Konfirmasi Hapus",
+              text: deleteMessage,
+              showCancelButton: true,
+              confirmButtonText: "Ya, Hapus",
+              cancelButtonText: "Batal",
+              confirmButtonColor: "#ef4444",
+              cancelButtonColor: "#6b7280",
+            });
+          } else {
+            confirmationResult.isConfirmed = window.confirm(deleteMessage);
+          }
+
+          if (!confirmationResult.isConfirmed) {
+            return;
+          }
+
+          form.dataset.submitting = "true";
+          form.submit();
+        });
+      });
+    })();
+  </script>
 
 <%- include('../layouts/footer') %>

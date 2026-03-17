@@ -209,11 +209,16 @@ router.post("/create", upload.single("bukti_foto"), async (req, res) => {
     const db = req.app.locals.db;
 
     // Check available zakat
-    const [zakatStats] = await db.execute(`
-      SELECT 
-        SUM(CASE WHEN jenis_zakat = 'uang' THEN jumlah_uang ELSE jumlah_beras_kg END) as total_tersedia
+    const stockColumn = jenis_zakat === "uang" ? "jumlah_uang" : "jumlah_beras_kg";
+    const [zakatStats] = await db.execute(
+      `
+      SELECT
+        COALESCE(SUM(${stockColumn}), 0) as total_tersedia
       FROM muzakki
-    `);
+      WHERE jenis_zakat = ?
+    `,
+      [jenis_zakat]
+    );
 
     const [distributedStats] = await db.execute(
       `

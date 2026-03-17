@@ -4,6 +4,11 @@ const router = express.Router();
 // Constants for zakat calculation
 const ZAKAT_BERAS_PER_JIWA = 2.5; // kg per jiwa
 const ZAKAT_UANG_PER_JIWA = 45000; // Rp per jiwa
+const AUTO_INFAK_KEMBALIAN_LABELS = [
+  "Kembalian zakat fitrah",
+  "Kembalian dari zakat fitrah",
+];
+const DEFAULT_AUTO_INFAK_KEMBALIAN_LABEL = AUTO_INFAK_KEMBALIAN_LABELS[0];
 
 function getMasterZakatJenis(masterZakat = {}) {
   const kg = parseFloat(masterZakat.kg) || 0;
@@ -1205,16 +1210,31 @@ router.put("/:id", async (req, res) => {
 
       // Update infak if kembalian changed
       const [existingInfak] = await connection.execute(
-        "SELECT id FROM infak WHERE muzakki_id = ? AND keterangan = 'Kembalian zakat fitrah'",
-        [id]
+        `
+          SELECT id
+          FROM infak
+          WHERE muzakki_id = ?
+            AND keterangan IN (?, ?)
+        `,
+        [id, ...AUTO_INFAK_KEMBALIAN_LABELS]
       );
 
       if (kembalian > 0) {
         if (existingInfak.length > 0) {
           // Update existing infak
           await connection.execute(
-            "UPDATE infak SET jumlah = ? WHERE muzakki_id = ? AND keterangan = 'Kembalian zakat fitrah'",
-            [kembalian, id]
+            `
+              UPDATE infak
+              SET jumlah = ?, keterangan = ?
+              WHERE muzakki_id = ?
+                AND keterangan IN (?, ?)
+            `,
+            [
+              kembalian,
+              DEFAULT_AUTO_INFAK_KEMBALIAN_LABEL,
+              id,
+              ...AUTO_INFAK_KEMBALIAN_LABELS,
+            ]
           );
         } else {
           // Insert new infak
@@ -1223,14 +1243,18 @@ router.put("/:id", async (req, res) => {
             INSERT INTO infak (muzakki_id, jumlah, keterangan)
             VALUES (?, ?, ?)
             `,
-            [id, kembalian, "Kembalian zakat fitrah"]
+            [id, kembalian, DEFAULT_AUTO_INFAK_KEMBALIAN_LABEL]
           );
         }
       } else if (existingInfak.length > 0) {
         // Delete infak if no kembalian
         await connection.execute(
-          "DELETE FROM infak WHERE muzakki_id = ? AND keterangan = 'Kembalian zakat fitrah'",
-          [id]
+          `
+            DELETE FROM infak
+            WHERE muzakki_id = ?
+              AND keterangan IN (?, ?)
+          `,
+          [id, ...AUTO_INFAK_KEMBALIAN_LABELS]
         );
       }
 
@@ -1330,7 +1354,7 @@ router.post("/:id/sedekahkan-kembalian", async (req, res) => {
             INSERT INTO infak (muzakki_id, jumlah, keterangan)
             VALUES (?, ?, ?)
         `,
-      [id, muzakkiData.kembalian, "Kembalian dari zakat fitrah"]
+      [id, muzakkiData.kembalian, DEFAULT_AUTO_INFAK_KEMBALIAN_LABEL]
     );
 
     // Reset kembalian to 0
@@ -1404,7 +1428,9 @@ router.post("/rt/:rtId/batch-infak", async (req, res) => {
         }
 
         // Get keterangan for this muzakki
-        const keterangan = req.body[`keterangan_${muzakkiId}`] || "Kembalian dari zakat fitrah";
+        const keterangan =
+          req.body[`keterangan_${muzakkiId}`] ||
+          DEFAULT_AUTO_INFAK_KEMBALIAN_LABEL;
 
         // Insert infak
         await db.execute(
