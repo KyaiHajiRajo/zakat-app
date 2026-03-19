@@ -104,6 +104,7 @@ app.locals.isAdmin = isAdmin;
 
 // Routes
 const authRoutes = require("./routes/auth");
+const publicReportRoutes = require("./routes/public-report");
 const usersRoutes = require("./routes/users");
 const muzakkiRoutes = require("./routes/muzakki");
 const infakRoutes = require("./routes/infak");
@@ -115,6 +116,7 @@ const distribusiRoutes = require("./routes/distribusi");
 
 // Route middleware
 app.use("/auth", authRoutes);
+app.use("/", publicReportRoutes);
 app.use("/users", isAuthenticated, isAdmin, usersRoutes);
 
 app.use("/muzakki", isAuthenticated, muzakkiRoutes);

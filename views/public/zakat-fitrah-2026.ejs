@@ -1,0 +1,1236 @@
+<%- include('../layouts/header', { title: title, bodyClass: 'bg-slate-50 min-h-screen' }) %>
+
+<%
+  const rowsData = Array.isArray(reportRows) ? reportRows : [];
+  const mustahikData = Array.isArray(mustahikRows) ? mustahikRows : [];
+  const safeStats = stats || {};
+  const rupiahFormatter = new Intl.NumberFormat("id-ID");
+  const decimalFormatter = new Intl.NumberFormat("id-ID", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+  const totalMuzakkiUang = Number(safeStats.total_muzakki_uang || 0);
+  const totalMuzakkiBeras = Number(safeStats.total_muzakki_beras || 0);
+  const totalKomposisiMuzakki = totalMuzakkiUang + totalMuzakkiBeras;
+  const totalMuzakkiUangPct =
+    totalKomposisiMuzakki > 0
+      ? Math.round((totalMuzakkiUang / totalKomposisiMuzakki) * 100)
+      : 0;
+  const totalMuzakkiBerasPct =
+    totalKomposisiMuzakki > 0
+      ? Math.round((totalMuzakkiBeras / totalKomposisiMuzakki) * 100)
+      : 0;
+  const rtOptions = Array.from(
+    new Set(
+      [
+        ...rowsData.map((item) => String(item.nomor_rt || "-").trim()),
+        ...mustahikData.map((item) => String(item.nomor_rt || "-").trim()),
+      ].filter((item) => item.length > 0)
+    )
+  ).sort((a, b) =>
+    a.localeCompare(b, "id", { numeric: true, sensitivity: "base" })
+  );
+  const formatDateLabel = (value) => {
+    if (!value) return "-";
+    const parsed = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return "-";
+    return parsed.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+  const periodLabel =
+    safeStats.periode_awal && safeStats.periode_akhir
+      ? `${formatDateLabel(safeStats.periode_awal)} - ${formatDateLabel(safeStats.periode_akhir)}`
+      : `Belum ada data muzakki untuk tahun ${reportYear}`;
+  const generatedAtLabel = generatedAt
+    ? new Date(generatedAt).toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "-";
+%>
+
+<div class="public-report-page">
+  <section class="public-report-hero">
+    <div class="hero-content">
+      <div class="hero-kicker">Laporan Publik Zakat Fitrah</div>
+      <h1>Report Zakat Fitrah <%= reportYear %></h1>
+      <p>
+        Halaman publik ini disusun untuk mendukung pelaporan resmi zakat fitrah kepada
+        BAZNAS serta transparansi informasi kepada warga. Seluruh data bersumber langsung
+        dari tabel <code>muzakki</code> pada sistem.
+      </p>
+      <div class="hero-meta">
+        <span>
+          <i class="fas fa-moon"></i>
+          Hijriyah (WIB):
+          <strong id="currentHijriDateLabel">Memuat...</strong>
+        </span>
+        <span><i class="fas fa-clock"></i> Update: <%= generatedAtLabel %></span>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button type="button" class="hero-btn hero-btn-primary" onclick="window.print()">
+        <i class="fas fa-print"></i> Cetak Laporan
+      </button>
+      <button type="button" class="hero-btn hero-btn-soft" onclick="copyPublicLink()">
+        <i class="fas fa-link"></i> Salin Link Publik
+      </button>
+    </div>
+  </section>
+
+  <section class="public-stats-grid">
+    <article class="public-stat-card">
+      <div class="stat-icon stat-icon-blue"><i class="fas fa-users"></i></div>
+      <div>
+        <div class="stat-value" id="statsPrimaryValue"><%= rupiahFormatter.format(Number(safeStats.total_data_muzakki || 0)) %></div>
+        <div class="stat-label" id="statsPrimaryLabel">Total Data Muzakki</div>
+      </div>
+    </article>
+    <article class="public-stat-card">
+      <div class="stat-icon stat-icon-teal"><i class="fas fa-money-bill-wave"></i></div>
+      <div>
+        <div class="stat-value" id="statsSecondaryValue">Rp <%= rupiahFormatter.format(Number(safeStats.total_jumlah_bayar || 0)) %></div>
+        <div class="stat-label" id="statsSecondaryLabel">Total Jumlah Bayar</div>
+      </div>
+    </article>
+    <article class="public-stat-card">
+      <div class="stat-icon stat-icon-green"><i class="fas fa-wheat-awn"></i></div>
+      <div>
+        <div class="stat-value" id="statsTertiaryValue"><%= decimalFormatter.format(Number(safeStats.total_jumlah_beras_kg || 0)) %> Liter</div>
+        <div class="stat-label" id="statsTertiaryLabel">Total Jumlah Beras</div>
+      </div>
+    </article>
+    <article class="public-stat-card public-stat-card-split">
+      <div class="stat-icon stat-icon-indigo"><i class="fas fa-chart-pie"></i></div>
+      <div class="stat-split-content">
+        <div class="stat-split-head">
+          <div class="stat-split-title" id="statsSplitTitle">Jenis Zakat</div>
+        </div>
+        <div class="stat-split-row">
+          <span class="stat-split-label stat-split-label-uang" id="statsSplitLabelOne">Uang</span>
+          <strong class="stat-split-value" id="statsSplitValueOne"><%= rupiahFormatter.format(totalMuzakkiUang) %> muzakki</strong>
+        </div>
+        <div class="stat-split-row">
+          <span class="stat-split-label stat-split-label-beras" id="statsSplitLabelTwo">Beras</span>
+          <strong class="stat-split-value" id="statsSplitValueTwo"><%= rupiahFormatter.format(totalMuzakkiBeras) %> muzakki</strong>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="public-table-panel">
+    <div class="panel-header">
+      <div class="panel-header-main">
+        <h2>Data Publik Muzakki & Mustahik Tahun <%= reportYear %></h2>
+        <p class="hidden">Tab Muzakki menampilkan data zakat, tab Mustahik menampilkan seluruh nama dari tabel <code>mustahik</code>.</p>
+      </div>
+      <div class="panel-header-controls">
+        <div class="panel-tabs" role="tablist" aria-label="Pilih data publik">
+          <button
+            type="button"
+            class="panel-tab is-active"
+            data-tab-target="tabMuzakki"
+            data-tab-count="<%= rowsData.length %>"
+          >
+            Muzakki
+          </button>
+          <button
+            type="button"
+            class="panel-tab"
+            data-tab-target="tabMustahik"
+            data-tab-count="<%= mustahikData.length %>"
+          >
+            Mustahik
+          </button>
+        </div>
+        <div class="panel-filters">
+          <label class="panel-filter-box">
+            <i class="fas fa-search"></i>
+            <input
+              id="panelSearchInput"
+              type="text"
+              placeholder="Cari nama atau kategori..."
+              autocomplete="off"
+            />
+          </label>
+          <label class="panel-filter-box">
+            <i class="fas fa-home"></i>
+            <select id="panelRtFilter">
+              <option value="">Semua RT</option>
+              <% rtOptions.forEach((rt) => { %>
+                <option value="<%= rt %>"><%= rt === '-' ? 'Tanpa RT' : rt %></option>
+              <% }) %>
+            </select>
+          </label>
+        </div>
+        <span class="panel-badge" id="panelBadgeCount"><%= rowsData.length %> baris</span>
+      </div>
+    </div>
+
+    <div id="tabMuzakki" class="tab-content is-active">
+      <% if (rowsData.length === 0) { %>
+        <div class="empty-state">
+          <i class="fas fa-database"></i>
+          <h3>Belum ada data untuk tahun <%= reportYear %></h3>
+          <p>Silakan pastikan data pada tabel <code>muzakki</code> sudah terisi.</p>
+        </div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table class="public-report-table responsive-stack-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Nama Muzakki</th>
+                <th class="hidden">Nama Master Zakat</th>
+                <th>Jenis Zakat</th>
+                <th>kewajiban Zakat</th>
+                <th>Tanggal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% rowsData.forEach((item, index) => { %>
+                <tr
+                  class="filterable-row"
+                  data-search="<%= [item.nama_muzakki, item.nomor_rt, item.jenis_zakat, item.master_zakat_nama].filter(Boolean).join(' ') %>"
+                  data-rt="<%= item.nomor_rt || '-' %>"
+                  data-jenis="<%= item.jenis_zakat || '' %>"
+                  data-jumlah-bayar="<%= Number(item.jumlah_bayar || 0) %>"
+                  data-jumlah-beras="<%= Number(item.jumlah_beras_kg || 0) %>"
+                >
+                  <td data-label="No"><%= index + 1 %></td>
+                  <td data-label="Nama Muzakki">
+                    <div class="nama-muzakki-stack">
+                      <strong class="nama-muzakki-text"><%= item.nama_muzakki %></strong>
+                      <div class="rt-id-badge">
+                        <%= item.nomor_rt || "-" %>
+                      </div>
+                    </div>
+                  </td>
+                  <td data-label="Nama Master Zakat" class="hidden">
+                    <strong><%= item.master_zakat_nama || "-" %></strong>
+                    <% if (item.master_zakat_id !== null && item.master_zakat_id !== undefined) { %>
+                      <div class="master-id-text hidden">ID: <%= item.master_zakat_id %></div>
+                    <% } %>
+                  </td>
+                  <td data-label="Jenis Zakat">
+                    <span class="jenis-badge <%= item.jenis_zakat === 'uang' ? 'jenis-uang' : 'jenis-beras' %>">
+                      <%= item.jenis_zakat === 'uang' ? 'Uang' : 'Beras' %>
+                    </span>
+                  </td>
+                  <td data-label="Jumlah Zakat">
+                    <% if (item.jenis_zakat === 'uang') { %>
+                      Rp <%= rupiahFormatter.format(Number(item.jumlah_bayar || 0)) %>
+                    <% } else if (item.jenis_zakat === 'beras') { %>
+                      <%= decimalFormatter.format(Number(item.jumlah_beras_kg || 0)) %> Liter
+                    <% } else { %>
+                      -
+                    <% } %>
+                  </td>
+                  <td data-label="Tanggal"><%= formatDateLabel(item.tanggal) %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <div class="filter-empty-state" id="tabMuzakkiEmpty" hidden>
+          <i class="fas fa-filter"></i>
+          <p>Tidak ada data muzakki yang cocok dengan pencarian/filter RT.</p>
+        </div>
+      <% } %>
+    </div>
+
+    <div id="tabMustahik" class="tab-content">
+      <% if (mustahikData.length === 0) { %>
+        <div class="empty-state">
+          <i class="fas fa-user-friends"></i>
+          <h3>Belum ada data mustahik</h3>
+          <p>Silakan pastikan tabel <code>mustahik</code> sudah terisi.</p>
+        </div>
+      <% } else { %>
+        <div class="table-wrap">
+          <table class="public-report-table responsive-stack-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Nama Mustahik</th>
+                <th>Nomor RT</th>
+                <th>Kategori</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% mustahikData.forEach((item, index) => { %>
+                <tr
+                  class="filterable-row"
+                  data-search="<%= [item.nama, item.nomor_rt, item.kategori].filter(Boolean).join(' ') %>"
+                  data-rt="<%= item.nomor_rt || '-' %>"
+                  data-kategori="<%= item.kategori || '' %>"
+                >
+                  <td data-label="No"><%= index + 1 %></td>
+                  <td data-label="Nama Mustahik"><strong><%= item.nama %></strong></td>
+                  <td data-label="Nomor RT"><%= item.nomor_rt || "-" %></td>
+                  <td data-label="Kategori">
+                    <span class="kategori-badge"><%= item.kategori || "-" %></span>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <div class="filter-empty-state" id="tabMustahikEmpty" hidden>
+          <i class="fas fa-filter"></i>
+          <p>Tidak ada data mustahik yang cocok dengan pencarian/filter RT.</p>
+        </div>
+      <% } %>
+    </div>
+  </section>
+</div>
+
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+  .public-report-page {
+    font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 24px 18px 30px;
+    display: grid;
+    gap: 18px;
+  }
+
+  .public-report-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: linear-gradient(130deg, #11396f 0%, #1f6aa5 45%, #3aa17e 100%);
+    border-radius: 24px;
+    padding: 24px;
+    color: #f8fbff;
+    box-shadow: 0 18px 34px rgba(24, 63, 110, 0.22);
+  }
+
+  .hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .public-report-hero h1 {
+    font-family: "Fraunces", "Georgia", serif;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    margin: 0 0 10px;
+    line-height: 1.2;
+  }
+
+  .public-report-hero p {
+    margin: 0;
+    max-width: 710px;
+    color: rgba(245, 251, 255, 0.92);
+    line-height: 1.6;
+    font-size: 0.97rem;
+  }
+
+  .hero-meta {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    font-size: 0.86rem;
+  }
+
+  .hero-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    padding: 8px 11px;
+    border-radius: 12px;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 204px;
+  }
+
+  .hero-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .hero-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .hero-btn-primary {
+    background: #fff;
+    color: #1c4f89;
+    box-shadow: 0 10px 20px rgba(255, 255, 255, 0.25);
+  }
+
+  .hero-btn-soft {
+    background: rgba(255, 255, 255, 0.15);
+    color: #f9fcff;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .public-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+  }
+
+  .public-stat-card {
+    background: #ffffff;
+    border: 1px solid #e4ebf2;
+    border-radius: 16px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 6px 16px rgba(15, 42, 79, 0.06);
+  }
+
+  .public-stat-card-split {
+    align-items: center;
+    background: linear-gradient(135deg, #f8fbff 0%, #ffffff 65%);
+    border-color: #dce7fb;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .public-stat-card-split .stat-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 0.9rem;
+  }
+
+  .stat-split-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .stat-split-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .stat-split-title {
+    font-size: 0.72rem;
+    color: #334155;
+    font-weight: 800;
+    margin-bottom: 0;
+    line-height: 1.1;
+  }
+
+  .stat-split-total {
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: #1e293b;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    border-radius: 999px;
+    padding: 2px 6px;
+    white-space: nowrap;
+    line-height: 1.1;
+  }
+
+  .stat-split-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 6px;
+    padding: 1px 0;
+    line-height: 1.1;
+  }
+
+  .stat-split-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 2px 6px;
+    line-height: 1;
+  }
+
+  .stat-split-label-uang {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .stat-split-label-beras {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .stat-split-label-neutral {
+    background: #e2e8f0;
+    color: #334155;
+  }
+
+  .stat-split-value {
+    font-size: 0.76rem;
+    color: #0f172a;
+    font-weight: 800;
+    white-space: nowrap;
+    justify-self: end;
+    line-height: 1.1;
+  }
+
+  .stat-split-percent {
+    font-size: 0.66rem;
+    font-weight: 800;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid #dbe5ef;
+    border-radius: 999px;
+    padding: 2px 6px;
+    line-height: 1.1;
+  }
+
+  .stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .stat-icon-blue { background: linear-gradient(135deg, #2d6cdf, #2f5fb5); }
+  .stat-icon-teal { background: linear-gradient(135deg, #0ea5a7, #0f766e); }
+  .stat-icon-green { background: linear-gradient(135deg, #16a34a, #15803d); }
+  .stat-icon-orange { background: linear-gradient(135deg, #f97316, #ea580c); }
+  .stat-icon-indigo { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+  .stat-icon-slate { background: linear-gradient(135deg, #475569, #334155); }
+
+  .stat-value {
+    font-size: 1.14rem;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  .stat-label {
+    margin-top: 3px;
+    font-size: 0.83rem;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  .public-table-panel {
+    background: #ffffff;
+    border: 1px solid #dde7f1;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 22px rgba(15, 42, 79, 0.07);
+  }
+
+  .panel-header {
+    padding: 18px;
+    border-bottom: 1px solid #e7eef6;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    background: linear-gradient(180deg, #f8fbff 0%, #f1f7ff 100%);
+  }
+
+  .panel-header-main {
+    min-width: 260px;
+    flex: 1;
+  }
+
+  .panel-header-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .panel-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #0f172a;
+  }
+
+  .panel-header p {
+    margin: 6px 0 0;
+    font-size: 0.82rem;
+    color: #64748b;
+  }
+
+  .panel-badge {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #14532d;
+    background: #dcfce7;
+    border: 1px solid #86efac;
+    border-radius: 999px;
+    padding: 7px 11px;
+  }
+
+  .panel-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .panel-tab {
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #334155;
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .panel-tab:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+  }
+
+  .panel-tab.is-active {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #ffffff;
+    border-color: #1d4ed8;
+    box-shadow: 0 6px 12px rgba(37, 99, 235, 0.22);
+  }
+
+  .panel-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .panel-filter-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #475569;
+    padding: 6px 8px;
+    min-height: 36px;
+  }
+
+  .panel-filter-box i {
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+
+  .panel-filter-box input,
+  .panel-filter-box select {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.78rem;
+    color: #0f172a;
+    min-width: 150px;
+  }
+
+  .panel-filter-box select {
+    cursor: pointer;
+    min-width: 110px;
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.is-active {
+    display: block;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    padding: 6px 10px 10px;
+  }
+
+  .filter-empty-state {
+    margin: 4px 10px 12px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 14px 12px;
+    color: #64748b;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8fafc;
+  }
+
+  .public-report-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+  }
+
+  .public-report-table thead tr {
+    background: #f7fafc;
+  }
+
+  .public-report-table th,
+  .public-report-table td {
+    border-bottom: 1px solid #edf2f7;
+    padding: 12px 10px;
+    text-align: left;
+    vertical-align: top;
+    font-size: 0.86rem;
+  }
+
+  .public-report-table th {
+    color: #475569;
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 800;
+  }
+
+  .public-report-table tbody tr:hover {
+    background: #f8fbff;
+  }
+
+  .nama-muzakki-stack {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .nama-muzakki-text {
+    display: block;
+    line-height: 1.35;
+  }
+
+  .master-id-text {
+    margin-top: 4px;
+    font-size: 0.72rem;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  .rt-id-badge {
+    margin-top: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #e0ecff;
+    color: #1e3a8a;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    padding: 3px 9px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .jenis-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .kategori-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 9px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: #ede9fe;
+    color: #5b21b6;
+    text-transform: capitalize;
+  }
+
+  .jenis-uang {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .jenis-beras {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 36px 20px;
+    color: #64748b;
+  }
+
+  .empty-state i {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    color: #94a3b8;
+  }
+
+  .empty-state h3 {
+    margin: 0 0 6px;
+    color: #0f172a;
+    font-size: 1.04rem;
+  }
+
+  .empty-state p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 768px) {
+    .public-report-page {
+      padding: 12px 10px 18px;
+      gap: 12px;
+    }
+
+    .public-report-hero {
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .hero-actions {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .hero-btn {
+      width: 100%;
+    }
+
+    .public-stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .panel-header {
+      align-items: flex-start;
+    }
+
+    .panel-header-controls {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .panel-tabs {
+      width: 100%;
+    }
+
+    .panel-filters {
+      width: 100%;
+    }
+
+    .panel-filter-box {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .panel-filter-box input,
+    .panel-filter-box select {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .stat-split-head {
+      flex-wrap: wrap;
+    }
+
+    .stat-split-row {
+      grid-template-columns: auto 1fr;
+      row-gap: 4px;
+    }
+
+    .stat-split-percent {
+      grid-column: 2 / 3;
+      justify-self: end;
+    }
+
+    .public-report-table {
+      min-width: 0;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .public-report-table thead {
+      display: none;
+    }
+
+    .public-report-table tr {
+      display: block;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .public-report-table td {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      text-align: right;
+      border-bottom: 1px solid #f1f5f9;
+      padding: 10px 12px;
+    }
+
+    .public-report-table td:last-child {
+      border-bottom: none;
+    }
+
+    .public-report-table td::before {
+      content: attr(data-label);
+      color: #64748b;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      text-align: left;
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 540px) {
+    .public-stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .stat-value {
+      font-size: 1.05rem;
+    }
+  }
+
+  @media print {
+    .top-navbar,
+    .sidebar,
+    .sidebar-overlay,
+    .hero-actions {
+      display: none !important;
+    }
+
+    .public-report-page {
+      max-width: none;
+      padding: 0;
+    }
+  }
+</style>
+
+<script>
+  function initHijriDate() {
+    const target = document.getElementById("currentHijriDateLabel");
+    if (!target) {
+      return;
+    }
+
+    const now = new Date();
+    const hijriCalendars = [
+      "islamic-umalqura",
+      "islamic",
+      "islamic-civil",
+      "islamic-tbla",
+    ];
+
+    for (const calendarType of hijriCalendars) {
+      try {
+        const formatter = new Intl.DateTimeFormat("id-ID", {
+          calendar: calendarType,
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          timeZone: "Asia/Jakarta",
+        });
+
+        const hijriText = formatter.format(now);
+        if (hijriText && hijriText.trim().length > 0) {
+          target.textContent = hijriText;
+          return;
+        }
+      } catch (error) {
+        // Try next supported Hijri calendar variant.
+      }
+    }
+
+    target.textContent = "Kalender Hijriyah tidak didukung browser ini";
+  }
+
+  function initPublicTabs() {
+    const tabButtons = Array.from(document.querySelectorAll(".panel-tab"));
+    const tabContents = Array.from(document.querySelectorAll(".tab-content"));
+    const badge = document.getElementById("panelBadgeCount");
+    const searchInput = document.getElementById("panelSearchInput");
+    const rtFilter = document.getElementById("panelRtFilter");
+    const statsPrimaryValue = document.getElementById("statsPrimaryValue");
+    const statsPrimaryLabel = document.getElementById("statsPrimaryLabel");
+    const statsSecondaryValue = document.getElementById("statsSecondaryValue");
+    const statsSecondaryLabel = document.getElementById("statsSecondaryLabel");
+    const statsTertiaryValue = document.getElementById("statsTertiaryValue");
+    const statsTertiaryLabel = document.getElementById("statsTertiaryLabel");
+    const statsSplitTitle = document.getElementById("statsSplitTitle");
+    const statsSplitLabelOne = document.getElementById("statsSplitLabelOne");
+    const statsSplitLabelTwo = document.getElementById("statsSplitLabelTwo");
+    const statsSplitValueOne = document.getElementById("statsSplitValueOne");
+    const statsSplitValueTwo = document.getElementById("statsSplitValueTwo");
+
+    if (!tabButtons.length || !tabContents.length) {
+      return;
+    }
+
+    let activeTabId = "tabMuzakki";
+    const numberFormatter = new Intl.NumberFormat("id-ID");
+    const decimalFormatter = new Intl.NumberFormat("id-ID", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+
+    const normalize = function (value) {
+      return String(value || "").toLowerCase().trim();
+    };
+
+    const normalizeKategoriLabel = function (value) {
+      const source = String(value || "-").trim();
+      if (!source || source === "-") return "Lainnya";
+
+      return source
+        .split("_")
+        .join(" ")
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+    };
+
+    const setSplitLabelMode = function (mode) {
+      if (!statsSplitLabelOne || !statsSplitLabelTwo) return;
+
+      statsSplitLabelOne.classList.remove("stat-split-label-uang", "stat-split-label-beras", "stat-split-label-neutral");
+      statsSplitLabelTwo.classList.remove("stat-split-label-uang", "stat-split-label-beras", "stat-split-label-neutral");
+
+      if (mode === "muzakki") {
+        statsSplitLabelOne.classList.add("stat-split-label-uang");
+        statsSplitLabelTwo.classList.add("stat-split-label-beras");
+      } else {
+        statsSplitLabelOne.classList.add("stat-split-label-neutral");
+        statsSplitLabelTwo.classList.add("stat-split-label-neutral");
+      }
+    };
+
+    const updateStatistics = function (rows, tabId) {
+      if (
+        !statsPrimaryValue ||
+        !statsPrimaryLabel ||
+        !statsSecondaryValue ||
+        !statsSecondaryLabel ||
+        !statsTertiaryValue ||
+        !statsTertiaryLabel ||
+        !statsSplitTitle ||
+        !statsSplitLabelOne ||
+        !statsSplitLabelTwo ||
+        !statsSplitValueOne ||
+        !statsSplitValueTwo
+      ) {
+        return;
+      }
+
+      if (tabId === "tabMustahik") {
+        const kategoriCounter = {};
+        let withRtCount = 0;
+
+        rows.forEach((row) => {
+          const kategori = normalize(row.dataset.kategori) || "lainnya";
+          kategoriCounter[kategori] = (kategoriCounter[kategori] || 0) + 1;
+
+          if (normalize(row.dataset.rt) && normalize(row.dataset.rt) !== "-") {
+            withRtCount += 1;
+          }
+        });
+
+        const sortedKategori = Object.entries(kategoriCounter).sort((a, b) => b[1] - a[1]);
+        const topOne = sortedKategori[0] || ["lainnya", 0];
+        const topTwo = sortedKategori[1] || ["lainnya", 0];
+
+        statsPrimaryValue.textContent = numberFormatter.format(rows.length);
+        statsPrimaryLabel.textContent = "Total Data Mustahik";
+
+        statsSecondaryValue.textContent = `${numberFormatter.format(sortedKategori.length)} kategori`;
+        statsSecondaryLabel.textContent = "Kategori Terdata";
+
+        statsTertiaryValue.textContent = `${numberFormatter.format(withRtCount)} data`;
+        statsTertiaryLabel.textContent = "Mustahik Terdaftar RT";
+
+        statsSplitTitle.textContent = "Komposisi Kategori";
+        statsSplitLabelOne.textContent = normalizeKategoriLabel(topOne[0]);
+        statsSplitLabelTwo.textContent = normalizeKategoriLabel(topTwo[0]);
+        statsSplitValueOne.textContent = `${numberFormatter.format(topOne[1] || 0)} mustahik`;
+        statsSplitValueTwo.textContent = `${numberFormatter.format(topTwo[1] || 0)} mustahik`;
+        setSplitLabelMode("mustahik");
+        return;
+      }
+
+      let totalBayar = 0;
+      let totalBeras = 0;
+      let countUang = 0;
+      let countBeras = 0;
+
+      rows.forEach((row) => {
+        const jenis = normalize(row.dataset.jenis);
+        const bayar = Number(row.dataset.jumlahBayar || 0);
+        const beras = Number(row.dataset.jumlahBeras || 0);
+
+        totalBayar += Number.isFinite(bayar) ? bayar : 0;
+        totalBeras += Number.isFinite(beras) ? beras : 0;
+
+        if (jenis === "uang") countUang += 1;
+        if (jenis === "beras") countBeras += 1;
+      });
+
+      statsPrimaryValue.textContent = numberFormatter.format(rows.length);
+      statsPrimaryLabel.textContent = "Total Data Muzakki";
+
+      statsSecondaryValue.textContent = `Rp ${numberFormatter.format(Math.round(totalBayar))}`;
+      statsSecondaryLabel.textContent = "Total Jumlah Bayar";
+
+      statsTertiaryValue.textContent = `${decimalFormatter.format(totalBeras)} kg`;
+      statsTertiaryLabel.textContent = "Total Jumlah Beras";
+
+      statsSplitTitle.textContent = "Jenis Zakat";
+      statsSplitLabelOne.textContent = "Uang";
+      statsSplitLabelTwo.textContent = "Beras";
+      statsSplitValueOne.textContent = `${numberFormatter.format(countUang)} muzakki`;
+      statsSplitValueTwo.textContent = `${numberFormatter.format(countBeras)} muzakki`;
+      setSplitLabelMode("muzakki");
+    };
+
+    const applyFilters = function () {
+      const keyword = normalize(searchInput ? searchInput.value : "");
+      const selectedRt = normalize(rtFilter ? rtFilter.value : "");
+
+      tabContents.forEach((content) => {
+        const rows = Array.from(content.querySelectorAll("tbody .filterable-row"));
+        let visibleCount = 0;
+
+        rows.forEach((row) => {
+          const searchText = normalize(row.dataset.search);
+          const rowRt = normalize(row.dataset.rt);
+          const matchesKeyword = !keyword || searchText.includes(keyword);
+          const matchesRt = !selectedRt || rowRt === selectedRt;
+          const isVisible = matchesKeyword && matchesRt;
+
+          row.style.display = isVisible ? "" : "none";
+          if (isVisible) {
+            visibleCount += 1;
+          }
+        });
+
+        const filterEmpty = document.getElementById(`${content.id}Empty`);
+        if (filterEmpty) {
+          filterEmpty.hidden = visibleCount > 0 || rows.length === 0;
+        }
+
+        content.dataset.visibleCount = String(visibleCount);
+      });
+
+      const activeContent = document.getElementById(activeTabId);
+      const activeCount = activeContent
+        ? Number(activeContent.dataset.visibleCount || 0)
+        : 0;
+
+      if (badge) {
+        badge.textContent = `${activeCount} baris`;
+      }
+
+      const activeRows = activeContent
+        ? Array.from(activeContent.querySelectorAll("tbody .filterable-row")).filter(
+            (row) => row.style.display !== "none"
+          )
+        : [];
+
+      updateStatistics(activeRows, activeTabId);
+    };
+
+    const activateTab = function (button) {
+      const targetId = button.getAttribute("data-tab-target");
+      const targetContent = document.getElementById(targetId);
+      activeTabId = targetId || activeTabId;
+
+      tabButtons.forEach((item) => item.classList.remove("is-active"));
+      tabContents.forEach((item) => item.classList.remove("is-active"));
+
+      button.classList.add("is-active");
+      if (targetContent) {
+        targetContent.classList.add("is-active");
+      }
+
+      applyFilters();
+    };
+
+    tabButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        activateTab(button);
+      });
+    });
+
+    if (searchInput) {
+      searchInput.addEventListener("input", applyFilters);
+    }
+
+    if (rtFilter) {
+      rtFilter.addEventListener("change", applyFilters);
+    }
+
+    activateTab(tabButtons.find((button) => button.classList.contains("is-active")) || tabButtons[0]);
+  }
+
+  function copyPublicLink() {
+    const url = window.location.href;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () {
+        showSuccess("Link publik berhasil disalin.");
+      }).catch(function () {
+        showInfo(url, "Salin link berikut");
+      });
+      return;
+    }
+
+    showInfo(url, "Salin link berikut");
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    initHijriDate();
+    initPublicTabs();
+  });
+</script>
+
+<%- include('../layouts/footer') %>
