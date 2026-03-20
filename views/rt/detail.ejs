@@ -39,10 +39,14 @@
   };
 
   const totalMuzakki = Number(stats.total_muzakki || 0);
+  const totalMustahik = Number(stats.total_mustahik || 0);
   const totalLunas = Number(stats.lunas || 0);
   const totalBelumLunas = Number(stats.belum_lunas || 0);
   const totalZakat = Number(stats.total_zakat || 0);
-  const totalKembalian = Number(stats.total_kembalian || 0);
+  const totalJumlahBayar = Number(stats.total_bayar || 0);
+  const totalJumlahBerasKg = Number(stats.total_jumlah_beras_kg || 0);
+  const totalMuzakkiUang = Number(stats.total_muzakki_uang || 0);
+  const totalMuzakkiBeras = Number(stats.total_muzakki_beras || 0);
   const completionRate =
     totalMuzakki > 0 ? Math.round((totalLunas / totalMuzakki) * 100) : 0;
   const averagePerMuzakki =
@@ -152,28 +156,30 @@
     <article class="rtd-stat-card">
       <div class="rtd-stat-icon rtd-stat-icon-teal"><i class="fas fa-coins"></i></div>
       <div>
-        <div class="rtd-stat-value">Rp <%= formatRupiah(totalZakat) %></div>
-        <div class="rtd-stat-label">Total Zakat</div>
+        <div class="rtd-stat-value">Rp <%= formatRupiah(totalJumlahBayar) %></div>
+        <div class="rtd-stat-label">Total Jumlah Bayar</div>
       </div>
     </article>
     <article class="rtd-stat-card">
-      <div class="rtd-stat-icon rtd-stat-icon-cyan"><i class="fas fa-hand-holding-heart"></i></div>
+      <div class="rtd-stat-icon rtd-stat-icon-green"><i class="fas fa-wheat-awn"></i></div>
       <div>
-        <div class="rtd-stat-value">Rp <%= formatRupiah(totalKembalian) %></div>
-        <div class="rtd-stat-label">Total Kembalian</div>
+        <div class="rtd-stat-value"><%= formatKg(totalJumlahBerasKg) %> Liter</div>
+        <div class="rtd-stat-label">Total Jumlah Beras</div>
       </div>
     </article>
     <article class="rtd-stat-card rtd-stat-card-split">
-      <div class="rtd-stat-icon rtd-stat-icon-orange"><i class="fas fa-chart-pie"></i></div>
+      <div class="rtd-stat-icon rtd-stat-icon-indigo"><i class="fas fa-chart-pie"></i></div>
       <div class="rtd-stat-split-content">
-        <div class="rtd-stat-split-title">Status Pembayaran</div>
-        <div class="rtd-stat-split-row">
-          <span class="rtd-stat-chip rtd-stat-chip-success">Lunas</span>
-          <strong><%= totalLunas %> muzakki</strong>
+        <div class="rtd-stat-split-head">
+          <div class="rtd-stat-split-title">Jenis Zakat</div>
         </div>
         <div class="rtd-stat-split-row">
-          <span class="rtd-stat-chip rtd-stat-chip-danger">Belum</span>
-          <strong><%= totalBelumLunas %> muzakki</strong>
+          <span class="rtd-stat-split-label rtd-stat-split-label-uang">Zakat Uang</span>
+          <strong class="rtd-stat-split-value"><%= totalMuzakkiUang %> muzakki</strong>
+        </div>
+        <div class="rtd-stat-split-row">
+          <span class="rtd-stat-split-label rtd-stat-split-label-beras">Zakat Beras</span>
+          <strong class="rtd-stat-split-value"><%= totalMuzakkiBeras %> muzakki</strong>
         </div>
       </div>
     </article>
@@ -182,152 +188,262 @@
   <section class="rtd-list-panel">
     <div class="rtd-list-head">
       <div>
-        <h2>Daftar Muzakki</h2>
-        <p><%= totalMuzakki %> data muzakki terdaftar pada RT <%= rt.nomor_rt %></p>
+        <h2 id="rtdListTitle">Daftar Muzakki</h2>
+        <p id="rtdListSubtitle"><%= totalMuzakki %> data muzakki terdaftar pada RT <%= rt.nomor_rt %></p>
       </div>
-      <a href="/muzakki/create?rt_id=<%= rt.id %>" class="rtd-btn rtd-btn-solid rtd-btn-sm">
-        <i class="fas fa-plus"></i>
-        Tambah Muzakki
-      </a>
-    </div>
-
-    <% if (muzakkiList.length > 0) { %>
-      <div class="rtd-table-wrap">
-        <table class="rtd-table">
-          <thead>
-            <tr>
-              <th>No</th>
-              <th>Nama Muzakki</th>
-              <th>Jenis Zakat</th>
-              <th>Kewajiban Zakat</th>
-              <th>Tanggal</th>
-              <th class="rtd-align-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% muzakkiList.forEach(function(muzakki, index) { %>
-              <tr>
-                <td>
-                  <strong><%= index + 1 %></strong>
-                </td>
-                <td>
-                  <div class="rtd-name-cell">
-                    <div class="rtd-name-icon"><i class="fas fa-user"></i></div>
-                    <div>
-                      <strong><%= muzakki.nama_muzakki_list || 'Muzakki #' + muzakki.id %></strong>
-                      <small><%= muzakki.jumlah_jiwa %> jiwa</small>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <span class="rtd-badge <%= muzakki.jenis_zakat === 'uang' ? 'rtd-badge-info' : 'rtd-badge-success' %>">
-                    <%= muzakki.jenis_zakat === 'uang' ? 'Uang' : 'Beras' %>
-                  </span>
-                </td>
-                <td>
-                  <div class="rtd-stack-text">
-                    <% if (muzakki.jenis_zakat === 'uang') { %>
-                      <strong>Rp <%= formatRupiah(muzakki.jumlah_uang_safe) %></strong>
-                    <% } else { %>
-                      <strong><%= formatKg(muzakki.jumlah_beras_kg_safe) %> kg</strong>
-                    <% } %>
-                  </div>
-                </td>
-                <td>
-                  <div class="rtd-stack-text">
-                    <strong><%= formatTanggal(muzakki.tanggal, muzakki.created_at) %></strong>
-                  </div>
-                </td>
-                <td class="rtd-align-right">
-                  <div class="rtd-action-row">
-                    <a href="/muzakki/<%= muzakki.id %>/edit" class="rtd-icon-btn rtd-icon-btn-edit" title="Edit Muzakki">
-                      <i class="fas fa-edit"></i>
-                    </a>
-                    <form
-                      method="POST"
-                      action="/muzakki/<%= muzakki.id %>?_method=DELETE"
-                      class="delete-form"
-                      data-name="<%= muzakki.nama_muzakki_list %>"
-                    >
-                      <button type="submit" class="rtd-icon-btn rtd-icon-btn-delete" title="Hapus Muzakki">
-                        <i class="fas fa-trash"></i>
-                      </button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
-            <% }); %>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="rtd-mobile-list">
-        <% muzakkiList.forEach(function(muzakki) { %>
-          <article class="rtd-mobile-card">
-            <div class="rtd-mobile-top">
-              <div>
-                <h3><%= muzakki.nama_muzakki_list || 'Muzakki #' + muzakki.id %></h3>
-                <p><%= muzakki.jenis_zakat === 'uang' ? 'Zakat Uang' : 'Zakat Beras' %></p>
-              </div>
-              <% if (muzakki.status === 'lunas') { %>
-                <span class="rtd-badge rtd-badge-success">Lunas</span>
-              <% } else { %>
-                <span class="rtd-badge rtd-badge-danger">Belum Lunas</span>
-              <% } %>
-            </div>
-            <div class="rtd-mobile-grid">
-              <div>
-                <small>Jumlah Jiwa</small>
-                <strong><%= muzakki.jumlah_jiwa %> jiwa</strong>
-              </div>
-              <div>
-                <small>Kewajiban</small>
-                <% if (muzakki.jenis_zakat === 'uang') { %>
-                  <strong>Rp <%= formatRupiah(muzakki.jumlah_uang_safe) %></strong>
-                <% } else { %>
-                  <strong><%= formatKg(muzakki.jumlah_beras_kg_safe) %> kg</strong>
-                <% } %>
-              </div>
-              <div>
-                <small>Pembayaran</small>
-                <strong>Rp <%= formatRupiah(muzakki.jumlah_bayar_safe) %></strong>
-              </div>
-              <div>
-                <small>Kembalian</small>
-                <strong>Rp <%= formatRupiah(muzakki.kembalian_safe) %></strong>
-              </div>
-            </div>
-            <div class="rtd-mobile-actions">
-              <a href="/muzakki/<%= muzakki.id %>/edit" class="rtd-btn rtd-btn-soft rtd-btn-sm">
-                <i class="fas fa-edit"></i>
-                Edit
-              </a>
-              <form
-                method="POST"
-                action="/muzakki/<%= muzakki.id %>?_method=DELETE"
-                class="delete-form"
-                data-name="<%= muzakki.nama_muzakki_list %>"
-              >
-                <button type="submit" class="rtd-btn rtd-btn-danger rtd-btn-sm">
-                  <i class="fas fa-trash"></i>
-                  Hapus
-                </button>
-              </form>
-            </div>
-          </article>
-        <% }); %>
-      </div>
-    <% } else { %>
-      <div class="rtd-empty-state">
-        <i class="fas fa-users"></i>
-        <h3>Belum ada data muzakki</h3>
-        <p>Silakan tambahkan muzakki pertama untuk RT <%= rt.nomor_rt %>.</p>
-        <a href="/muzakki/create?rt_id=<%= rt.id %>" class="rtd-btn rtd-btn-solid">
+      <div class="rtd-list-head-controls">
+        <div class="rtd-list-tabs" role="tablist" aria-label="Pilih data RT">
+          <button
+            type="button"
+            class="rtd-list-tab is-active"
+            data-tab-target="rtdTabMuzakki"
+            data-tab-title="Daftar Muzakki"
+            data-tab-subtitle="<%= totalMuzakki %> data muzakki terdaftar pada RT <%= rt.nomor_rt %>"
+          >
+            Muzakki
+          </button>
+          <button
+            type="button"
+            class="rtd-list-tab"
+            data-tab-target="rtdTabMustahik"
+            data-tab-title="Daftar Mustahik"
+            data-tab-subtitle="<%= totalMustahik %> data mustahik terdaftar pada RT <%= rt.nomor_rt %>"
+          >
+            Mustahik
+          </button>
+        </div>
+        <a
+          href="/muzakki/create?rt_id=<%= rt.id %>"
+          class="rtd-btn rtd-btn-solid rtd-btn-sm rtd-tab-action is-active"
+          data-tab-action="rtdTabMuzakki"
+        >
           <i class="fas fa-plus"></i>
           Tambah Muzakki
         </a>
+        <a
+          href="/mustahik/create"
+          class="rtd-btn rtd-btn-solid rtd-btn-sm rtd-tab-action"
+          data-tab-action="rtdTabMustahik"
+        >
+          <i class="fas fa-user-plus"></i>
+          Tambah Mustahik
+        </a>
       </div>
-    <% } %>
+    </div>
+
+    <div id="rtdTabMuzakki" class="rtd-tab-panel is-active">
+      <% if (muzakkiList.length > 0) { %>
+        <div class="rtd-table-wrap">
+          <table class="rtd-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Nama Muzakki</th>
+                <th>Jenis Zakat</th>
+                <th>Kewajiban Zakat</th>
+                <th>Tanggal</th>
+                <th class="rtd-align-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% muzakkiList.forEach(function(muzakki, index) { %>
+                <tr>
+                  <td>
+                    <strong><%= index + 1 %></strong>
+                  </td>
+                  <td>
+                    <div class="rtd-name-cell">
+                      <div class="rtd-name-icon"><i class="fas fa-user"></i></div>
+                      <div>
+                        <strong><%= muzakki.nama_muzakki_list || 'Muzakki #' + muzakki.id %></strong>
+                        <small><%= muzakki.jumlah_jiwa %> jiwa</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="rtd-badge <%= muzakki.jenis_zakat === 'uang' ? 'rtd-badge-info' : 'rtd-badge-success' %>">
+                      <%= muzakki.jenis_zakat === 'uang' ? 'Uang' : 'Beras' %>
+                    </span>
+                  </td>
+                  <td>
+                    <div class="rtd-stack-text">
+                      <% if (muzakki.jenis_zakat === 'uang') { %>
+                        <strong>Rp <%= formatRupiah(muzakki.jumlah_uang_safe) %></strong>
+                      <% } else { %>
+                        <strong><%= formatKg(muzakki.jumlah_beras_kg_safe) %> Liter</strong>
+                      <% } %>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="rtd-stack-text">
+                      <strong><%= formatTanggal(muzakki.tanggal, muzakki.created_at) %></strong>
+                    </div>
+                  </td>
+                  <td class="rtd-align-right">
+                    <div class="rtd-action-row">
+                      <a href="/muzakki/<%= muzakki.id %>/edit" class="rtd-icon-btn rtd-icon-btn-edit" title="Edit Muzakki">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <form
+                        method="POST"
+                        action="/muzakki/<%= muzakki.id %>?_method=DELETE"
+                        class="delete-form"
+                        data-name="<%= muzakki.nama_muzakki_list %>"
+                      >
+                        <button type="submit" class="rtd-icon-btn rtd-icon-btn-delete" title="Hapus Muzakki">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="rtd-mobile-list">
+          <% muzakkiList.forEach(function(muzakki) { %>
+            <article class="rtd-mobile-card">
+              <div class="rtd-mobile-top">
+                <div>
+                  <h3><%= muzakki.nama_muzakki_list || 'Muzakki #' + muzakki.id %></h3>
+                  <p><%= muzakki.jenis_zakat === 'uang' ? 'Zakat Uang' : 'Zakat Beras' %></p>
+                </div>
+                <% if (muzakki.status === 'lunas') { %>
+                  <span class="rtd-badge rtd-badge-success">Lunas</span>
+                <% } else { %>
+                  <span class="rtd-badge rtd-badge-danger">Belum Lunas</span>
+                <% } %>
+              </div>
+              <div class="rtd-mobile-grid">
+                <div>
+                  <small>Jumlah Jiwa</small>
+                  <strong><%= muzakki.jumlah_jiwa %> jiwa</strong>
+                </div>
+                <div>
+                  <small>Kewajiban</small>
+                  <% if (muzakki.jenis_zakat === 'uang') { %>
+                    <strong>Rp <%= formatRupiah(muzakki.jumlah_uang_safe) %></strong>
+                  <% } else { %>
+                    <strong><%= formatKg(muzakki.jumlah_beras_kg_safe) %> Liter</strong>
+                  <% } %>
+                </div>
+                <div>
+                  <small>Pembayaran</small>
+                  <strong>Rp <%= formatRupiah(muzakki.jumlah_bayar_safe) %></strong>
+                </div>
+                <div>
+                  <small>Kembalian</small>
+                  <strong>Rp <%= formatRupiah(muzakki.kembalian_safe) %></strong>
+                </div>
+              </div>
+              <div class="rtd-mobile-actions">
+                <a href="/muzakki/<%= muzakki.id %>/edit" class="rtd-btn rtd-btn-soft rtd-btn-sm">
+                  <i class="fas fa-edit"></i>
+                  Edit
+                </a>
+                <form
+                  method="POST"
+                  action="/muzakki/<%= muzakki.id %>?_method=DELETE"
+                  class="delete-form"
+                  data-name="<%= muzakki.nama_muzakki_list %>"
+                >
+                  <button type="submit" class="rtd-btn rtd-btn-danger rtd-btn-sm">
+                    <i class="fas fa-trash"></i>
+                    Hapus
+                  </button>
+                </form>
+              </div>
+            </article>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <div class="rtd-empty-state">
+          <i class="fas fa-users"></i>
+          <h3>Belum ada data muzakki</h3>
+          <p>Silakan tambahkan muzakki pertama untuk RT <%= rt.nomor_rt %>.</p>
+          <a href="/muzakki/create?rt_id=<%= rt.id %>" class="rtd-btn rtd-btn-solid">
+            <i class="fas fa-plus"></i>
+            Tambah Muzakki
+          </a>
+        </div>
+      <% } %>
+    </div>
+
+    <div id="rtdTabMustahik" class="rtd-tab-panel">
+      <% if (mustahikList.length > 0) { %>
+        <div class="rtd-table-wrap">
+          <table class="rtd-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Nama Mustahik</th>
+                <th>Kategori</th>
+                <th>Tanggal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% mustahikList.forEach(function(mustahik, index) { %>
+                <tr>
+                  <td>
+                    <strong><%= index + 1 %></strong>
+                  </td>
+                  <td>
+                    <div class="rtd-name-cell">
+                      <div class="rtd-name-icon rtd-name-icon-mustahik"><i class="fas fa-user-heart"></i></div>
+                      <div>
+                        <strong><%= mustahik.nama_mustahik_list || 'Mustahik #' + mustahik.id %></strong>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="rtd-badge rtd-badge-purple">
+                      <%= mustahik.kategori || '-' %>
+                    </span>
+                  </td>
+                  <td>
+                    <div class="rtd-stack-text">
+                      <strong><%= formatTanggal(mustahik.created_at, mustahik.created_at) %></strong>
+                    </div>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="rtd-mobile-list">
+          <% mustahikList.forEach(function(mustahik) { %>
+            <article class="rtd-mobile-card">
+              <div class="rtd-mobile-top">
+                <div>
+                  <h3><%= mustahik.nama_mustahik_list || 'Mustahik #' + mustahik.id %></h3>
+                  <p>Mustahik RT <%= rt.nomor_rt %></p>
+                </div>
+                <span class="rtd-badge rtd-badge-purple"><%= mustahik.kategori || '-' %></span>
+              </div>
+              <div class="rtd-mobile-grid rtd-mobile-grid-single">
+                <div>
+                  <small>Tanggal</small>
+                  <strong><%= formatTanggal(mustahik.created_at, mustahik.created_at) %></strong>
+                </div>
+              </div>
+            </article>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <div class="rtd-empty-state">
+          <i class="fas fa-user-friends"></i>
+          <h3>Belum ada data mustahik</h3>
+          <p>Silakan tambahkan mustahik pertama untuk RT <%= rt.nomor_rt %>.</p>
+          <a href="/mustahik/create" class="rtd-btn rtd-btn-solid">
+            <i class="fas fa-user-plus"></i>
+            Tambah Mustahik
+          </a>
+        </div>
+      <% } %>
+    </div>
   </section>
 </div>
 
@@ -652,7 +768,14 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
+  }
+
+  .rtd-stat-split-head {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
   }
 
   .rtd-stat-split-title {
@@ -660,7 +783,7 @@
     color: #334155;
     font-weight: 800;
     line-height: 1.1;
-    margin-bottom: 1px;
+    margin-bottom: 0;
   }
 
   .rtd-stat-split-row {
@@ -672,16 +795,7 @@
     line-height: 1.1;
   }
 
-  .rtd-stat-split-row strong {
-    font-size: 0.76rem;
-    color: #0f172a;
-    font-weight: 800;
-    justify-self: end;
-    white-space: nowrap;
-    line-height: 1.1;
-  }
-
-  .rtd-stat-chip {
+  .rtd-stat-split-label {
     font-size: 0.68rem;
     font-weight: 700;
     border-radius: 999px;
@@ -689,14 +803,23 @@
     line-height: 1;
   }
 
-  .rtd-stat-chip-success {
+  .rtd-stat-split-label-uang {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .rtd-stat-split-label-beras {
     background: #dcfce7;
     color: #166534;
   }
 
-  .rtd-stat-chip-danger {
-    background: #fee2e2;
-    color: #b91c1c;
+  .rtd-stat-split-value {
+    font-size: 0.76rem;
+    color: #0f172a;
+    font-weight: 800;
+    justify-self: end;
+    white-space: nowrap;
+    line-height: 1.1;
   }
 
   .rtd-list-panel {
@@ -728,6 +851,63 @@
     margin: 4px 0 0;
     font-size: 0.76rem;
     color: #64748b;
+  }
+
+  .rtd-list-head-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .rtd-list-tabs {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px;
+    border-radius: 999px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+  }
+
+  .rtd-list-tab {
+    border: none;
+    border-radius: 999px;
+    padding: 7px 11px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #475569;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+
+  .rtd-list-tab:hover {
+    color: #1d4ed8;
+    background: #eff6ff;
+  }
+
+  .rtd-list-tab.is-active {
+    color: #ffffff;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    box-shadow: 0 6px 12px rgba(37, 99, 235, 0.22);
+  }
+
+  .rtd-tab-panel {
+    display: none;
+  }
+
+  .rtd-tab-panel.is-active {
+    display: block;
+  }
+
+  .rtd-tab-action {
+    display: none;
+  }
+
+  .rtd-tab-action.is-active {
+    display: inline-flex;
   }
 
   .rtd-table-wrap {
@@ -777,6 +957,11 @@
     align-items: center;
     justify-content: center;
     font-size: 0.82rem;
+  }
+
+  .rtd-name-icon-mustahik {
+    background: #ede9fe;
+    color: #5b21b6;
   }
 
   .rtd-name-cell strong {
@@ -833,6 +1018,12 @@
   .rtd-badge-danger {
     background: #fee2e2;
     color: #b91c1c;
+  }
+
+  .rtd-badge-purple {
+    background: #ede9fe;
+    color: #5b21b6;
+    text-transform: capitalize;
   }
 
   .rtd-align-right {
@@ -915,6 +1106,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     margin-bottom: 10px;
+  }
+
+  .rtd-mobile-grid-single {
+    grid-template-columns: 1fr;
   }
 
   .rtd-mobile-grid small {
@@ -1001,12 +1196,35 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .rtd-stat-split-head {
+      flex-wrap: wrap;
+    }
+
+    .rtd-stat-split-row {
+      grid-template-columns: auto 1fr;
+      row-gap: 4px;
+    }
+
     .rtd-table-wrap {
       display: none;
     }
 
     .rtd-mobile-list {
       display: grid;
+    }
+
+    .rtd-list-head-controls {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .rtd-list-tabs {
+      width: 100%;
+    }
+
+    .rtd-list-tab {
+      flex: 1;
+      text-align: center;
     }
 
     .rtd-list-head .rtd-btn {
@@ -1030,18 +1248,65 @@
 </style>
 
 <script>
-  document.querySelectorAll(".delete-form").forEach((form) => {
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      const muzakkiName = this.getAttribute("data-name") || "muzakki ini";
+  document.addEventListener("DOMContentLoaded", () => {
+    const tabButtons = Array.from(document.querySelectorAll(".rtd-list-tab"));
+    const tabPanels = Array.from(document.querySelectorAll(".rtd-tab-panel"));
+    const tabActions = Array.from(document.querySelectorAll(".rtd-tab-action"));
+    const listTitle = document.getElementById("rtdListTitle");
+    const listSubtitle = document.getElementById("rtdListSubtitle");
 
-      showDeleteConfirm(
-        muzakkiName,
-        "Yakin ingin menghapus data muzakki ini?"
-      ).then((result) => {
-        if (result.isConfirmed) {
-          this.submit();
-        }
+    const setActiveTab = (button) => {
+      if (!button) return;
+      const targetId = button.getAttribute("data-tab-target");
+
+      tabButtons.forEach((item) => item.classList.remove("is-active"));
+      tabPanels.forEach((item) => item.classList.remove("is-active"));
+      tabActions.forEach((item) => item.classList.remove("is-active"));
+
+      button.classList.add("is-active");
+
+      const targetPanel = document.getElementById(targetId);
+      if (targetPanel) {
+        targetPanel.classList.add("is-active");
+      }
+
+      if (listTitle) {
+        listTitle.textContent = button.getAttribute("data-tab-title") || "";
+      }
+
+      if (listSubtitle) {
+        listSubtitle.textContent =
+          button.getAttribute("data-tab-subtitle") || "";
+      }
+
+      tabActions
+        .filter((item) => item.getAttribute("data-tab-action") === targetId)
+        .forEach((item) => item.classList.add("is-active"));
+    };
+
+    if (tabButtons.length > 0) {
+      tabButtons.forEach((button) => {
+        button.addEventListener("click", () => setActiveTab(button));
+      });
+      setActiveTab(
+        tabButtons.find((button) => button.classList.contains("is-active")) ||
+          tabButtons[0]
+      );
+    }
+
+    document.querySelectorAll(".delete-form").forEach((form) => {
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const muzakkiName = this.getAttribute("data-name") || "muzakki ini";
+
+        showDeleteConfirm(
+          muzakkiName,
+          "Yakin ingin menghapus data muzakki ini?"
+        ).then((result) => {
+          if (result.isConfirmed) {
+            this.submit();
+          }
+        });
       });
     });
   });

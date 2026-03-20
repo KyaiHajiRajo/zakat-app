@@ -74,8 +74,8 @@ bodyClass: 'bg-gray-50', currentPage: 'rt' }) %>
         <i class="fas fa-coins"></i>
       </div>
       <div class="stat-content-box">
-        <div class="stat-value-text">Rp <%= formatRupiah(rtList.reduce((sum, rt) => sum + toSafeNumber(rt.total_zakat), 0)) %></div>
-        <div class="stat-label-text">Total Zakat</div>
+        <div class="stat-value-text">Rp <%= formatRupiah(rtList.reduce((sum, rt) => sum + toSafeNumber(rt.total_jumlah_bayar), 0)) %></div>
+        <div class="stat-label-text">Total Jumlah Bayar</div>
       </div>
       <div class="stat-decoration"></div>
     </div>
@@ -164,22 +164,20 @@ bodyClass: 'bg-gray-50', currentPage: 'rt' }) %>
                         <%= rt.total_muzakki %> Muzakki
                       </span>
                       <div class="stats-badges-row">
-                        <span class="badge-stat-sm badge-success">
-                          <i class="fas fa-check"></i>
-                          <%= rt.muzakki_lunas %> Lunas
+                        <span class="badge-stat-sm badge-danger">
+                          <i class="fas fa-money-bill-wave"></i>
+                          <%= rt.total_muzakki_uang %> Zakat Uang
                         </span>
-                        <% if (rt.muzakki_belum_lunas > 0) { %>
-                          <span class="badge-stat-sm badge-danger">
-                            <i class="fas fa-times"></i>
-                            <%= rt.muzakki_belum_lunas %> Belum
-                          </span>
-                        <% } %>
+                        <span class="badge-stat-sm badge-success">
+                          <i class="fas fa-wheat-awn"></i>
+                          <%= rt.total_muzakki_beras %> Zakat Beras
+                        </span>
                       </div>
                     </div>
                   </td>
                   <td>
                     <div class="amount-display">
-                      Rp <%= formatRupiah(rt.total_zakat) %>
+                      Rp <%= formatRupiah(rt.total_jumlah_bayar) %>
                     </div>
                   </td>
                   <td>

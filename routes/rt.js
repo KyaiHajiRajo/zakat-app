@@ -15,6 +15,9 @@ router.get("/", async (req, res) => {
           WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
           ELSE m.jumlah_beras_kg * 12000 
         END), 0) as total_zakat,
+        COALESCE(SUM(COALESCE(m.jumlah_bayar, 0)), 0) as total_jumlah_bayar,
+        COUNT(CASE WHEN m.jenis_zakat = 'uang' THEN 1 END) as total_muzakki_uang,
+        COUNT(CASE WHEN m.jenis_zakat = 'beras' THEN 1 END) as total_muzakki_beras,
         COUNT(CASE 
           WHEN m.jumlah_bayar >= CASE 
             WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
@@ -258,6 +261,19 @@ router.get("/:id/detail", async (req, res) => {
       [req.params.id]
     );
 
+    // Ambil daftar mustahik di RT ini
+    const [mustahikData] = await db.execute(
+      `
+      SELECT
+        ms.*,
+        COALESCE(NULLIF(TRIM(ms.nama), ''), CONCAT('Mustahik #', ms.id)) as nama_mustahik_list
+      FROM mustahik ms
+      WHERE ms.rt_id = ?
+      ORDER BY ms.created_at DESC, ms.id DESC
+    `,
+      [req.params.id]
+    );
+
     const normalizedMuzakkiData = (muzakkiData || []).map((item) => {
       const jumlahBayar = parseFloat(item.jumlah_bayar) || 0;
       const jumlahUang = parseFloat(item.jumlah_uang) || 0;
@@ -281,6 +297,7 @@ router.get("/:id/detail", async (req, res) => {
     // Hitung statistik
     const stats = {
       total_muzakki: normalizedMuzakkiData.length,
+      total_mustahik: (mustahikData || []).length,
       total_zakat: normalizedMuzakkiData.reduce(
         (sum, m) => sum + parseFloat(m.jumlah_zakat_rupiah_safe || 0),
         0
@@ -289,6 +306,16 @@ router.get("/:id/detail", async (req, res) => {
         (sum, m) => sum + parseFloat(m.jumlah_bayar_safe || 0),
         0
       ),
+      total_jumlah_beras_kg: normalizedMuzakkiData.reduce(
+        (sum, m) => sum + parseFloat(m.jumlah_beras_kg_safe || 0),
+        0
+      ),
+      total_muzakki_uang: normalizedMuzakkiData.filter(
+        (m) => String(m.jenis_zakat || "").toLowerCase() === "uang"
+      ).length,
+      total_muzakki_beras: normalizedMuzakkiData.filter(
+        (m) => String(m.jenis_zakat || "").toLowerCase() === "beras"
+      ).length,
       lunas: normalizedMuzakkiData.filter((m) => m.status === "lunas").length,
       belum_lunas: normalizedMuzakkiData.filter((m) => m.status === "belum_lunas").length,
       total_kembalian: normalizedMuzakkiData.reduce(
@@ -302,6 +329,7 @@ router.get("/:id/detail", async (req, res) => {
       user: req.session.user,
       rt: rtData[0],
       muzakkiList: normalizedMuzakkiData,
+      mustahikList: mustahikData || [],
       stats: stats,
       success: req.flash("success"),
       error: req.flash("error"),
