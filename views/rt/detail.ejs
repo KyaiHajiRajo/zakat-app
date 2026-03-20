@@ -1,326 +1,1035 @@
-<%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'rt' }) %>
+<%- include('../layouts/header', { title: title, bodyClass: 'bg-slate-50 min-h-screen', currentPage: 'rt' }) %>
 
-<div class="w-full px-0">
-  <!-- Header -->
-  <div class="mb-6">
-    <div class="flex items-center mb-4">
-      <a href="/rt" class="text-primary-600 hover:text-primary-800 mr-4">
+<%
+  const formatRupiah = (value) => {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) {
+      return "0";
+    }
+    return Math.round(numericValue).toLocaleString("id-ID");
+  };
+
+  const formatKg = (value) => {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) {
+      return "0";
+    }
+    return numericValue.toLocaleString("id-ID", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const formatTanggal = (tanggalValue, createdAtValue) => {
+    const sourceValue = tanggalValue || createdAtValue;
+    if (!sourceValue) {
+      return "-";
+    }
+
+    const parsedDate = new Date(sourceValue);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return "-";
+    }
+
+    return parsedDate.toLocaleDateString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const totalMuzakki = Number(stats.total_muzakki || 0);
+  const totalLunas = Number(stats.lunas || 0);
+  const totalBelumLunas = Number(stats.belum_lunas || 0);
+  const totalZakat = Number(stats.total_zakat || 0);
+  const totalKembalian = Number(stats.total_kembalian || 0);
+  const completionRate =
+    totalMuzakki > 0 ? Math.round((totalLunas / totalMuzakki) * 100) : 0;
+  const averagePerMuzakki =
+    totalMuzakki > 0 ? Math.round(totalZakat / totalMuzakki) : 0;
+%>
+
+<div class="rtd-page">
+  <section class="rtd-hero">
+    <div class="rtd-hero-left">
+      <a href="/rt" class="rtd-back-link">
         <i class="fas fa-arrow-left"></i>
+        Kembali ke Data RT
       </a>
-      <h1 class="text-3xl font-bold text-gray-900">
-        <i class="fas fa-eye mr-2 text-primary-600"></i>Detail <%= rt.nomor_rt
-        %>
-      </h1>
+      <h1 class="rtd-title">Detail <%= rt.nomor_rt %></h1>
+      <p class="rtd-subtitle">
+        Ringkasan data RT, status pembayaran, dan daftar muzakki ditampilkan
+        dalam satu halaman yang mudah dibaca.
+      </p>
+      <div class="rtd-meta">
+        <span><i class="fas fa-user-tie"></i> Ketua RT: <%= rt.ketua_rt %></span>
+        <span><i class="fas fa-note-sticky"></i> <%= rt.keterangan || 'Tanpa keterangan tambahan' %></span>
+      </div>
     </div>
-    <p class="text-gray-600">
-      Informasi lengkap dan daftar muzakki RT <%= rt.nomor_rt %>
-    </p>
-  </div>
+    <div class="rtd-hero-actions">
+      <a href="/rt/<%= rt.id %>/edit" class="rtd-btn rtd-btn-solid">
+        <i class="fas fa-pen"></i>
+        Edit RT
+      </a>
+      <a href="/muzakki/create?rt_id=<%= rt.id %>" class="rtd-btn rtd-btn-soft">
+        <i class="fas fa-user-plus"></i>
+        Tambah Muzakki
+      </a>
+    </div>
+  </section>
 
-  <!-- RT Info Card -->
-  <div class="bg-white shadow-sm rounded-lg mb-6">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h2 class="text-lg font-semibold text-gray-900">Informasi RT</h2>
-    </div>
-    <div class="p-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <section class="rtd-overview-grid">
+    <article class="rtd-overview-card">
+      <div class="rtd-overview-head">
+        <div class="rtd-overview-icon">
+          <i class="fas fa-map-marker-alt"></i>
+        </div>
         <div>
-          <dt class="text-sm font-medium text-gray-500">Nomor RT</dt>
-          <dd class="mt-1 text-lg font-semibold text-gray-900">
-            <%= rt.nomor_rt %>
-          </dd>
+          <h2>Informasi RT</h2>
+          <p>Data dasar wilayah RT yang sedang dipantau</p>
+        </div>
+      </div>
+      <div class="rtd-info-list">
+        <div class="rtd-info-item">
+          <span>Nomor RT</span>
+          <strong><%= rt.nomor_rt %></strong>
+        </div>
+        <div class="rtd-info-item">
+          <span>Ketua RT</span>
+          <strong><%= rt.ketua_rt %></strong>
+        </div>
+        <div class="rtd-info-item">
+          <span>Keterangan</span>
+          <strong><%= rt.keterangan || '-' %></strong>
+        </div>
+      </div>
+    </article>
+
+    <article class="rtd-overview-card">
+      <div class="rtd-overview-head">
+        <div class="rtd-overview-icon rtd-overview-icon-green">
+          <i class="fas fa-chart-line"></i>
         </div>
         <div>
-          <dt class="text-sm font-medium text-gray-500">Ketua RT</dt>
-          <dd class="mt-1 text-lg font-semibold text-gray-900">
-            <%= rt.ketua_rt %>
-          </dd>
+          <h2>Progres Pembayaran</h2>
+          <p>Persentase penyelesaian zakat muzakki RT <%= rt.nomor_rt %></p>
+        </div>
+      </div>
+      <div class="rtd-progress-wrap">
+        <div class="rtd-progress-label">
+          <span>Progress Lunas</span>
+          <strong><%= completionRate %>%</strong>
+        </div>
+        <div class="rtd-progress-bar">
+          <span style="width: <%= completionRate %>%"></span>
+        </div>
+      </div>
+      <div class="rtd-progress-summary">
+        <div>
+          <small>Lunas</small>
+          <strong><%= totalLunas %></strong>
         </div>
         <div>
-          <dt class="text-sm font-medium text-gray-500">Keterangan</dt>
-          <dd class="mt-1 text-lg text-gray-900">
-            <%= rt.keterangan || '-' %>
-          </dd>
+          <small>Belum Lunas</small>
+          <strong><%= totalBelumLunas %></strong>
+        </div>
+        <div>
+          <small>Rata-rata Zakat</small>
+          <strong>Rp <%= formatRupiah(averagePerMuzakki) %></strong>
         </div>
       </div>
+    </article>
+  </section>
 
-      <div class="mt-6 flex space-x-3">
-        <a href="/rt/<%= rt.id %>/edit" class="btn-primary">
-          <i class="fas fa-edit mr-2"></i>Edit RT
-        </a>
-        <a href="/muzakki/create?rt_id=<%= rt.id %>" class="btn-secondary">
-          <i class="fas fa-user-plus mr-2"></i>Tambah Muzakki
-        </a>
+  <section class="rtd-stats-grid">
+    <article class="rtd-stat-card">
+      <div class="rtd-stat-icon rtd-stat-icon-blue"><i class="fas fa-users"></i></div>
+      <div>
+        <div class="rtd-stat-value"><%= totalMuzakki %></div>
+        <div class="rtd-stat-label">Total Muzakki</div>
       </div>
-    </div>
-  </div>
-
-  <!-- Statistics -->
-  <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div
-              class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center"
-            >
-              <i class="fas fa-users text-white text-sm"></i>
-            </div>
-          </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">
-                Total Muzakki
-              </dt>
-              <dd class="text-lg font-semibold text-gray-900">
-                <%= stats.total_muzakki %>
-              </dd>
-            </dl>
-          </div>
+    </article>
+    <article class="rtd-stat-card">
+      <div class="rtd-stat-icon rtd-stat-icon-teal"><i class="fas fa-coins"></i></div>
+      <div>
+        <div class="rtd-stat-value">Rp <%= formatRupiah(totalZakat) %></div>
+        <div class="rtd-stat-label">Total Zakat</div>
+      </div>
+    </article>
+    <article class="rtd-stat-card">
+      <div class="rtd-stat-icon rtd-stat-icon-cyan"><i class="fas fa-hand-holding-heart"></i></div>
+      <div>
+        <div class="rtd-stat-value">Rp <%= formatRupiah(totalKembalian) %></div>
+        <div class="rtd-stat-label">Total Kembalian</div>
+      </div>
+    </article>
+    <article class="rtd-stat-card rtd-stat-card-split">
+      <div class="rtd-stat-icon rtd-stat-icon-orange"><i class="fas fa-chart-pie"></i></div>
+      <div class="rtd-stat-split-content">
+        <div class="rtd-stat-split-title">Status Pembayaran</div>
+        <div class="rtd-stat-split-row">
+          <span class="rtd-stat-chip rtd-stat-chip-success">Lunas</span>
+          <strong><%= totalLunas %> muzakki</strong>
+        </div>
+        <div class="rtd-stat-split-row">
+          <span class="rtd-stat-chip rtd-stat-chip-danger">Belum</span>
+          <strong><%= totalBelumLunas %> muzakki</strong>
         </div>
       </div>
-    </div>
+    </article>
+  </section>
 
-    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div
-              class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center"
-            >
-              <i class="fas fa-check-circle text-white text-sm"></i>
-            </div>
-          </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">Lunas</dt>
-              <dd class="text-lg font-semibold text-gray-900">
-                <%= stats.lunas %>
-              </dd>
-            </dl>
-          </div>
-        </div>
+  <section class="rtd-list-panel">
+    <div class="rtd-list-head">
+      <div>
+        <h2>Daftar Muzakki</h2>
+        <p><%= totalMuzakki %> data muzakki terdaftar pada RT <%= rt.nomor_rt %></p>
       </div>
-    </div>
-
-    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div
-              class="w-8 h-8 bg-red-500 rounded-md flex items-center justify-center"
-            >
-              <i class="fas fa-times-circle text-white text-sm"></i>
-            </div>
-          </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">
-                Belum Lunas
-              </dt>
-              <dd class="text-lg font-semibold text-gray-900">
-                <%= stats.belum_lunas %>
-              </dd>
-            </dl>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div
-              class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center"
-            >
-              <i class="fas fa-coins text-white text-sm"></i>
-            </div>
-          </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">
-                Total Zakat
-              </dt>
-              <dd class="text-lg font-semibold text-gray-900">
-                Rp <%= Math.floor(stats.total_zakat).toLocaleString('id-ID') %>
-              </dd>
-            </dl>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-      <div class="p-5">
-        <div class="flex items-center">
-          <div class="flex-shrink-0">
-            <div
-              class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center"
-            >
-              <i class="fas fa-hand-holding-heart text-white text-sm"></i>
-            </div>
-          </div>
-          <div class="ml-5 w-0 flex-1">
-            <dl>
-              <dt class="text-sm font-medium text-gray-500 truncate">
-                Kembalian
-              </dt>
-              <dd class="text-lg font-semibold text-gray-900">
-                Rp <%= stats.total_kembalian.toLocaleString('id-ID') %>
-              </dd>
-            </dl>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Muzakki List -->
-  <div class="bg-white shadow-sm rounded-lg overflow-hidden">
-    <div
-      class="px-6 py-4 border-b border-gray-200 flex justify-between items-center"
-    >
-      <h2 class="text-lg font-semibold text-gray-900">Daftar Muzakki</h2>
-      <a href="/muzakki/create?rt_id=<%= rt.id %>" class="btn-primary">
-        <i class="fas fa-plus mr-2"></i>Tambah Muzakki
+      <a href="/muzakki/create?rt_id=<%= rt.id %>" class="rtd-btn rtd-btn-solid rtd-btn-sm">
+        <i class="fas fa-plus"></i>
+        Tambah Muzakki
       </a>
     </div>
 
     <% if (muzakkiList.length > 0) { %>
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Muzakki
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Jiwa & Zakat
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Pembayaran
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Status
-            </th>
-            <th
-              class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
-              Aksi
-            </th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <% muzakkiList.forEach(function(muzakki) { %>
-          <tr class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="flex items-center">
-                <div
-                  class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center"
-                >
-                  <i class="fas fa-user text-primary-600"></i>
-                </div>
-                <div class="ml-4">
-                  <div class="text-sm font-medium text-gray-900">
-                    <%= muzakki.nama_muzakki_list || 'Muzakki #' + muzakki.id %>
+      <div class="rtd-table-wrap">
+        <table class="rtd-table">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama Muzakki</th>
+              <th>Jenis Zakat</th>
+              <th>Kewajiban Zakat</th>
+              <th>Tanggal</th>
+              <th class="rtd-align-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% muzakkiList.forEach(function(muzakki, index) { %>
+              <tr>
+                <td>
+                  <strong><%= index + 1 %></strong>
+                </td>
+                <td>
+                  <div class="rtd-name-cell">
+                    <div class="rtd-name-icon"><i class="fas fa-user"></i></div>
+                    <div>
+                      <strong><%= muzakki.nama_muzakki_list || 'Muzakki #' + muzakki.id %></strong>
+                      <small><%= muzakki.jumlah_jiwa %> jiwa</small>
+                    </div>
                   </div>
-                  <div class="text-sm text-gray-500">
-                    <%= muzakki.jenis_zakat === 'uang' ? 'Zakat Uang' : 'Zakat Beras' %>
+                </td>
+                <td>
+                  <span class="rtd-badge <%= muzakki.jenis_zakat === 'uang' ? 'rtd-badge-info' : 'rtd-badge-success' %>">
+                    <%= muzakki.jenis_zakat === 'uang' ? 'Uang' : 'Beras' %>
+                  </span>
+                </td>
+                <td>
+                  <div class="rtd-stack-text">
+                    <% if (muzakki.jenis_zakat === 'uang') { %>
+                      <strong>Rp <%= formatRupiah(muzakki.jumlah_uang_safe) %></strong>
+                    <% } else { %>
+                      <strong><%= formatKg(muzakki.jumlah_beras_kg_safe) %> kg</strong>
+                    <% } %>
                   </div>
-                </div>
+                </td>
+                <td>
+                  <div class="rtd-stack-text">
+                    <strong><%= formatTanggal(muzakki.tanggal, muzakki.created_at) %></strong>
+                  </div>
+                </td>
+                <td class="rtd-align-right">
+                  <div class="rtd-action-row">
+                    <a href="/muzakki/<%= muzakki.id %>/edit" class="rtd-icon-btn rtd-icon-btn-edit" title="Edit Muzakki">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <form
+                      method="POST"
+                      action="/muzakki/<%= muzakki.id %>?_method=DELETE"
+                      class="delete-form"
+                      data-name="<%= muzakki.nama_muzakki_list %>"
+                    >
+                      <button type="submit" class="rtd-icon-btn rtd-icon-btn-delete" title="Hapus Muzakki">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="rtd-mobile-list">
+        <% muzakkiList.forEach(function(muzakki) { %>
+          <article class="rtd-mobile-card">
+            <div class="rtd-mobile-top">
+              <div>
+                <h3><%= muzakki.nama_muzakki_list || 'Muzakki #' + muzakki.id %></h3>
+                <p><%= muzakki.jenis_zakat === 'uang' ? 'Zakat Uang' : 'Zakat Beras' %></p>
               </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">
-                <div class="font-medium"><%= muzakki.jumlah_jiwa %> jiwa</div>
-                <div class="text-gray-500">
-                  Rp <%= muzakki.jumlah_zakat.toLocaleString('id-ID') %>
-                </div>
+              <% if (muzakki.status === 'lunas') { %>
+                <span class="rtd-badge rtd-badge-success">Lunas</span>
+              <% } else { %>
+                <span class="rtd-badge rtd-badge-danger">Belum Lunas</span>
+              <% } %>
+            </div>
+            <div class="rtd-mobile-grid">
+              <div>
+                <small>Jumlah Jiwa</small>
+                <strong><%= muzakki.jumlah_jiwa %> jiwa</strong>
               </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">
-                <div class="font-medium">
-                  Rp <%= muzakki.jumlah_bayar.toLocaleString('id-ID') %>
-                </div>
-                <% if (muzakki.kembalian > 0) { %>
-                <div class="text-purple-600">
-                  Kembalian: Rp <%= muzakki.kembalian.toLocaleString('id-ID') %>
-                </div>
+              <div>
+                <small>Kewajiban</small>
+                <% if (muzakki.jenis_zakat === 'uang') { %>
+                  <strong>Rp <%= formatRupiah(muzakki.jumlah_uang_safe) %></strong>
+                <% } else { %>
+                  <strong><%= formatKg(muzakki.jumlah_beras_kg_safe) %> kg</strong>
                 <% } %>
               </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <% if (muzakki.status === 'lunas') { %>
-              <span
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-              >
-                <i class="fas fa-check-circle mr-1"></i>Lunas
-              </span>
-              <% } else { %>
-              <span
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
-              >
-                <i class="fas fa-times-circle mr-1"></i>Belum Lunas
-              </span>
-              <% } %>
-            </td>
-            <td
-              class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-            >
-              <div class="flex items-center justify-end space-x-2">
-                <a
-                  href="/muzakki/<%= muzakki.id %>/edit"
-                  class="text-indigo-600 hover:text-indigo-900"
-                  title="Edit Muzakki"
-                >
-                  <i class="fas fa-edit"></i>
-                </a>
-                <form
-                  method="POST"
-                  action="/muzakki/<%= muzakki.id %>?_method=DELETE"
-                  class="inline delete-form"
-                  data-name="<%= muzakki.nama_muzakki_list %>"
-                >
-                  <button
-                    type="submit"
-                    class="text-red-600 hover:text-red-900"
-                    title="Hapus Muzakki"
-                  >
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </form>
+              <div>
+                <small>Pembayaran</small>
+                <strong>Rp <%= formatRupiah(muzakki.jumlah_bayar_safe) %></strong>
               </div>
-            </td>
-          </tr>
-          <% }); %>
-        </tbody>
-      </table>
-    </div>
+              <div>
+                <small>Kembalian</small>
+                <strong>Rp <%= formatRupiah(muzakki.kembalian_safe) %></strong>
+              </div>
+            </div>
+            <div class="rtd-mobile-actions">
+              <a href="/muzakki/<%= muzakki.id %>/edit" class="rtd-btn rtd-btn-soft rtd-btn-sm">
+                <i class="fas fa-edit"></i>
+                Edit
+              </a>
+              <form
+                method="POST"
+                action="/muzakki/<%= muzakki.id %>?_method=DELETE"
+                class="delete-form"
+                data-name="<%= muzakki.nama_muzakki_list %>"
+              >
+                <button type="submit" class="rtd-btn rtd-btn-danger rtd-btn-sm">
+                  <i class="fas fa-trash"></i>
+                  Hapus
+                </button>
+              </form>
+            </div>
+          </article>
+        <% }); %>
+      </div>
     <% } else { %>
-    <div class="text-center py-12">
-      <i class="fas fa-users text-gray-400 text-6xl mb-4"></i>
-      <h3 class="text-lg font-medium text-gray-900 mb-2">Belum Ada Muzakki</h3>
-      <p class="text-gray-500 mb-4">RT ini belum memiliki data muzakki</p>
-      <a href="/muzakki/create?rt_id=<%= rt.id %>" class="btn-primary">
-        <i class="fas fa-plus mr-2"></i>Tambah Muzakki Pertama
-      </a>
-    </div>
+      <div class="rtd-empty-state">
+        <i class="fas fa-users"></i>
+        <h3>Belum ada data muzakki</h3>
+        <p>Silakan tambahkan muzakki pertama untuk RT <%= rt.nomor_rt %>.</p>
+        <a href="/muzakki/create?rt_id=<%= rt.id %>" class="rtd-btn rtd-btn-solid">
+          <i class="fas fa-plus"></i>
+          Tambah Muzakki
+        </a>
+      </div>
     <% } %>
-  </div>
+  </section>
 </div>
 
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+  .rtd-page {
+    font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
+    padding: 18px;
+    display: grid;
+    gap: 14px;
+  }
+
+  .rtd-hero {
+    background: linear-gradient(128deg, #0f3d73 0%, #12588f 45%, #0f766e 100%);
+    border-radius: 20px;
+    padding: 20px;
+    color: #f8fbff;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    flex-wrap: wrap;
+    box-shadow: 0 16px 30px rgba(15, 61, 115, 0.22);
+  }
+
+  .rtd-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #dbeafe;
+    text-decoration: none;
+    font-size: 0.84rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .rtd-back-link:hover {
+    color: #ffffff;
+  }
+
+  .rtd-title {
+    margin: 0;
+    font-family: "Fraunces", "Georgia", serif;
+    font-size: clamp(1.35rem, 2.4vw, 2.05rem);
+    line-height: 1.2;
+  }
+
+  .rtd-subtitle {
+    margin: 9px 0 0;
+    color: rgba(240, 249, 255, 0.92);
+    max-width: 700px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  .rtd-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .rtd-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    font-size: 0.74rem;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .rtd-hero-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 175px;
+  }
+
+  .rtd-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .rtd-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .rtd-btn-solid {
+    background: #ffffff;
+    color: #1d4ed8;
+    box-shadow: 0 8px 16px rgba(255, 255, 255, 0.22);
+  }
+
+  .rtd-btn-soft {
+    background: rgba(255, 255, 255, 0.16);
+    color: #f0f9ff;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .rtd-btn-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+  }
+
+  .rtd-btn-sm {
+    padding: 7px 10px;
+    font-size: 0.75rem;
+  }
+
+  .rtd-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 12px;
+  }
+
+  .rtd-overview-card {
+    background: #ffffff;
+    border: 1px solid #dbe5f0;
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 8px 16px rgba(15, 42, 79, 0.06);
+  }
+
+  .rtd-overview-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .rtd-overview-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    color: #ffffff;
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+  }
+
+  .rtd-overview-icon-green {
+    background: linear-gradient(135deg, #0f766e, #0d9488);
+  }
+
+  .rtd-overview-head h2 {
+    margin: 0;
+    font-size: 0.92rem;
+    color: #0f172a;
+  }
+
+  .rtd-overview-head p {
+    margin: 3px 0 0;
+    font-size: 0.76rem;
+    color: #64748b;
+  }
+
+  .rtd-info-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .rtd-info-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+  }
+
+  .rtd-info-item span {
+    font-size: 0.74rem;
+    color: #64748b;
+    font-weight: 700;
+  }
+
+  .rtd-info-item strong {
+    font-size: 0.8rem;
+    color: #0f172a;
+    text-align: right;
+  }
+
+  .rtd-progress-wrap {
+    margin-bottom: 10px;
+  }
+
+  .rtd-progress-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 0.74rem;
+    color: #475569;
+    font-weight: 700;
+  }
+
+  .rtd-progress-bar {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    overflow: hidden;
+  }
+
+  .rtd-progress-bar span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #16a34a, #10b981);
+  }
+
+  .rtd-progress-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .rtd-progress-summary div {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 8px;
+    text-align: center;
+  }
+
+  .rtd-progress-summary small {
+    display: block;
+    font-size: 0.69rem;
+    color: #64748b;
+    margin-bottom: 3px;
+  }
+
+  .rtd-progress-summary strong {
+    display: block;
+    font-size: 0.75rem;
+    color: #0f172a;
+  }
+
+  .rtd-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+  }
+
+  .rtd-stat-card {
+    background: #ffffff;
+    border: 1px solid #e4ebf2;
+    border-radius: 16px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 6px 16px rgba(15, 42, 79, 0.06);
+  }
+
+  .rtd-stat-card-split {
+    align-items: center;
+    background: linear-gradient(135deg, #f8fbff 0%, #ffffff 65%);
+    border-color: #dce7fb;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .rtd-stat-card-split .rtd-stat-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 0.9rem;
+  }
+
+  .rtd-stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .rtd-stat-icon-blue { background: linear-gradient(135deg, #2d6cdf, #2f5fb5); }
+  .rtd-stat-icon-teal { background: linear-gradient(135deg, #0ea5a7, #0f766e); }
+  .rtd-stat-icon-green { background: linear-gradient(135deg, #16a34a, #15803d); }
+  .rtd-stat-icon-cyan { background: linear-gradient(135deg, #0ea5e9, #0284c7); }
+  .rtd-stat-icon-orange { background: linear-gradient(135deg, #f97316, #ea580c); }
+  .rtd-stat-icon-indigo { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+
+  .rtd-stat-value {
+    font-size: 1.14rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.15;
+  }
+
+  .rtd-stat-label {
+    margin-top: 3px;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .rtd-stat-split-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .rtd-stat-split-title {
+    font-size: 0.72rem;
+    color: #334155;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1px;
+  }
+
+  .rtd-stat-split-row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 6px;
+    padding: 1px 0;
+    line-height: 1.1;
+  }
+
+  .rtd-stat-split-row strong {
+    font-size: 0.76rem;
+    color: #0f172a;
+    font-weight: 800;
+    justify-self: end;
+    white-space: nowrap;
+    line-height: 1.1;
+  }
+
+  .rtd-stat-chip {
+    font-size: 0.68rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 2px 6px;
+    line-height: 1;
+  }
+
+  .rtd-stat-chip-success {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .rtd-stat-chip-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .rtd-list-panel {
+    background: #ffffff;
+    border: 1px solid #dbe5f0;
+    border-radius: 16px;
+    box-shadow: 0 10px 20px rgba(15, 42, 79, 0.06);
+    overflow: hidden;
+  }
+
+  .rtd-list-head {
+    padding: 14px 16px;
+    background: linear-gradient(180deg, #f8fbff 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .rtd-list-head h2 {
+    margin: 0;
+    font-size: 1rem;
+    color: #0f172a;
+  }
+
+  .rtd-list-head p {
+    margin: 4px 0 0;
+    font-size: 0.76rem;
+    color: #64748b;
+  }
+
+  .rtd-table-wrap {
+    overflow-x: auto;
+  }
+
+  .rtd-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 780px;
+  }
+
+  .rtd-table th,
+  .rtd-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #edf2f7;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .rtd-table th {
+    font-size: 0.73rem;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 800;
+    background: #f8fafc;
+  }
+
+  .rtd-table tr:hover {
+    background: #f8fbff;
+  }
+
+  .rtd-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .rtd-name-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+  }
+
+  .rtd-name-cell strong {
+    display: block;
+    font-size: 0.83rem;
+    color: #0f172a;
+  }
+
+  .rtd-name-cell small {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.72rem;
+    color: #64748b;
+  }
+
+  .rtd-stack-text strong {
+    display: block;
+    font-size: 0.81rem;
+    color: #0f172a;
+  }
+
+  .rtd-stack-text small {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.72rem;
+    color: #64748b;
+  }
+
+  .rtd-highlight {
+    color: #0f766e !important;
+    font-weight: 700;
+  }
+
+  .rtd-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 999px;
+    padding: 4px 9px;
+    font-size: 0.69rem;
+    font-weight: 700;
+  }
+
+  .rtd-badge-success {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .rtd-badge-info {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .rtd-badge-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .rtd-align-right {
+    text-align: right !important;
+  }
+
+  .rtd-action-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .rtd-icon-btn {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.15s ease;
+  }
+
+  .rtd-icon-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .rtd-icon-btn-edit {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .rtd-icon-btn-delete {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .rtd-icon-btn-delete i,
+  .rtd-icon-btn-edit i {
+    font-size: 0.78rem;
+  }
+
+  .rtd-mobile-list {
+    display: none;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .rtd-mobile-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px;
+    background: #ffffff;
+  }
+
+  .rtd-mobile-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .rtd-mobile-top h3 {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #0f172a;
+  }
+
+  .rtd-mobile-top p {
+    margin: 3px 0 0;
+    font-size: 0.73rem;
+    color: #64748b;
+  }
+
+  .rtd-mobile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .rtd-mobile-grid small {
+    display: block;
+    font-size: 0.67rem;
+    color: #64748b;
+    margin-bottom: 3px;
+  }
+
+  .rtd-mobile-grid strong {
+    display: block;
+    font-size: 0.76rem;
+    color: #0f172a;
+  }
+
+  .rtd-mobile-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .rtd-mobile-actions form {
+    margin: 0;
+    flex: 1;
+  }
+
+  .rtd-mobile-actions .rtd-btn {
+    width: 100%;
+  }
+
+  .rtd-empty-state {
+    text-align: center;
+    padding: 34px 16px;
+  }
+
+  .rtd-empty-state i {
+    font-size: 2.1rem;
+    color: #94a3b8;
+    margin-bottom: 10px;
+  }
+
+  .rtd-empty-state h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #0f172a;
+  }
+
+  .rtd-empty-state p {
+    margin: 7px 0 14px;
+    color: #64748b;
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 1024px) {
+    .rtd-progress-summary {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .rtd-page {
+      padding: 10px;
+      gap: 10px;
+    }
+
+    .rtd-hero {
+      padding: 14px;
+      border-radius: 16px;
+    }
+
+    .rtd-hero-actions {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .rtd-hero-actions .rtd-btn {
+      width: 100%;
+    }
+
+    .rtd-overview-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .rtd-stats-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .rtd-table-wrap {
+      display: none;
+    }
+
+    .rtd-mobile-list {
+      display: grid;
+    }
+
+    .rtd-list-head .rtd-btn {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 540px) {
+    .rtd-stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .rtd-mobile-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .rtd-mobile-actions {
+      flex-direction: column;
+    }
+  }
+</style>
+
 <script>
-  // Handle delete forms with SweetAlert2
   document.querySelectorAll(".delete-form").forEach((form) => {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -328,7 +1037,7 @@
 
       showDeleteConfirm(
         muzakkiName,
-        `Yakin ingin menghapus data muzakki ini?`
+        "Yakin ingin menghapus data muzakki ini?"
       ).then((result) => {
         if (result.isConfirmed) {
           this.submit();

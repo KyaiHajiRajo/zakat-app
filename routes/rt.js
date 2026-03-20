@@ -250,28 +250,7 @@ router.get("/:id/detail", async (req, res) => {
       `
       SELECT 
         m.*,
-        COALESCE(NULLIF(TRIM(m.nama_muzakki), ''), CONCAT('Muzakki #', m.id)) as nama_muzakki_list,
-        CASE 
-          WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
-          ELSE m.jumlah_beras_kg * 12000 
-        END as jumlah_zakat,
-        CASE 
-          WHEN m.jumlah_bayar >= CASE 
-            WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
-            ELSE m.jumlah_beras_kg * 12000 
-          END THEN 'lunas'
-          ELSE 'belum_lunas'
-        END as status,
-        CASE 
-          WHEN m.jumlah_bayar > CASE 
-            WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
-            ELSE m.jumlah_beras_kg * 12000 
-          END THEN m.jumlah_bayar - CASE 
-            WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
-            ELSE m.jumlah_beras_kg * 12000 
-          END
-          ELSE 0
-        END as kembalian
+        COALESCE(NULLIF(TRIM(m.nama_muzakki), ''), CONCAT('Muzakki #', m.id)) as nama_muzakki_list
       FROM muzakki m 
       WHERE m.rt_id = ? 
       ORDER BY m.id ASC
@@ -279,21 +258,41 @@ router.get("/:id/detail", async (req, res) => {
       [req.params.id]
     );
 
+    const normalizedMuzakkiData = (muzakkiData || []).map((item) => {
+      const jumlahBayar = parseFloat(item.jumlah_bayar) || 0;
+      const jumlahUang = parseFloat(item.jumlah_uang) || 0;
+      const jumlahBerasKg = parseFloat(item.jumlah_beras_kg) || 0;
+      const jumlahZakatRupiah =
+        item.jenis_zakat === "uang" ? jumlahUang : jumlahBerasKg * 12000;
+      const kembalian = parseFloat(item.kembalian) || 0;
+      const status = jumlahBayar >= jumlahZakatRupiah ? "lunas" : "belum_lunas";
+
+      return {
+        ...item,
+        jumlah_bayar_safe: jumlahBayar,
+        jumlah_uang_safe: jumlahUang,
+        jumlah_beras_kg_safe: jumlahBerasKg,
+        jumlah_zakat_rupiah_safe: jumlahZakatRupiah,
+        kembalian_safe: kembalian,
+        status,
+      };
+    });
+
     // Hitung statistik
     const stats = {
-      total_muzakki: muzakkiData.length,
-      total_zakat: muzakkiData.reduce(
-        (sum, m) => sum + parseFloat(m.jumlah_zakat || 0),
+      total_muzakki: normalizedMuzakkiData.length,
+      total_zakat: normalizedMuzakkiData.reduce(
+        (sum, m) => sum + parseFloat(m.jumlah_zakat_rupiah_safe || 0),
         0
       ),
-      total_bayar: muzakkiData.reduce(
-        (sum, m) => sum + parseFloat(m.jumlah_bayar || 0),
+      total_bayar: normalizedMuzakkiData.reduce(
+        (sum, m) => sum + parseFloat(m.jumlah_bayar_safe || 0),
         0
       ),
-      lunas: muzakkiData.filter((m) => m.status === "lunas").length,
-      belum_lunas: muzakkiData.filter((m) => m.status === "belum_lunas").length,
-      total_kembalian: muzakkiData.reduce(
-        (sum, m) => sum + parseFloat(m.kembalian || 0),
+      lunas: normalizedMuzakkiData.filter((m) => m.status === "lunas").length,
+      belum_lunas: normalizedMuzakkiData.filter((m) => m.status === "belum_lunas").length,
+      total_kembalian: normalizedMuzakkiData.reduce(
+        (sum, m) => sum + parseFloat(m.kembalian_safe || 0),
         0
       ),
     };
@@ -302,7 +301,7 @@ router.get("/:id/detail", async (req, res) => {
       title: `Detail RT ${rtData[0].nomor_rt} - Zakat Fitrah App`,
       user: req.session.user,
       rt: rtData[0],
-      muzakkiList: muzakkiData,
+      muzakkiList: normalizedMuzakkiData,
       stats: stats,
       success: req.flash("success"),
       error: req.flash("error"),
