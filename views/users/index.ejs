@@ -302,18 +302,16 @@
   
   <!-- Modern Header -->
   <div class="page-header">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
-      <div>
-        <h1 class="header-title">
-          <i class="fas fa-user-cog"></i>
-          Manajemen User
-        </h1>
-        <p class="header-subtitle">
-          Kelola user panitia dan hak akses sistem
-        </p>
+    <div class="header-content-wrapper">
+      <div class="header-left-section">
+        <div class="header-icon-box"><i class="fas fa-user-cog"></i></div>
+        <div>
+          <h1 class="header-title-text">Manajemen User</h1>
+          <p class="header-subtitle-text">Kelola user panitia dan hak akses sistem</p>
+        </div>
       </div>
-      <div>
-        <button onclick="openAddModal()" class="btn-primary">
+      <div class="header-actions">
+        <button type="button" onclick="openAddModal()" class="btn-action btn-action-primary">
           <i class="fas fa-user-plus"></i>
           <span>Tambah User Baru</span>
         </button>

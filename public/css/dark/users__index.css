@@ -1,0 +1,169 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/users/index.ejs */
+html.dark-mode .page-header {
+    background: linear-gradient(135deg, #0f1729 0%, #19222a 100%);
+    border: 1px solid #222b3f
+}
+html.dark-mode .header-title {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    -webkit-text-fill-color: transparent
+}
+html.dark-mode .header-subtitle {
+    color: #7e8593
+}
+html.dark-mode .btn-primary {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white;
+    border: none
+}
+html.dark-mode .stat-card {
+    background: #0f1729;
+    border: 1px solid #1d2436
+}
+html.dark-mode .stat-card:hover {
+    border-color: #222b3f
+}
+html.dark-mode .stat-icon {
+    color: white
+}
+html.dark-mode .stat-label {
+    color: #7e8593
+}
+html.dark-mode .stat-value {
+    color: #d8dfee
+}
+html.dark-mode .search-filter-bar {
+    background: #0f1729;
+    border: 1px solid #1d2436
+}
+html.dark-mode .input-icon {
+    color: #9ca3af
+}
+html.dark-mode .form-input {
+    background: #19222a;
+    border: 2px solid #222b3f
+}
+html.dark-mode .form-input:focus {
+    background: #0f1729;
+    outline: none;
+    border-color: #1EAF2F
+}
+html.dark-mode .form-select {
+    background: #19222a;
+    border: 2px solid #222b3f
+}
+html.dark-mode .form-select:focus {
+    background: #0f1729;
+    outline: none;
+    border-color: #1EAF2F
+}
+html.dark-mode .btn-secondary {
+    background: #121b31;
+    color: #a9b8d1;
+    border: none
+}
+html.dark-mode .btn-secondary:hover {
+    background: #15203a
+}
+html.dark-mode .btn-success {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: white;
+    border: none
+}
+html.dark-mode .user-avatar {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white
+}
+html.dark-mode .user-name {
+    color: #d8dfee
+}
+html.dark-mode .user-id {
+    color: #7e8593
+}
+html.dark-mode .role-admin {
+    background: linear-gradient(135deg, #3c1313 0%, #481616 100%);
+    color: #e46767
+}
+html.dark-mode .role-panitia {
+    background: linear-gradient(135deg, #14273f 0%, #172f4d 100%);
+    color: #7792e8
+}
+html.dark-mode .mobile-card {
+    background: #0f1729;
+    border: 1px solid #1d2436
+}
+html.dark-mode [style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);"] {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important
+}
+html.dark-mode [style="background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);"] {
+    background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%) !important
+}
+html.dark-mode [style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"] {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important
+}
+html.dark-mode [style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);"] {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important
+}
+html.dark-mode [style="display: inline-flex; align-items: center; gap: 8px; color: #059669; font-weight: 600; text-decoration: none;"] {
+    color: #059669 !important
+}
+html.dark-mode [style="font-size: 14px; color: #6b7280;"] {
+    color: #7e8593 !important
+}
+html.dark-mode [style="font-size: 64px; color: #d1d5db; margin-bottom: 16px;"] {
+    color: #d1d5db !important
+}
+html.dark-mode [style="font-size: 20px; font-weight: 600; color: #111827; margin-bottom: 8px;"] {
+    color: #d8dfee !important
+}
+html.dark-mode [style="color: #6b7280; margin-bottom: 16px;"] {
+    color: #7e8593 !important
+}
+html.dark-mode [style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; margin-bottom: 4px;"] {
+    color: #7e8593 !important
+}
+html.dark-mode [style="font-size: 13px; color: #111827;"] {
+    color: #d8dfee !important
+}
+html.dark-mode [style="color: #059669; text-decoration: none;"] {
+    color: #059669 !important
+}
+html.dark-mode [style="padding-top: 12px; border-top: 1px solid #f3f4f6;"] {
+    border-top: 1px solid #1d2436 !important
+}
+html.dark-mode [style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; overflow-y: auto; padding: 20px;"] {
+    background: rgba(0,0,0,0.5) !important
+}
+html.dark-mode [style="max-width: 500px; margin: 40px auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalSlideIn 0.3s ease;"] {
+    background: #0f1729 !important
+}
+html.dark-mode [style="padding: 24px; border-bottom: 1px solid #e5e7eb;"] {
+    border-bottom: 1px solid #222b3f !important
+}
+html.dark-mode [style="font-size: 1.5rem; font-weight: 700; color: #111827; margin: 0;"] {
+    color: #d8dfee !important
+}
+html.dark-mode [style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px; font-size: 14px;"] {
+    color: #a9b8d1 !important
+}
+html.dark-mode [style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; transition: all 0.3s;"] {
+    border: 2px solid #222b3f !important
+}
+html.dark-mode [style="color: #6b7280; font-size: 12px; display: block; margin-top: 4px;"] {
+    color: #7e8593 !important
+}
+html.dark-mode [style="flex: 1; padding: 14px; background: #f3f4f6; color: #374151; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 14px;"] {
+    background: #121b31 !important;
+    color: #a9b8d1 !important;
+    border: none !important
+}
+html.dark-mode [style="flex: 1; padding: 14px; background: linear-gradient(135deg, #1EAF2F, #16a127); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 14px; box-shadow: 0 4px 12px rgba(30, 175, 47, 0.3);"] {
+    background: linear-gradient(135deg, #1EAF2F, #16a127) !important;
+    color: white !important;
+    border: none !important
+}
+html.dark-mode [style="color: #1EAF2F;"] {
+    color: #1EAF2F !important
+}
+html.dark-mode [style="color: #6b7280;"] {
+    color: #7e8593 !important
+}

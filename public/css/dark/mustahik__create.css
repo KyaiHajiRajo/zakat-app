@@ -1,0 +1,113 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/mustahik/create.ejs */
+html.dark-mode .page-header {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 50%, #0f8a1f 100%)
+}
+html.dark-mode .page-header::before {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%)
+}
+html.dark-mode .btn-back {
+    background: rgba(255, 255, 255, 0.2);
+    color: white
+}
+html.dark-mode .btn-back:hover {
+    background: rgba(255, 255, 255, 0.3)
+}
+html.dark-mode .header-icon-box {
+    background: rgba(255, 255, 255, 0.2);
+    color: white
+}
+html.dark-mode .header-text-box {
+    color: white
+}
+html.dark-mode .header-title-text {
+    color: white
+}
+html.dark-mode .header-subtitle-text {
+    color: rgba(255, 255, 255, 0.95)
+}
+html.dark-mode .form-section {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .form-header-wrapper {
+    background: linear-gradient(to right, #19222a, #121b31);
+    border-bottom: 2px solid #222b3f
+}
+html.dark-mode .form-header-icon {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white
+}
+html.dark-mode .form-title {
+    color: #d8dfee
+}
+html.dark-mode .form-subtitle {
+    color: #7e8593
+}
+html.dark-mode .form-label {
+    color: #a9b8d1
+}
+html.dark-mode .label-icon {
+    color: #1EAF2F
+}
+html.dark-mode .required-mark {
+    color: #ef4444
+}
+html.dark-mode .input-icon {
+    color: #9ca3af
+}
+html.dark-mode .form-input {
+    background: #0f1729;
+    border: 2px solid #222b3f;
+    color: #d8dfee
+}
+html.dark-mode .form-input:focus {
+    outline: none;
+    border-color: #1EAF2F
+}
+html.dark-mode .form-input::placeholder {
+    color: #9ca3af
+}
+html.dark-mode .form-select {
+    background: #0f1729;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    border: 2px solid #222b3f;
+    color: #d8dfee
+}
+html.dark-mode .form-select:focus {
+    outline: none;
+    border-color: #1EAF2F
+}
+html.dark-mode .field-helper-text {
+    color: #7e8593
+}
+html.dark-mode .info-box-wrapper {
+    background: linear-gradient(135deg, #14273f 0%, #172f4d 100%);
+    border: 2px solid #224062
+}
+html.dark-mode .info-box-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #f7f7f7
+}
+html.dark-mode .info-box-title {
+    color: #607fe4
+}
+html.dark-mode .info-box-description {
+    color: #6080dc
+}
+html.dark-mode .form-actions {
+    border-top: 2px solid #222b3f
+}
+html.dark-mode .btn-action {
+    border: none
+}
+html.dark-mode .btn-action-primary {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white
+}
+html.dark-mode .btn-action-secondary {
+    background: #121b31;
+    color: #a9b8d1
+}
+html.dark-mode .btn-action-secondary:hover {
+    background: #15203a
+}

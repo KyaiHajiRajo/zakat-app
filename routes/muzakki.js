@@ -1,4 +1,5 @@
 const express = require("express");
+const { safeReturn } = require("../utils/respond");
 const router = express.Router();
 
 // Constants for zakat calculation
@@ -512,6 +513,7 @@ router.get("/rt/:rt_id", async (req, res) => {
         : `Detail Muzakki RT ${rtInfo[0].nomor_rt} - Zakat Fitrah`,
       layout: "layouts/main",
       rt: rtInfo[0],
+      currentUrl: req.originalUrl,
       muzakki,
       displayMuzakki,
       navTabs,
@@ -855,12 +857,21 @@ router.get("/create", async (req, res) => {
       "SELECT id, nama, harga, kg FROM master_zakat ORDER BY nama"
     );
 
+    const requestedRtId = /^\d+$/.test(String(req.query.rt_id || ""))
+      ? String(req.query.rt_id)
+      : "";
+    const defaultRtId = rtList.some((rt) => String(rt.id) === requestedRtId)
+      ? requestedRtId
+      : "";
+
     res.render("muzakki/create", {
       title: "Tambah Muzakki - Zakat Fitrah",
       layout: "layouts/main",
       rtList,
       masterZakatList,
       defaultTanggal: requestedTanggal,
+      defaultRtId,
+      returnTo: safeReturn(req.query.return_to, ""),
     });
   } catch (error) {
     console.error("Error loading create form:", error);
@@ -878,6 +889,13 @@ router.post("/", async (req, res) => {
     catatan,
   } = req.body;
 
+  const returnTo = safeReturn(req.body.return_to, "");
+  const retryParams = new URLSearchParams();
+  if (/^\d+$/.test(String(rt_id || ""))) retryParams.set("rt_id", rt_id);
+  if (tanggal) retryParams.set("tanggal", tanggal);
+  if (returnTo) retryParams.set("return_to", returnTo);
+  const retryUrl = `/muzakki/create${retryParams.toString() ? `?${retryParams}` : ""}`;
+
   try {
     const submittedMuzakki = getSubmittedMuzakkiEntries(req.body);
 
@@ -894,18 +912,18 @@ router.post("/", async (req, res) => {
     // Input validation
     if (!rt_id || !tanggal || !jumlah_jiwa) {
       req.flash("error_msg", "Semua field yang wajib harus diisi");
-      return res.redirect("/muzakki/create");
+      return res.redirect(retryUrl);
     }
 
     const tanggalZakat = normalizeMuzakkiDateInput(tanggal);
     if (!tanggalZakat) {
       req.flash("error_msg", "Tanggal zakat tidak valid");
-      return res.redirect("/muzakki/create");
+      return res.redirect(retryUrl);
     }
 
     if (submittedMuzakki.length === 0) {
       req.flash("error_msg", "Minimal harus ada 1 muzakki");
-      return res.redirect("/muzakki/create");
+      return res.redirect(retryUrl);
     }
 
     const invalidEntryIndex = submittedMuzakki.findIndex(
@@ -920,7 +938,7 @@ router.post("/", async (req, res) => {
         "error_msg",
         `Data muzakki #${invalidEntryIndex + 1} belum lengkap atau jumlah bayar tidak valid`
       );
-      return res.redirect("/muzakki/create");
+      return res.redirect(retryUrl);
     }
 
     const db = req.app.locals.db;
@@ -946,7 +964,7 @@ router.post("/", async (req, res) => {
 
       if (masterZakat.length !== masterZakatIds.length) {
         req.flash("error_msg", "Jenis zakat tidak valid");
-        return res.redirect("/muzakki/create");
+        return res.redirect(retryUrl);
       }
 
       const masterZakatMap = new Map(
@@ -1012,12 +1030,18 @@ router.post("/", async (req, res) => {
       await connection.commit();
       console.log("Transaction committed successfully");
 
-      req.flash(
-        "success_msg",
+      const successMessage =
         submittedMuzakki.length > 1
           ? `${submittedMuzakki.length} data muzakki berhasil ditambahkan`
-          : "Data muzakki berhasil ditambahkan"
-      );
+          : "Data muzakki berhasil ditambahkan";
+
+      if (returnTo) {
+        // halaman asal (mis. detail RT) menampilkan flash "success"
+        req.flash("success", successMessage);
+        return res.redirect(returnTo);
+      }
+
+      req.flash("success_msg", successMessage);
 
       if (insertedIds.length === 1) {
         return res.redirect(`/muzakki/${insertedIds[0]}`);
@@ -1038,7 +1062,7 @@ router.post("/", async (req, res) => {
       "error_msg",
       `Terjadi kesalahan saat menyimpan data muzakki: ${error.message}`
     );
-    res.redirect("/muzakki/create");
+    res.redirect(retryUrl);
   }
 });
 

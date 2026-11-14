@@ -1,14 +1,13 @@
     </main>
+    <%- include('theme-components') %>
+    <%- include('modal-kit') %>
+    <%- include('datepicker') %>
+    <%- include('amount-input') %>
 
     <!-- Footer -->
     <% if (typeof user !== 'undefined' && user) { %>
-    <footer class="bg-white border-t border-gray-200 mt-auto">
-      <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-        <div class="text-center text-sm text-gray-500">
-          © <%= new Date().getFullYear() %> Aplikasi Zakat Fitrah. Dibuat dengan
-          ❤️ untuk umat.
-        </div>
-      </div>
+    <footer class="app-footer">
+      © <%= new Date().getFullYear() %> <strong>Aplikasi Zakat Fitrah</strong> · Musholla Nurul Fitrah
     </footer>
     <% } %>
 

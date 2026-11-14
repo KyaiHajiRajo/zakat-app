@@ -1,0 +1,90 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/users/profile.ejs */
+html.dark-mode .profile-card {
+    background: var(--surface);
+    border: 1px solid var(--line)
+}
+html.dark-mode .profile-avatar {
+    background: linear-gradient(135deg, #2bc23c 0%, var(--forest) 100%);
+    color: #111827
+}
+html.dark-mode .profile-name {
+    color: var(--ink)
+}
+html.dark-mode .profile-role {
+    background: var(--gold-soft);
+    border: 1px solid rgba(201, 162, 75, 0.4);
+    color: var(--ink-2)
+}
+html.dark-mode .profile-facts {
+    border-top: 1px solid var(--line)
+}
+html.dark-mode .profile-fact-icon {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--primary-dark)
+}
+html.dark-mode .profile-fact-label {
+    color: var(--muted)
+}
+html.dark-mode .profile-fact-value {
+    color: var(--ink)
+}
+html.dark-mode .profile-section-head {
+    border-bottom: 1px solid var(--line)
+}
+html.dark-mode .profile-section-icon {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-darker) 100%);
+    color: #fff
+}
+html.dark-mode .profile-section-title {
+    color: var(--ink)
+}
+html.dark-mode .profile-section-sub {
+    color: var(--muted)
+}
+html.dark-mode .pf-field label {
+    color: var(--ink-2)
+}
+html.dark-mode .pf-control > i.pf-lead {
+    color: var(--muted)
+}
+html.dark-mode .pf-control input {
+    background: var(--surface-2);
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
+    outline: none
+}
+html.dark-mode .pf-control input:focus {
+    background: var(--surface);
+    border-color: var(--primary-color)
+}
+html.dark-mode .pf-toggle {
+    background: transparent;
+    border: 0;
+    color: var(--muted)
+}
+html.dark-mode .pf-toggle:hover {
+    background: rgba(30, 175, 47, 0.1);
+    color: var(--primary-dark)
+}
+html.dark-mode .pf-hint {
+    color: var(--muted)
+}
+html.dark-mode .pf-submit {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-darker) 100%);
+    border: 0;
+    color: #fff
+}
+html.dark-mode .pf-alert {
+    border: 1px solid
+}
+html.dark-mode .pf-alert-ok {
+    background: rgba(30, 175, 47, 0.1);
+    border-color: rgba(30, 175, 47, 0.35);
+    color: var(--primary-darker)
+}
+html.dark-mode .pf-alert-err {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #e55252
+}

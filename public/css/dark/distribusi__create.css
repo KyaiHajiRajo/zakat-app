@@ -1,0 +1,49 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/distribusi/create.ejs */
+html.dark-mode .checkbox-label {
+    border: 2px solid #29334c
+}
+html.dark-mode .checkbox-label.border-primary-500 {
+    border-color: #10b981 !important
+}
+html.dark-mode .checkbox-label.bg-primary-50 {
+    background-color: #15331e !important
+}
+html.dark-mode .checkbox-label input[type="checkbox"]:checked {
+    background-color: #10b981;
+    border-color: #10b981
+}
+html.dark-mode .checkbox-label:hover {
+    background-color: #19222a;
+    border-color: #9ca3af
+}
+html.dark-mode .btn-primary {
+    background-color: #10b981;
+    color: #111827;
+    border: none
+}
+html.dark-mode .btn-primary:hover {
+    background-color: #059669
+}
+html.dark-mode .btn-secondary {
+    background-color: #121b31;
+    color: #a9b8d1;
+    border: 1px solid #29334c
+}
+html.dark-mode .btn-secondary:hover {
+    background-color: #15203a;
+    border-color: #9ca3af
+}
+html.dark-mode input[type="checkbox"] {
+    background-color: #0f1729;
+    border: 2px solid #29334c
+}
+html.dark-mode input[type="checkbox"]:checked {
+    background-color: #10b981;
+    border-color: #10b981
+}
+html.dark-mode input[type="checkbox"]:checked::after {
+    color: white
+}
+html.dark-mode input[type="checkbox"]:focus {
+    outline: none
+}

@@ -1,4 +1,5 @@
 const express = require("express");
+const { reply, safeReturn } = require("../utils/respond");
 const router = express.Router();
 
 // GET /rt - Tampilkan daftar RT
@@ -64,133 +65,142 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET /rt/create - Form tambah RT
-router.get("/create", async (req, res) => {
+// GET /rt/form-data?id= - Data untuk modal tambah/ubah RT (JSON)
+router.get("/form-data", async (req, res) => {
   try {
     const db = req.app.locals.db;
-    const [rwRows] = await db.execute(
+    const [rwList] = await db.execute(
       "SELECT id, nomor_rw, ketua_rw FROM rw ORDER BY nomor_rw ASC"
     );
 
-    res.render("rt/create", {
-      title: "Tambah RT - Zakat Fitrah App",
-      user: req.session.user,
-      rwList: rwRows,
-      error: req.flash("error"),
-      success: req.flash("success"),
-    });
+    let rt = null;
+    if (req.query.id) {
+      const [rows] = await db.execute(
+        "SELECT id, rw_id, nomor_rt, ketua_rt, keterangan FROM rt WHERE id = ?",
+        [req.query.id]
+      );
+      if (rows.length === 0) {
+        return res.status(404).json({ ok: false, message: "RT tidak ditemukan" });
+      }
+      rt = rows[0];
+    }
+
+    res.json({ ok: true, rwList, rt });
   } catch (error) {
-    console.error("Error fetching RW data for RT create:", error);
-    req.flash("error", "Gagal mengambil data RW");
-    res.redirect("/rt");
+    console.error("Error loading RT form data:", error);
+    res.status(500).json({ ok: false, message: "Gagal memuat data form" });
   }
 });
+
+// GET /rt/create - Form tambah RT kini berupa modal di halaman daftar
+router.get("/create", (req, res) => {
+  const rw = /^\d+$/.test(req.query.rw || "") ? `&rw=${req.query.rw}` : "";
+  res.redirect(`/rt?new=1${rw}`);
+});
+
+// Validasi bersama untuk tambah/ubah RT
+async function validateRt(db, body, excludeId) {
+  const rwId = String(body.rw_id || "").trim();
+  const nomorRt = String(body.nomor_rt || "").trim();
+  const ketuaRt = String(body.ketua_rt || "").trim();
+  const keterangan = String(body.keterangan || "").trim();
+
+  if (!rwId || !nomorRt || !ketuaRt) {
+    return { error: "RW, Nomor RT dan Ketua RT harus diisi" };
+  }
+  if (nomorRt.length > 10) return { error: "Nomor RT maksimal 10 karakter" };
+  if (ketuaRt.length > 100) return { error: "Nama ketua RT maksimal 100 karakter" };
+  if (keterangan.length > 100) return { error: "Keterangan maksimal 100 karakter" };
+
+  const [rw] = await db.execute("SELECT id FROM rw WHERE id = ?", [rwId]);
+  if (rw.length === 0) return { error: "RW yang dipilih tidak ditemukan" };
+
+  const [existing] = await db.execute(
+    "SELECT id FROM rt WHERE nomor_rt = ? AND id != ?",
+    [nomorRt, excludeId || 0]
+  );
+  if (existing.length > 0) return { error: "Nomor RT sudah terdaftar" };
+
+  return { rwId, nomorRt, ketuaRt, keterangan: keterangan || null };
+}
 
 // POST /rt/create - Simpan RT baru
 router.post("/create", async (req, res) => {
+  const back = safeReturn(req.body.return_to, "/rt");
   try {
     const db = req.app.locals.db;
-    const { rw_id, nomor_rt, ketua_rt, keterangan } = req.body;
-
-    // Validasi input
-    if (!rw_id || !nomor_rt || !ketua_rt) {
-      req.flash("error", "RW, Nomor RT dan Ketua RT harus diisi");
-      return res.redirect("/rt/create");
+    const data = await validateRt(db, req.body);
+    if (data.error) {
+      return reply(req, res, { ok: false, message: data.error, redirect: back });
     }
 
-    // Cek apakah nomor RT sudah ada
-    const [existing] = await db.execute(
-      "SELECT id FROM rt WHERE nomor_rt = ?",
-      [nomor_rt]
-    );
-
-    if (existing.length > 0) {
-      req.flash("error", "Nomor RT sudah terdaftar");
-      return res.redirect("/rt/create");
-    }
-
-    // Insert RT baru
     await db.execute(
       "INSERT INTO rt (rw_id, nomor_rt, ketua_rt, keterangan) VALUES (?, ?, ?, ?)",
-      [rw_id, nomor_rt, ketua_rt, keterangan || null]
+      [data.rwId, data.nomorRt, data.ketuaRt, data.keterangan]
     );
 
-    req.flash("success", `RT ${nomor_rt} berhasil ditambahkan`);
-    res.redirect("/rt");
+    reply(req, res, {
+      ok: true,
+      message: `${data.nomorRt} berhasil ditambahkan`,
+      redirect: back,
+    });
   } catch (error) {
     console.error("Error creating RT:", error);
-    req.flash("error", "Gagal menambahkan RT");
-    res.redirect("/rt/create");
+    reply(req, res, {
+      ok: false,
+      message: "Gagal menambahkan RT",
+      redirect: back,
+      status: 500,
+    });
   }
 });
 
-// GET /rt/:id/edit - Form edit RT
-router.get("/:id/edit", async (req, res) => {
-  try {
-    const db = req.app.locals.db;
-    const [rtRows] = await db.execute("SELECT * FROM rt WHERE id = ?", [
-      req.params.id,
-    ]);
-
-    if (rtRows.length === 0) {
-      req.flash("error", "RT tidak ditemukan");
-      return res.redirect("/rt");
-    }
-
-    const [rwRows] = await db.execute(
-      "SELECT id, nomor_rw, ketua_rw FROM rw ORDER BY nomor_rw ASC"
-    );
-
-    res.render("rt/edit", {
-      title: "Edit RT - Zakat Fitrah App",
-      user: req.session.user,
-      rt: rtRows[0],
-      rwList: rwRows,
-      error: req.flash("error"),
-      success: req.flash("success"),
-    });
-  } catch (error) {
-    console.error("Error fetching RT for edit:", error);
-    req.flash("error", "Gagal mengambil data RT");
-    res.redirect("/rt");
-  }
+// GET /rt/:id/edit - Form edit RT kini berupa modal di halaman daftar
+router.get("/:id/edit", (req, res) => {
+  if (!/^\d+$/.test(req.params.id)) return res.redirect("/rt");
+  res.redirect(`/rt?edit=${req.params.id}`);
 });
 
 // POST /rt/:id/edit - Update RT
 router.post("/:id/edit", async (req, res) => {
+  const back = safeReturn(req.body.return_to, "/rt");
   try {
     const db = req.app.locals.db;
-    const { rw_id, nomor_rt, ketua_rt, keterangan } = req.body;
-
-    // Validasi input
-    if (!rw_id || !nomor_rt || !ketua_rt) {
-      req.flash("error", "RW, Nomor RT dan Ketua RT harus diisi");
-      return res.redirect(`/rt/${req.params.id}/edit`);
+    const [current] = await db.execute("SELECT id FROM rt WHERE id = ?", [
+      req.params.id,
+    ]);
+    if (current.length === 0) {
+      return reply(req, res, {
+        ok: false,
+        message: "RT tidak ditemukan",
+        redirect: back,
+        status: 404,
+      });
     }
 
-    // Cek apakah nomor RT sudah ada (kecuali untuk RT yang sedang diedit)
-    const [existing] = await db.execute(
-      "SELECT id FROM rt WHERE nomor_rt = ? AND id != ?",
-      [nomor_rt, req.params.id]
-    );
-
-    if (existing.length > 0) {
-      req.flash("error", "Nomor RT sudah terdaftar");
-      return res.redirect(`/rt/${req.params.id}/edit`);
+    const data = await validateRt(db, req.body, req.params.id);
+    if (data.error) {
+      return reply(req, res, { ok: false, message: data.error, redirect: back });
     }
 
-    // Update RT
     await db.execute(
       "UPDATE rt SET rw_id = ?, nomor_rt = ?, ketua_rt = ?, keterangan = ? WHERE id = ?",
-      [rw_id, nomor_rt, ketua_rt, keterangan || null, req.params.id]
+      [data.rwId, data.nomorRt, data.ketuaRt, data.keterangan, req.params.id]
     );
 
-    req.flash("success", `RT ${nomor_rt} berhasil diperbarui`);
-    res.redirect("/rt");
+    reply(req, res, {
+      ok: true,
+      message: `${data.nomorRt} berhasil diperbarui`,
+      redirect: back,
+    });
   } catch (error) {
     console.error("Error updating RT:", error);
-    req.flash("error", "Gagal memperbarui RT");
-    res.redirect(`/rt/${req.params.id}/edit`);
+    reply(req, res, {
+      ok: false,
+      message: "Gagal memperbarui RT",
+      redirect: back,
+      status: 500,
+    });
   }
 });
 

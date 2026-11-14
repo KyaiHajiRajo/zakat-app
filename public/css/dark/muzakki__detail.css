@@ -1,0 +1,219 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/muzakki/detail.ejs */
+html.dark-mode .page-header {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 50%, #0f8a1f 100%)
+}
+html.dark-mode .page-header::before {
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)
+}
+html.dark-mode .btn-back {
+    background: rgba(255,255,255,0.2);
+    color: white
+}
+html.dark-mode .btn-back:hover {
+    background: rgba(255,255,255,0.3)
+}
+html.dark-mode .header-icon-box {
+    background: #0f1729;
+    color: white
+}
+html.dark-mode .header-text-box {
+    color: white
+}
+html.dark-mode .header-title-text {
+    color: white
+}
+html.dark-mode .header-subtitle-text {
+    color: rgba(255, 255, 255, 0.95)
+}
+html.dark-mode .btn-action-primary {
+    background: #0f1729;
+    color: #1EAF2F
+}
+html.dark-mode .btn-action-secondary {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.5)
+}
+html.dark-mode .btn-action-secondary:hover {
+    background: #0f1729;
+    color: #1EAF2F
+}
+html.dark-mode .stat-box {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .stat-box-primary .stat-decoration {
+    background: #1EAF2F
+}
+html.dark-mode .stat-box-success .stat-decoration {
+    background: #10b981
+}
+html.dark-mode .stat-box-info .stat-decoration {
+    background: #3b82f6
+}
+html.dark-mode .stat-box-warning .stat-decoration {
+    background: #f59e0b
+}
+html.dark-mode .stat-icon-wrapper {
+    color: white
+}
+html.dark-mode .stat-icon-primary {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%)
+}
+html.dark-mode .stat-icon-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%)
+}
+html.dark-mode .stat-icon-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)
+}
+html.dark-mode .stat-icon-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%)
+}
+html.dark-mode .stat-value-text {
+    color: #d8dfee
+}
+html.dark-mode .stat-label-text {
+    color: #7e8593
+}
+html.dark-mode .info-section {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .section-header-box {
+    background: linear-gradient(to right, #19222a, #121b31);
+    border-bottom: 1px solid #222b3f
+}
+html.dark-mode .section-icon {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white
+}
+html.dark-mode .section-icon-green {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%)
+}
+html.dark-mode .section-icon-purple {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)
+}
+html.dark-mode .section-icon-gray {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%)
+}
+html.dark-mode .section-title {
+    color: #d8dfee
+}
+html.dark-mode .section-subtitle {
+    color: #7e8593
+}
+html.dark-mode .muzakki-table-wrapper {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .muzakki-table thead tr {
+    background: linear-gradient(to right, #19222a, #1b252e);
+    border-bottom: 1px solid #222b3f
+}
+html.dark-mode .muzakki-table th {
+    color: #76869c
+}
+html.dark-mode .muzakki-table td {
+    color: #d5ddf0;
+    border-bottom: 1px solid #222a33
+}
+html.dark-mode .muzakki-table tbody tr:last-child td {
+    border-bottom: 0
+}
+html.dark-mode .muzakki-table .muzakki-item:hover {
+    background: #19222a
+}
+html.dark-mode .muzakki-row-number {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: #ffffff
+}
+html.dark-mode .muzakki-mobile-line {
+    border-bottom: 1px solid #222b3f;
+    color: #d5ddf0
+}
+html.dark-mode .muzakki-mobile-line:last-child {
+    border-bottom: 0
+}
+html.dark-mode .muzakki-mobile-line-index {
+    color: #16a34a
+}
+html.dark-mode .muzakki-mobile-line-text {
+    color: #d5ddf0
+}
+html.dark-mode .empty-mini {
+    color: #9ca3af
+}
+html.dark-mode .info-item {
+    background: #19222a;
+    border: 1px solid #222b3f
+}
+html.dark-mode .info-icon {
+    background: #15203a;
+    color: #868c9a
+}
+html.dark-mode .info-icon.icon-blue {
+    background: #14273f;
+    color: #628ef1
+}
+html.dark-mode .info-icon.icon-green {
+    background: #1a422d;
+    color: #06c087
+}
+html.dark-mode .info-icon.icon-yellow {
+    background: #493f16;
+    color: #f9992a
+}
+html.dark-mode .info-label {
+    color: #7e8593
+}
+html.dark-mode .info-value {
+    color: #d8dfee
+}
+html.dark-mode .info-value-highlight {
+    color: #4d80ef
+}
+html.dark-mode .info-value-success {
+    color: #059669
+}
+html.dark-mode .info-value-warning {
+    color: #d97706
+}
+html.dark-mode .badge-zakat-beras {
+    background: #1a422d;
+    color: #a0f9e0
+}
+html.dark-mode .badge-zakat-uang {
+    background: #14273f;
+    color: #728de7
+}
+html.dark-mode .sedekah-section {
+    border-top: 1px solid #222b3f
+}
+html.dark-mode .btn-sedekah-full {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none
+}
+html.dark-mode .catatan-box {
+    background: linear-gradient(135deg, #220f34, #25113a);
+    border-left: 4px solid #8b5cf6
+}
+html.dark-mode .catatan-box p {
+    color: #9b6ce2
+}
+html.dark-mode .sistem-icon {
+    background: #121b31;
+    color: #818896
+}
+html.dark-mode .sistem-label {
+    color: #7e8593
+}
+html.dark-mode .sistem-value {
+    color: #d8dfee
+}
+@media (max-width: 768px) {
+    html.dark-mode .muzakki-list-mobile {
+        background: #0f1729;
+        border: 1px solid #222b3f
+    }
+}

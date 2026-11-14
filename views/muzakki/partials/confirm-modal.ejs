@@ -1,0 +1,382 @@
+<%# Konfirmasi sebelum menyimpan muzakki. Dipanggil: window.MuzakkiConfirm.open(summary, onConfirm) %>
+<style>
+  #muzakki-confirm { --am-w: 620px; }
+
+  .mc-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .mc-chip {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface-2);
+    min-width: 0;
+  }
+
+  .mc-chip > i {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: rgba(30, 175, 47, 0.14);
+    color: var(--primary-dark);
+    font-size: 15px;
+  }
+
+  .mc-chip-text { min-width: 0; line-height: 1.3; }
+
+  .mc-chip-label {
+    display: block;
+    color: var(--muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .mc-chip strong {
+    display: block;
+    color: var(--ink);
+    font-size: 0.95rem;
+    font-weight: 700;
+    word-break: break-word;
+  }
+
+  .mc-chip small { display: block; color: var(--muted); font-size: 0.75rem; word-break: break-word; }
+
+  .mc-list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: -6px;
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .mc-count {
+    padding: 4px 11px;
+    border-radius: 999px;
+    background: rgba(30, 175, 47, 0.14);
+    color: var(--primary-darker);
+    font-size: 0.74rem;
+    font-weight: 700;
+  }
+
+  html.dark-mode .mc-count { color: #86efac; }
+
+  .mc-list {
+    list-style: none;
+    display: grid;
+    gap: 8px;
+    max-height: 272px;
+    padding-right: 2px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .mc-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 13px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+  }
+
+  .mc-avatar {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2bc23c 0%, var(--forest) 100%);
+    box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px rgba(201, 162, 75, 0.65);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .mc-name {
+    color: var(--ink);
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.3;
+    word-break: break-word;
+  }
+
+  .mc-sub { margin-top: 2px; color: var(--muted); font-size: 0.76rem; line-height: 1.35; }
+
+  .mc-amount { text-align: right; white-space: nowrap; }
+  .mc-amount strong { display: block; color: var(--ink); font-size: 0.92rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .mc-amount small { display: block; margin-top: 1px; color: var(--muted); font-size: 0.72rem; }
+
+  .mc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+
+  .mc-badge-ok { background: rgba(30, 175, 47, 0.14); color: var(--primary-darker); }
+  .mc-badge-warn { background: rgba(245, 158, 11, 0.16); color: #b45309; }
+  .mc-badge-none { background: var(--line); color: var(--muted); }
+  html.dark-mode .mc-badge-ok { color: #86efac; }
+  html.dark-mode .mc-badge-warn { color: #fcd34d; }
+
+  .mc-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 14px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 14px;
+    background: var(--surface-2);
+    color: var(--ink-2);
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .mc-note[hidden] { display: none; }
+  .mc-note i { margin-top: 2px; color: var(--gold); }
+
+  .mc-totals {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+    gap: 10px;
+  }
+
+  .mc-tile {
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(30, 175, 47, 0.08), rgba(201, 162, 75, 0.06)), var(--surface);
+  }
+
+  .mc-tile span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .mc-tile strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--ink);
+    font-size: 1.05rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  .mc-tile.is-warn strong { color: #b45309; }
+  .mc-tile.is-info strong { color: var(--primary-darker); }
+  html.dark-mode .mc-tile.is-warn strong { color: #fcd34d; }
+  html.dark-mode .mc-tile.is-info strong { color: #86efac; }
+
+  @media (max-width: 640px) {
+    .mc-meta { grid-template-columns: 1fr; }
+    .mc-item { grid-template-columns: auto minmax(0, 1fr); }
+    .mc-amount { grid-column: 2; text-align: left; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .mc-amount strong, .mc-amount small, .mc-amount .mc-badge { display: inline-flex; margin: 0; }
+    .mc-list { max-height: 240px; }
+    #muzakki-confirm .am-foot .am-btn { white-space: nowrap; padding-left: 14px; padding-right: 14px; }
+    #muzakki-confirm .am-foot .am-btn-primary { flex: 1.7; }
+  }
+</style>
+
+<div class="am" id="muzakki-confirm" role="dialog" aria-modal="true" aria-labelledby="mc-title" aria-hidden="true">
+  <div class="am-backdrop" data-modal-close></div>
+
+  <div class="am-panel">
+    <header class="am-head">
+      <span class="am-head-icon"><i class="fas fa-clipboard-check"></i></span>
+      <div class="am-head-text">
+        <h2 class="am-title" id="mc-title">Konfirmasi Data Muzakki</h2>
+        <p class="am-sub">Periksa kembali sebelum disimpan</p>
+      </div>
+      <button type="button" class="am-close" data-modal-close aria-label="Tutup"><i class="fas fa-xmark"></i></button>
+    </header>
+
+    <div class="am-body">
+      <div class="mc-meta">
+        <div class="mc-chip">
+          <i class="fas fa-location-dot"></i>
+          <div class="mc-chip-text">
+            <span class="mc-chip-label">RT</span>
+            <strong id="mc-rt">-</strong>
+            <small id="mc-rt-sub"></small>
+          </div>
+        </div>
+        <div class="mc-chip">
+          <i class="fas fa-calendar-day"></i>
+          <div class="mc-chip-text">
+            <span class="mc-chip-label">Tanggal</span>
+            <strong id="mc-date">-</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc-list-head">
+        <span>Daftar Muzakki</span>
+        <span class="mc-count" id="mc-count">0 orang</span>
+      </div>
+
+      <ul class="mc-list" id="mc-list"></ul>
+
+      <div class="mc-note" id="mc-note" hidden>
+        <i class="fas fa-note-sticky"></i>
+        <span></span>
+      </div>
+
+      <div class="mc-totals" id="mc-totals"></div>
+    </div>
+
+    <footer class="am-foot">
+      <button type="button" class="am-btn am-btn-ghost" data-modal-close id="mc-back"><i class="fas fa-pen"></i>Periksa Lagi</button>
+      <button type="button" class="am-btn am-btn-primary" id="mc-confirm"><i class="fas fa-check"></i><span>Ya, Simpan Data</span></button>
+    </footer>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var modal = document.getElementById("muzakki-confirm");
+    var confirmBtn = document.getElementById("mc-confirm");
+    var pending = null;
+
+    var rupiah = new Intl.NumberFormat("id-ID");
+    var kgFormat = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 });
+
+    function rp(n) { return "Rp " + rupiah.format(n); }
+
+    function el(tag, className, text) {
+      var node = document.createElement(tag);
+      if (className) { node.className = className; }
+      if (text !== undefined) { node.textContent = text; }
+      return node;
+    }
+
+    function fullName(item) {
+      var parts = [item.nama];
+      if (item.binBinti && item.orangTua) { parts.push(item.binBinti, item.orangTua); }
+      return parts.join(" ");
+    }
+
+    function statusOf(item) {
+      if (!item.bayar) { return { cls: "mc-badge-none", icon: "fa-minus", text: "Pembayaran belum dicatat" }; }
+      if (item.bayar >= item.uang) { return { cls: "mc-badge-ok", icon: "fa-check", text: "Lunas" }; }
+      return { cls: "mc-badge-warn", icon: "fa-triangle-exclamation", text: "Kurang " + rp(item.uang - item.bayar) };
+    }
+
+    function renderItem(item, index) {
+      var li = el("li", "mc-item");
+      li.appendChild(el("span", "mc-avatar", String(index + 1)));
+
+      var main = el("div");
+      main.appendChild(el("div", "mc-name", fullName(item)));
+      var sub = item.zakatNama || "";
+      if (item.jenis === "beras" && item.beras) { sub += (sub ? " · " : "") + kgFormat.format(item.beras) + " kg"; }
+      main.appendChild(el("div", "mc-sub", sub));
+      li.appendChild(main);
+
+      var amount = el("div", "mc-amount");
+      amount.appendChild(el("strong", "", rp(item.uang)));
+      if (item.bayar) { amount.appendChild(el("small", "", "Dibayar " + rp(item.bayar))); }
+      var st = statusOf(item);
+      var badge = el("span", "mc-badge " + st.cls);
+      badge.appendChild(el("i", "fas " + st.icon));
+      badge.appendChild(document.createTextNode(st.text));
+      amount.appendChild(badge);
+      li.appendChild(amount);
+
+      return li;
+    }
+
+    function tile(label, value, tone) {
+      var box = el("div", "mc-tile" + (tone ? " is-" + tone : ""));
+      box.appendChild(el("span", "", label));
+      box.appendChild(el("strong", "", value));
+      return box;
+    }
+
+    function open(summary, onConfirm) {
+      pending = onConfirm;
+
+      var rt = String(summary.rtLabel || "-").split(" - ");
+      document.getElementById("mc-rt").textContent = rt[0] || "-";
+      document.getElementById("mc-rt-sub").textContent = rt.slice(1).join(" - ");
+
+      document.getElementById("mc-date").textContent = new Date(summary.tanggal + "T00:00:00").toLocaleDateString("id-ID", {
+        weekday: "long", day: "numeric", month: "long", year: "numeric"
+      });
+
+      document.getElementById("mc-count").textContent = summary.items.length + " orang";
+
+      var list = document.getElementById("mc-list");
+      list.innerHTML = "";
+      summary.items.forEach(function (item, i) { list.appendChild(renderItem(item, i)); });
+
+      var note = document.getElementById("mc-note");
+      note.hidden = !summary.catatan;
+      note.querySelector("span").textContent = summary.catatan || "";
+
+      var totalUang = 0, totalBeras = 0, totalBayar = 0, kembalian = 0, kurang = 0;
+      summary.items.forEach(function (i) {
+        totalUang += i.uang;
+        totalBeras += i.beras;
+        totalBayar += i.bayar;
+        if (i.bayar > i.uang) { kembalian += i.bayar - i.uang; }
+        if (i.bayar && i.bayar < i.uang) { kurang += i.uang - i.bayar; }
+      });
+
+      var totals = document.getElementById("mc-totals");
+      totals.innerHTML = "";
+      totals.appendChild(tile("Total zakat", rp(totalUang)));
+      if (totalBeras > 0) { totals.appendChild(tile("Total beras", kgFormat.format(totalBeras) + " kg")); }
+      totals.appendChild(tile("Total dibayar", totalBayar ? rp(totalBayar) : "Belum dicatat", totalBayar ? "info" : ""));
+      if (kembalian > 0) { totals.appendChild(tile("Kembalian", rp(kembalian), "info")); }
+      if (kurang > 0) { totals.appendChild(tile("Kekurangan", rp(kurang), "warn")); }
+
+      confirmBtn.disabled = false;
+      confirmBtn.classList.remove("is-busy");
+      window.AppModal.open("muzakki-confirm");
+    }
+
+    confirmBtn.addEventListener("click", function () {
+      if (!pending) { return; }
+      confirmBtn.disabled = true;
+      confirmBtn.classList.add("is-busy");
+      pending();
+    });
+
+    // fokus ke "Ya, Simpan" setelah jeda singkat agar Enter dari form tidak langsung menyimpan
+    modal.addEventListener("am:open", function () {
+      setTimeout(function () { confirmBtn.focus(); }, 450);
+    });
+
+    window.addEventListener("pageshow", function () {
+      confirmBtn.disabled = false;
+      confirmBtn.classList.remove("is-busy");
+    });
+
+    window.MuzakkiConfirm = { open: open };
+  })();
+</script>

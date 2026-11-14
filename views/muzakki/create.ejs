@@ -1,12 +1,17 @@
 <%- include('../layouts/header', { title: 'Tambah Muzakki - Zakat Fitrah App' , bodyClass: 'bg-gray-50' ,
   currentPage: 'muzakki' }) %>
 
+<%
+  const presetRtId = typeof defaultRtId !== 'undefined' ? String(defaultRtId) : '';
+  const backUrl = typeof returnTo !== 'undefined' && returnTo ? returnTo : '/muzakki';
+%>
+
   <div class="page-wrapper">
     <!-- Modern Header -->
     <div class="page-header">
       <div class="header-content-wrapper">
         <div class="header-left-section">
-          <a href="/muzakki" class="back-button">
+          <a href="<%= backUrl %>" class="back-button">
             <i class="fas fa-arrow-left"></i>
           </a>
           <div class="header-icon-box">
@@ -29,6 +34,7 @@
     <!-- Form Container -->
     <div class="form-container">
       <form action="/muzakki" method="POST" id="muzakkiForm">
+        <input type="hidden" name="return_to" value="<%= backUrl === '/muzakki' ? '' : backUrl %>" />
         <!-- RT Selection Card -->
         <div class="form-card">
           <div class="card-header">
@@ -49,11 +55,14 @@
                 <select id="rt_id" name="rt_id" required class="form-select">
                   <option value="">Pilih RT</option>
                   <% rtList.forEach(function(rt) { %>
-                    <option value="<%= rt.id %>">
+                    <option value="<%= rt.id %>" <%= String(rt.id) === presetRtId ? 'selected' : '' %>>
                       <%= rt.nomor_rt %> - <%= rt.ketua_rt %>
                     </option>
                     <% }); %>
                 </select>
+                <% if (presetRtId) { %>
+                  <p class="form-hint"><i class="fas fa-circle-check" style="color:#1EAF2F"></i> RT terisi otomatis dari halaman sebelumnya</p>
+                <% } %>
               </div>
               <div class="form-group">
                 <label for="tanggal" class="form-label">
@@ -327,7 +336,7 @@
 
         <!-- Submit Buttons -->
         <div class="form-actions">
-          <a href="/muzakki" class="btn-secondary">
+          <a href="<%= backUrl %>" class="btn-secondary">
             <i class="fas fa-times"></i>
             <span>Batal</span>
           </a>
@@ -1732,70 +1741,46 @@
 
       e.preventDefault();
 
-      const totalUang = sections.reduce((acc, section) => {
-        return acc + (parseInt(getSectionField(section, '[data-field="jumlah_uang"]')?.value, 10) || 0);
-      }, 0);
-      const totalBeras = sections.reduce((acc, section) => {
-        return acc + (parseFloat(getSectionField(section, '[data-field="jumlah_beras_kg"]')?.value) || 0);
-      }, 0);
-      const totalBayar = sections.reduce((acc, section) => {
-        return acc + (parseInt(getSectionField(section, '[data-field="jumlah_bayar"]')?.value, 10) || 0);
-      }, 0);
-      const totalKembalian = Math.max(0, totalBayar - totalUang);
-      const namaPreview = sections
-        .map((section) => getSectionField(section, '[data-field="nama"]')?.value.trim())
-        .filter(Boolean)
-        .slice(0, 5)
-        .join(", ");
-      const ringkasanNama = sections.length > 5 ? `${namaPreview}, dan lainnya` : namaPreview;
+      const form = document.getElementById("muzakkiForm");
+      const rtSelect = document.getElementById("rt_id");
+      const rtOption = rtSelect.options[rtSelect.selectedIndex];
 
-      if (typeof Swal !== "undefined") {
-        Swal.fire({
-          title: "Konfirmasi Data",
-          html: `
-            <div style="text-align: left; padding: 10px;">
-              <p style="margin-bottom: 8px;"><strong>Apakah data yang dimasukkan sudah benar?</strong></p>
-              <ul style="list-style: none; padding-left: 0;">
-                <li style="margin-bottom: 6px;">Tanggal Zakat: <strong>${new Date(`${tanggal}T00:00:00`).toLocaleDateString("id-ID")}</strong></li>
-                <li style="margin-bottom: 6px;">Jumlah Muzakki: <strong>${sections.length} orang</strong></li>
-                <li style="margin-bottom: 6px;">Nama Muzakki: <strong>${ringkasanNama}</strong></li>
-                <li style="margin-bottom: 6px;">Total Zakat Uang: <strong>Rp ${formatToRupiah(totalUang)}</strong></li>
-                <li style="margin-bottom: 6px;">Total Zakat Beras: <strong>${formatKgValue(totalBeras)} kg</strong></li>
-                <li style="margin-bottom: 6px;">Total Bayar: <strong>Rp ${formatToRupiah(totalBayar)}</strong></li>
-                <li style="margin-bottom: 6px;">Estimasi Kembalian: <strong>Rp ${formatToRupiah(totalKembalian)}</strong></li>
-              </ul>
-            </div>
-          `,
-          icon: "question",
-          showCancelButton: true,
-          confirmButtonColor: "#1EAF2F",
-          cancelButtonColor: "#6b7280",
-          confirmButtonText: "Ya, Simpan",
-          cancelButtonText: "Periksa Lagi",
-          reverseButtons: true,
-        }).then((result) => {
-          if (result.isConfirmed) {
-            document.getElementById("muzakkiForm").submit();
-          }
-        });
-      } else {
-        const confirmMessage =
-          `Apakah data yang dimasukkan sudah benar?\n\n` +
-          `- Tanggal Zakat: ${new Date(`${tanggal}T00:00:00`).toLocaleDateString("id-ID")}\n` +
-          `- Jumlah Muzakki: ${sections.length} orang\n` +
-          `- Nama Muzakki: ${ringkasanNama}\n` +
-          `- Total Zakat Uang: Rp ${formatToRupiah(totalUang)}\n` +
-          `- Total Zakat Beras: ${formatKgValue(totalBeras)} kg\n` +
-          `- Total Bayar: Rp ${formatToRupiah(totalBayar)}\n` +
-          `- Estimasi Kembalian: Rp ${formatToRupiah(totalKembalian)}`;
+      const items = sections.map((section) => {
+        const field = (name) => getSectionField(section, `[data-field="${name}"]`);
+        const zakatSelect = field("master_zakat_id");
+        const zakatOption = zakatSelect ? zakatSelect.options[zakatSelect.selectedIndex] : null;
 
-        if (confirm(confirmMessage)) {
-          document.getElementById("muzakkiForm").submit();
-        }
+        return {
+          nama: field("nama").value.trim(),
+          binBinti: field("bin_binti") ? field("bin_binti").value : "",
+          orangTua: field("nama_orang_tua") ? field("nama_orang_tua").value.trim() : "",
+          zakatNama: zakatOption
+            ? zakatOption.getAttribute("data-nama") || zakatOption.textContent.trim()
+            : "",
+          jenis: field("jenis_zakat").value,
+          uang: parseInt(field("jumlah_uang").value, 10) || 0,
+          beras: parseFloat(field("jumlah_beras_kg").value) || 0,
+          bayar: parseInt(field("jumlah_bayar").value, 10) || 0,
+        };
+      });
+
+      const summary = {
+        rtLabel: rtOption ? rtOption.textContent.replace(/\s+/g, " ").trim() : "",
+        tanggal,
+        catatan: document.getElementById("catatan").value.trim(),
+        items,
+      };
+
+      if (window.MuzakkiConfirm) {
+        window.MuzakkiConfirm.open(summary, () => form.submit());
+      } else if (confirm("Simpan data muzakki?")) {
+        form.submit();
       }
 
       return false;
     });
   </script>
+
+  <%- include('partials/confirm-modal') %>
 
   <%- include('../layouts/footer') %>

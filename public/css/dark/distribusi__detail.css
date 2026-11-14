@@ -1,0 +1,231 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/distribusi/detail.ejs */
+html.dark-mode .dd-card {
+    background: var(--surface);
+    border: 1px solid var(--line)
+}
+html.dark-mode .dd-card-head {
+    border-bottom: 1px solid var(--line)
+}
+html.dark-mode .dd-card-icon {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-darker) 100%);
+    color: #fff
+}
+html.dark-mode .dd-card-title {
+    color: var(--ink)
+}
+html.dark-mode .dd-card-sub {
+    color: var(--muted)
+}
+html.dark-mode .dd-top {
+    background: radial-gradient(460px 170px at 100% -30%, rgba(30, 175, 47, 0.14), transparent 70%),
+      linear-gradient(135deg, rgba(201, 162, 75, 0.08), transparent 60%),
+      var(--surface)
+}
+html.dark-mode .dd-hero-label {
+    color: var(--muted)
+}
+html.dark-mode .dd-hero-amount {
+    color: var(--ink)
+}
+html.dark-mode .dd-chip {
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    color: var(--ink-2)
+}
+html.dark-mode .dd-chip.tone-warn {
+    background: rgba(245, 158, 11, 0.14);
+    border-color: rgba(245, 158, 11, 0.4);
+    color: #d6630b
+}
+html.dark-mode .dd-chip.tone-info {
+    background: rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.38);
+    color: #5a7fe9
+}
+html.dark-mode .dd-chip.tone-ok {
+    background: rgba(30, 175, 47, 0.14);
+    border-color: rgba(30, 175, 47, 0.4);
+    color: var(--primary-darker)
+}
+html.dark-mode .dd-chip.tone-err {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.38);
+    color: #e55252
+}
+html.dark-mode .dd-meta {
+    border-top: 1px solid var(--line)
+}
+html.dark-mode .dd-meta-item {
+    border-right: 1px solid var(--line)
+}
+html.dark-mode .dd-meta-item:last-child {
+    border-right: 0
+}
+html.dark-mode .dd-meta-label {
+    color: var(--muted)
+}
+html.dark-mode .dd-meta-value {
+    color: var(--ink)
+}
+html.dark-mode .dd-meta-value small {
+    color: var(--muted)
+}
+html.dark-mode .dd-toolbar {
+    background: var(--surface-2);
+    border-top: 1px solid var(--line)
+}
+html.dark-mode .dd-btn {
+    border: 1px solid transparent
+}
+html.dark-mode .dd-btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-darker) 100%);
+    color: #fff
+}
+html.dark-mode .dd-btn-outline {
+    background: var(--surface);
+    border-color: var(--line-strong);
+    color: var(--ink-2)
+}
+html.dark-mode .dd-btn-outline i {
+    color: var(--primary-dark)
+}
+html.dark-mode .dd-btn-outline:hover {
+    background: rgba(30, 175, 47, 0.07);
+    border-color: rgba(30, 175, 47, 0.55);
+    color: var(--ink)
+}
+html.dark-mode .dd-btn-warn {
+    background: var(--surface);
+    border-color: rgba(245, 158, 11, 0.5);
+    color: #d6630b
+}
+html.dark-mode .dd-btn-warn:hover {
+    background: rgba(245, 158, 11, 0.12)
+}
+html.dark-mode .dd-btn-danger {
+    background: var(--surface);
+    border-color: rgba(239, 68, 68, 0.45);
+    color: #e35353
+}
+html.dark-mode .dd-btn-danger:hover {
+    background: rgba(239, 68, 68, 0.1)
+}
+html.dark-mode .dd-step::before {
+    background: var(--line-strong)
+}
+html.dark-mode .dd-step.is-done::before, html.dark-mode .dd-step.is-current::before {
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-dark))
+}
+html.dark-mode .dd-step.is-err::before {
+    background: linear-gradient(90deg, var(--primary-color), #dc2626)
+}
+html.dark-mode .dd-step-dot {
+    background: var(--surface);
+    border: 2px solid var(--line-strong);
+    color: var(--faint)
+}
+html.dark-mode .dd-step.is-done .dd-step-dot {
+    background: var(--primary-color);
+    border-color: transparent;
+    color: #fff
+}
+html.dark-mode .dd-step.is-current .dd-step-dot {
+    background: linear-gradient(135deg, #2bc23c 0%, var(--primary-darker) 100%);
+    border-color: transparent;
+    color: #111827
+}
+html.dark-mode .dd-step.is-current.is-err .dd-step-dot {
+    background: linear-gradient(135deg, #f26a6a 0%, #dc2626 100%)
+}
+html.dark-mode .dd-step-label {
+    color: var(--muted)
+}
+html.dark-mode .dd-step.is-done .dd-step-label, html.dark-mode .dd-step.is-current .dd-step-label {
+    color: var(--ink)
+}
+html.dark-mode .dd-step-date {
+    color: var(--faint)
+}
+html.dark-mode .dd-step.is-current .dd-step-date, html.dark-mode .dd-step.is-done .dd-step-date {
+    color: var(--muted)
+}
+html.dark-mode .dd-avatar {
+    background: linear-gradient(135deg, #2bc23c 0%, var(--forest) 100%);
+    color: #111827
+}
+html.dark-mode .dd-person-name {
+    color: var(--ink)
+}
+html.dark-mode .dd-proof {
+    background: var(--surface-2);
+    border: 0
+}
+html.dark-mode .dd-proof-hint {
+    background: rgba(8, 20, 12, 0.65);
+    color: #fff
+}
+html.dark-mode .dd-empty {
+    background: var(--surface-2);
+    border: 1px dashed var(--line-strong);
+    color: var(--muted)
+}
+html.dark-mode .dd-empty i {
+    color: var(--faint)
+}
+html.dark-mode .dd-empty strong {
+    color: var(--ink-2)
+}
+html.dark-mode .dd-history-item {
+    background: var(--surface-2);
+    border: 1px solid var(--line)
+}
+html.dark-mode .dd-history-item:hover {
+    background: rgba(30, 175, 47, 0.06);
+    border-color: rgba(30, 175, 47, 0.45)
+}
+html.dark-mode .dd-history-item > i {
+    color: var(--faint)
+}
+html.dark-mode .dd-history-date {
+    color: var(--ink)
+}
+html.dark-mode .dd-history-amount {
+    color: var(--ink)
+}
+html.dark-mode .dd-history-kind {
+    color: var(--muted)
+}
+html.dark-mode .dd-mini.tone-warn {
+    background: rgba(245, 158, 11, 0.16);
+    color: #d6630b
+}
+html.dark-mode .dd-mini.tone-info {
+    background: rgba(59, 130, 246, 0.14);
+    color: #5a7fe9
+}
+html.dark-mode .dd-mini.tone-ok {
+    background: rgba(30, 175, 47, 0.16);
+    color: var(--primary-darker)
+}
+html.dark-mode .dd-mini.tone-err {
+    background: rgba(239, 68, 68, 0.14);
+    color: #e55252
+}
+@media (max-width: 900px) {
+    html.dark-mode .dd-meta-item:nth-child(2) {
+        border-right: 0
+    }
+}
+@media (max-width: 900px) {
+    html.dark-mode .dd-meta-item:nth-child(-n + 2) {
+        border-bottom: 1px solid var(--line)
+    }
+}
+html.dark-mode #bukti-modal .am-body {
+    background: var(--surface-2)
+}
+html.dark-mode [style="background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line)"] {
+    background: var(--surface-2) !important;
+    color: var(--ink-2) !important;
+    border: 1px solid var(--line) !important
+}

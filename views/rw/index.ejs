@@ -594,7 +594,7 @@
           Kelola wilayah Rukun Warga, pantau statistik RT dan muzakki, lalu lakukan pemeliharaan data dengan cepat.
         </p>
       </div>
-      <a href="/rw/create" class="rw-index-add-btn">
+      <a href="/rw?new=1" data-modal-open="rw-modal" data-mode="create" class="rw-index-add-btn">
         <i class="fas fa-plus"></i>Tambah RW
       </a>
     </header>
@@ -677,7 +677,7 @@
                   <a href="/rw/<%= rw.id %>/detail" class="rw-index-action rw-index-action-view" title="Detail RW">
                     <i class="fas fa-eye"></i>
                   </a>
-                  <a href="/rw/<%= rw.id %>/edit" class="rw-index-action rw-index-action-edit" title="Edit RW">
+                  <a href="/rw?edit=<%= rw.id %>" data-modal-open="rw-modal" data-mode="edit" data-id="<%= rw.id %>" class="rw-index-action rw-index-action-edit" title="Edit RW">
                     <i class="fas fa-pen"></i>
                   </a>
                   <form method="POST" action="/rw/<%= rw.id %>/delete" class="inline delete-form" data-rw-nomor="<%= rw.nomor_rw %>">
@@ -705,7 +705,7 @@
               <a href="/rw/<%= rw.id %>/detail" class="rw-index-action rw-index-action-view" title="Detail RW">
                 <i class="fas fa-eye"></i>
               </a>
-              <a href="/rw/<%= rw.id %>/edit" class="rw-index-action rw-index-action-edit" title="Edit RW">
+              <a href="/rw?edit=<%= rw.id %>" data-modal-open="rw-modal" data-mode="edit" data-id="<%= rw.id %>" class="rw-index-action rw-index-action-edit" title="Edit RW">
                 <i class="fas fa-pen"></i>
               </a>
               <form method="POST" action="/rw/<%= rw.id %>/delete" class="inline delete-form" data-rw-nomor="<%= rw.nomor_rw %>">
@@ -734,7 +734,7 @@
         <i class="fas fa-building"></i>
         <h3>Belum Ada Data RW</h3>
         <p>Mulai dengan menambahkan data RW pertama agar struktur wilayah dan data RT bisa dikelola.</p>
-        <a href="/rw/create" class="rw-index-add-btn">
+        <a href="/rw?new=1" data-modal-open="rw-modal" data-mode="create" class="rw-index-add-btn">
           <i class="fas fa-plus"></i>Tambah RW Pertama
         </a>
       </div>
@@ -769,26 +769,28 @@
   });
 </script>
 
-<% if (error) { %>
+<% const errorMessage = [].concat(error || []).filter(Boolean).join(' '); if (errorMessage) { %>
 <script>
   Swal.fire({
     icon: "error",
     title: "Error",
-    text: <%- JSON.stringify(error) %>,
+    text: <%- JSON.stringify(errorMessage).replace(/</g, '\\u003c') %>,
     confirmButtonText: "OK",
   });
 </script>
 <% } %>
 
-<% if (success) { %>
+<% const successMessage = [].concat(success || []).filter(Boolean).join(' '); if (successMessage) { %>
 <script>
   Swal.fire({
     icon: "success",
     title: "Berhasil",
-    text: <%- JSON.stringify(success) %>,
+    text: <%- JSON.stringify(successMessage).replace(/</g, '\\u003c') %>,
     confirmButtonText: "OK",
   });
 </script>
 <% } %>
+
+<%- include('partials/rw-modal') %>
 
 <%- include('../layouts/footer') %>

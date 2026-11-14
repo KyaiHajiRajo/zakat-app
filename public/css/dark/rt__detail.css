@@ -1,0 +1,246 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/rt/detail.ejs */
+html.dark-mode .rtd-hero {
+    background: linear-gradient(128deg, #0f3d73 0%, #12588f 45%, #0f766e 100%);
+    color: #f8fbff
+}
+html.dark-mode .rtd-back-link {
+    color: #dbeafe
+}
+html.dark-mode .rtd-back-link:hover {
+    color: #ffffff
+}
+html.dark-mode .rtd-subtitle {
+    color: rgba(240, 249, 255, 0.92)
+}
+html.dark-mode .rtd-meta span {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.28)
+}
+html.dark-mode .rtd-btn {
+    border: none
+}
+html.dark-mode .rtd-btn-solid {
+    background: #0f1729;
+    color: #597fe9
+}
+html.dark-mode .rtd-btn-soft {
+    background: rgba(255, 255, 255, 0.16);
+    color: #f0f9ff;
+    border: 1px solid rgba(255, 255, 255, 0.35)
+}
+html.dark-mode .rtd-btn-danger {
+    background: #3c1313;
+    color: #e75f5f;
+    border: 1px solid #4b1a1a
+}
+html.dark-mode .rtd-overview-card {
+    background: #0f1729;
+    border: 1px solid #27313c
+}
+html.dark-mode .rtd-overview-icon {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    color: #ffffff
+}
+html.dark-mode .rtd-overview-icon-green {
+    background: linear-gradient(135deg, #0f766e, #0d9488)
+}
+html.dark-mode .rtd-overview-head h2 {
+    color: #d5ddf0
+}
+html.dark-mode .rtd-overview-head p {
+    color: #76869c
+}
+html.dark-mode .rtd-info-item {
+    background: #19222a;
+    border: 1px solid #262e39
+}
+html.dark-mode .rtd-info-item span {
+    color: #76869c
+}
+html.dark-mode .rtd-info-item strong {
+    color: #d5ddf0
+}
+html.dark-mode .rtd-progress-label {
+    color: #7386a1
+}
+html.dark-mode .rtd-progress-bar {
+    background: #212a37
+}
+html.dark-mode .rtd-progress-bar span {
+    background: linear-gradient(90deg, #16a34a, #10b981)
+}
+html.dark-mode .rtd-progress-summary div {
+    background: #19222a;
+    border: 1px solid #262e39
+}
+html.dark-mode .rtd-progress-summary small {
+    color: #76869c
+}
+html.dark-mode .rtd-progress-summary strong {
+    color: #d5ddf0
+}
+html.dark-mode .rtd-stat-card {
+    background: #0f1729;
+    border: 1px solid #252f38
+}
+html.dark-mode .rtd-stat-card-split {
+    background: linear-gradient(135deg, #0f1e33 0%, #0f1729 65%);
+    border-color: #1c2941
+}
+html.dark-mode .rtd-stat-icon {
+    color: #ffffff
+}
+html.dark-mode .rtd-stat-icon-blue {
+    background: linear-gradient(135deg, #2d6cdf, #2f5fb5)
+}
+html.dark-mode .rtd-stat-icon-teal {
+    background: linear-gradient(135deg, #0ea5a7, #0f766e)
+}
+html.dark-mode .rtd-stat-icon-green {
+    background: linear-gradient(135deg, #16a34a, #15803d)
+}
+html.dark-mode .rtd-stat-icon-cyan {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7)
+}
+html.dark-mode .rtd-stat-icon-orange {
+    background: linear-gradient(135deg, #f97316, #ea580c)
+}
+html.dark-mode .rtd-stat-icon-indigo {
+    background: linear-gradient(135deg, #6366f1, #4f46e5)
+}
+html.dark-mode .rtd-stat-value {
+    color: #d5ddf0
+}
+html.dark-mode .rtd-stat-label {
+    color: #76869c
+}
+html.dark-mode .rtd-stat-split-title {
+    color: #a9b9d1
+}
+html.dark-mode .rtd-stat-split-label-uang {
+    background: #3c1313;
+    color: #e75f5f
+}
+html.dark-mode .rtd-stat-split-label-beras {
+    background: #173d24;
+    color: #9ae9b8
+}
+html.dark-mode .rtd-stat-split-value {
+    color: #d5ddf0
+}
+html.dark-mode .rtd-list-panel {
+    background: #0f1729;
+    border: 1px solid #27313c
+}
+html.dark-mode .rtd-list-head {
+    background: linear-gradient(180deg, #0f1e33 0%, #1b252e 100%);
+    border-bottom: 1px solid #262e39
+}
+html.dark-mode .rtd-list-head h2 {
+    color: #d5ddf0
+}
+html.dark-mode .rtd-list-head p {
+    color: #76869c
+}
+html.dark-mode .rtd-list-tabs {
+    background: #19222a;
+    border: 1px solid #2f3946
+}
+html.dark-mode .rtd-list-tab {
+    background: transparent;
+    border: none;
+    color: #7386a1
+}
+html.dark-mode .rtd-list-tab:hover {
+    background: #102137;
+    color: #6487ea
+}
+html.dark-mode .rtd-list-tab.is-active {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #ffffff
+}
+html.dark-mode .rtd-table th, html.dark-mode .rtd-table td {
+    border-bottom: 1px solid #222b33
+}
+html.dark-mode .rtd-table th {
+    background: #19222a;
+    color: #7c8ea7
+}
+html.dark-mode .rtd-table tr:hover {
+    background: #0f1e33
+}
+html.dark-mode .rtd-name-icon {
+    background: #14273f;
+    color: #6c8deb
+}
+html.dark-mode .rtd-name-icon-mustahik {
+    background: #1a1338;
+    color: #9c6de5
+}
+html.dark-mode .rtd-name-cell strong {
+    color: #d5ddf0
+}
+html.dark-mode .rtd-name-cell small {
+    color: #76869c
+}
+html.dark-mode .rtd-stack-text strong {
+    color: #d5ddf0
+}
+html.dark-mode .rtd-stack-text small {
+    color: #76869c
+}
+html.dark-mode .rtd-highlight {
+    color: #89f0e8 !important
+}
+html.dark-mode .rtd-badge-success {
+    background: #173d24;
+    color: #9ae9b8
+}
+html.dark-mode .rtd-badge-info {
+    background: #14273f;
+    color: #6c8deb
+}
+html.dark-mode .rtd-badge-danger {
+    background: #3c1313;
+    color: #e75f5f
+}
+html.dark-mode .rtd-badge-purple {
+    background: #1a1338;
+    color: #9c6de5
+}
+html.dark-mode .rtd-icon-btn {
+    border: none
+}
+html.dark-mode .rtd-icon-btn-edit {
+    background: #14273f;
+    color: #6c8deb
+}
+html.dark-mode .rtd-icon-btn-delete {
+    background: #3c1313;
+    color: #e75f5f
+}
+html.dark-mode .rtd-mobile-card {
+    background: #0f1729;
+    border: 1px solid #262e39
+}
+html.dark-mode .rtd-mobile-top h3 {
+    color: #d5ddf0
+}
+html.dark-mode .rtd-mobile-top p {
+    color: #76869c
+}
+html.dark-mode .rtd-mobile-grid small {
+    color: #76869c
+}
+html.dark-mode .rtd-mobile-grid strong {
+    color: #d5ddf0
+}
+html.dark-mode .rtd-empty-state i {
+    color: #94a3b8
+}
+html.dark-mode .rtd-empty-state h3 {
+    color: #d5ddf0
+}
+html.dark-mode .rtd-empty-state p {
+    color: #76869c
+}

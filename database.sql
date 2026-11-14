@@ -120,7 +120,7 @@ INSERT INTO rt (nomor_rt, ketua_rt, keterangan) VALUES
 -- Sample Users (Password semua: admin123)
 -- Hash untuk 'admin123' = $2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi
 INSERT INTO users (name, nomor_wa, password, role) VALUES
-('Admin Zakat', '08123456789', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin'),
+('Admin Zakat', '081935679330', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin'),
 ('Panitia RT 01', '08234567890', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'panitia'),
 ('Panitia RT 02', '08345678901', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'panitia'),
 ('Panitia RT 03', '08456789012', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'panitia');

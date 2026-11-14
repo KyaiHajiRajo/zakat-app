@@ -1,0 +1,442 @@
+<%- include('../layouts/header', {
+  title: 'Profil Saya - Zakat Fitrah App',
+  bodyClass: 'bg-gray-50',
+  currentPage: 'profile'
+}) %>
+
+<style>
+  .profile-grid {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .profile-card {
+    border-radius: var(--card-radius);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .profile-summary {
+    padding: 28px 22px 22px;
+    text-align: center;
+  }
+
+  .profile-avatar {
+    width: 88px;
+    height: 88px;
+    margin: 0 auto 14px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2bc23c 0%, var(--forest) 100%);
+    box-shadow: 0 0 0 4px var(--surface), 0 0 0 6px rgba(201, 162, 75, 0.75), 0 18px 30px -12px rgba(10, 77, 29, 0.55);
+    color: #fff;
+    font-size: 2.2rem;
+    font-weight: 700;
+  }
+
+  .profile-name {
+    color: var(--ink);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    word-break: break-word;
+  }
+
+  .profile-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--gold-soft);
+    border: 1px solid rgba(201, 162, 75, 0.4);
+    color: var(--ink-2);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .profile-facts {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    display: grid;
+    gap: 14px;
+    text-align: left;
+  }
+
+  .profile-fact {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .profile-fact-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--primary-dark);
+    font-size: 14px;
+  }
+
+  .profile-fact-label {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .profile-fact-value {
+    margin-top: 2px;
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  .profile-stack {
+    display: grid;
+    gap: 16px;
+  }
+
+  .profile-section-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .profile-section-icon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-darker) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 8px 14px -6px rgba(30, 175, 47, 0.5);
+    color: #fff;
+    font-size: 15px;
+  }
+
+  .profile-section-title {
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .profile-section-sub {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .profile-form {
+    padding: 20px;
+    display: grid;
+    gap: 16px;
+  }
+
+  .profile-form-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .pf-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--ink-2);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .pf-control {
+    position: relative;
+  }
+
+  .pf-control > i.pf-lead {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 0.9rem;
+    pointer-events: none;
+  }
+
+  .pf-control input {
+    width: 100%;
+    height: 46px;
+    padding-left: 42px;
+    padding-right: 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    background: var(--surface-2);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.92rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+
+  .pf-control input:focus {
+    background: var(--surface);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(30, 175, 47, 0.14);
+  }
+
+  .pf-control.has-toggle input { padding-right: 46px; }
+
+  .pf-toggle {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .pf-toggle:hover { color: var(--primary-dark); background: rgba(30, 175, 47, 0.1); }
+
+  .pf-hint {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+
+  .pf-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 4px;
+  }
+
+  .pf-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-darker) 100%);
+    box-shadow: 0 12px 22px -10px rgba(30, 175, 47, 0.7);
+    color: #fff;
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, filter 0.2s ease;
+  }
+
+  .pf-submit:hover { filter: brightness(1.06); box-shadow: 0 16px 26px -10px rgba(30, 175, 47, 0.8); }
+  .pf-submit:disabled { cursor: progress; filter: saturate(0.6); }
+
+  .pf-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    border: 1px solid;
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+
+  .pf-alert i { margin-top: 2px; }
+  .pf-alert-ok { background: rgba(30, 175, 47, 0.1); border-color: rgba(30, 175, 47, 0.35); color: var(--primary-darker); }
+  .pf-alert-err { background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.35); color: #b91c1c; }
+  html.dark-mode .pf-alert-ok { color: #86efac; }
+  html.dark-mode .pf-alert-err { color: #fca5a5; }
+
+  @media (max-width: 1000px) {
+    .profile-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 560px) {
+    .profile-form-row { grid-template-columns: 1fr; }
+    .pf-actions { justify-content: stretch; }
+    .pf-submit { width: 100%; justify-content: center; }
+  }
+</style>
+
+<%
+  const okMessages = (typeof success_msg !== 'undefined' && Array.isArray(success_msg)) ? success_msg : [];
+  const errMessages = (typeof error_msg !== 'undefined' && Array.isArray(error_msg)) ? error_msg : [];
+  const roleLabel = profile.role === 'admin' ? 'Admin' : 'Panitia';
+  const joined = profile.created_at
+    ? new Date(profile.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '-';
+%>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <div class="header-content-wrapper">
+      <div class="header-left-section">
+        <div class="header-icon-box"><i class="fas fa-user"></i></div>
+        <div>
+          <h1 class="header-title-text">Profil Saya</h1>
+          <p class="header-subtitle-text">Kelola informasi akun dan keamanan login Anda</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% okMessages.forEach(function (msg) { %>
+    <div class="pf-alert pf-alert-ok" role="status"><i class="fas fa-circle-check"></i><span><%= msg %></span></div>
+  <% }); %>
+  <% errMessages.forEach(function (msg) { %>
+    <div class="pf-alert pf-alert-err" role="alert"><i class="fas fa-circle-exclamation"></i><span><%= msg %></span></div>
+  <% }); %>
+
+  <div class="profile-grid">
+    <aside class="profile-card profile-summary">
+      <div class="profile-avatar"><%= profile.name.charAt(0).toUpperCase() %></div>
+      <div class="profile-name"><%= profile.name %></div>
+      <div class="profile-role"><i class="fas fa-shield-halved"></i><%= roleLabel %></div>
+
+      <div class="profile-facts">
+        <div class="profile-fact">
+          <span class="profile-fact-icon"><i class="fab fa-whatsapp"></i></span>
+          <div>
+            <div class="profile-fact-label">Nomor WhatsApp</div>
+            <div class="profile-fact-value"><%= profile.nomor_wa %></div>
+          </div>
+        </div>
+        <div class="profile-fact">
+          <span class="profile-fact-icon"><i class="fas fa-calendar-check"></i></span>
+          <div>
+            <div class="profile-fact-label">Terdaftar sejak</div>
+            <div class="profile-fact-value"><%= joined %></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="profile-stack">
+      <section class="profile-card">
+        <div class="profile-section-head">
+          <span class="profile-section-icon"><i class="fas fa-id-card"></i></span>
+          <div>
+            <div class="profile-section-title">Informasi Akun</div>
+            <div class="profile-section-sub">Nomor WhatsApp dipakai untuk login</div>
+          </div>
+        </div>
+        <form class="profile-form" method="POST" action="/users/profile/info">
+          <div class="profile-form-row">
+            <div class="pf-field">
+              <label for="pf-name">Nama lengkap</label>
+              <div class="pf-control">
+                <i class="fas fa-user pf-lead"></i>
+                <input id="pf-name" name="name" type="text" maxlength="100" required value="<%= profile.name %>" autocomplete="name">
+              </div>
+            </div>
+            <div class="pf-field">
+              <label for="pf-wa">Nomor WhatsApp</label>
+              <div class="pf-control">
+                <i class="fab fa-whatsapp pf-lead"></i>
+                <input id="pf-wa" name="nomor_wa" type="tel" inputmode="numeric" pattern="[0-9]{10,15}" title="10-15 digit angka" required value="<%= profile.nomor_wa %>" autocomplete="tel">
+              </div>
+            </div>
+          </div>
+          <div class="pf-actions">
+            <button type="submit" class="pf-submit"><i class="fas fa-floppy-disk"></i>Simpan perubahan</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="profile-card">
+        <div class="profile-section-head">
+          <span class="profile-section-icon"><i class="fas fa-key"></i></span>
+          <div>
+            <div class="profile-section-title">Ubah Password</div>
+            <div class="profile-section-sub">Gunakan password yang kuat dan jangan dibagikan</div>
+          </div>
+        </div>
+        <form class="profile-form" method="POST" action="/users/profile/password" id="pwForm">
+          <div class="pf-field">
+            <label for="pf-current">Password lama</label>
+            <div class="pf-control has-toggle">
+              <i class="fas fa-lock pf-lead"></i>
+              <input id="pf-current" name="current_password" type="password" required autocomplete="current-password">
+              <button type="button" class="pf-toggle" data-toggle="pf-current" aria-label="Tampilkan password"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+          <div class="profile-form-row">
+            <div class="pf-field">
+              <label for="pf-new">Password baru</label>
+              <div class="pf-control has-toggle">
+                <i class="fas fa-lock pf-lead"></i>
+                <input id="pf-new" name="new_password" type="password" minlength="6" required autocomplete="new-password">
+                <button type="button" class="pf-toggle" data-toggle="pf-new" aria-label="Tampilkan password"><i class="fas fa-eye"></i></button>
+              </div>
+              <div class="pf-hint">Minimal 6 karakter</div>
+            </div>
+            <div class="pf-field">
+              <label for="pf-confirm">Konfirmasi password baru</label>
+              <div class="pf-control has-toggle">
+                <i class="fas fa-lock pf-lead"></i>
+                <input id="pf-confirm" name="confirm_password" type="password" minlength="6" required autocomplete="new-password">
+                <button type="button" class="pf-toggle" data-toggle="pf-confirm" aria-label="Tampilkan password"><i class="fas fa-eye"></i></button>
+              </div>
+            </div>
+          </div>
+          <div class="pf-actions">
+            <button type="submit" class="pf-submit"><i class="fas fa-shield-halved"></i>Ubah password</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll(".pf-toggle").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var input = document.getElementById(btn.getAttribute("data-toggle"));
+      var show = input.type === "password";
+      input.type = show ? "text" : "password";
+      btn.firstElementChild.className = show ? "fas fa-eye-slash" : "fas fa-eye";
+      btn.setAttribute("aria-label", show ? "Sembunyikan password" : "Tampilkan password");
+    });
+  });
+
+  var pwForm = document.getElementById("pwForm");
+  pwForm.addEventListener("submit", function (e) {
+    var a = document.getElementById("pf-new");
+    var b = document.getElementById("pf-confirm");
+    if (a.value !== b.value) {
+      e.preventDefault();
+      b.setCustomValidity("Konfirmasi password tidak cocok");
+      b.reportValidity();
+    }
+  });
+  document.getElementById("pf-confirm").addEventListener("input", function () {
+    this.setCustomValidity("");
+  });
+
+  document.getElementById("pf-wa").addEventListener("input", function (e) {
+    e.target.value = e.target.value.replace(/[^\d]/g, "");
+  });
+</script>
+
+<%- include('../layouts/footer') %>

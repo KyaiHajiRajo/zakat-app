@@ -26,7 +26,7 @@ bodyClass: 'bg-gray-50', currentPage: 'rt' }) %>
           <i class="fas fa-building mr-2"></i>
           <span>Kelola RW</span>
         </a>
-        <a href="/rt/create" class="btn-action btn-action-secondary">
+        <a href="/rt?new=1" data-modal-open="rt-modal" data-mode="create" class="btn-action btn-action-secondary">
           <i class="fas fa-plus mr-2"></i>
           <span>Tambah RT</span>
         </a>
@@ -109,7 +109,7 @@ bodyClass: 'bg-gray-50', currentPage: 'rt' }) %>
           </div>
           <h3 class="empty-state-title">Belum ada data RT</h3>
           <p class="empty-state-desc">Mulai dengan menambahkan data RT pertama</p>
-          <a href="/rt/create" class="btn-empty-state">
+          <a href="/rt?new=1" data-modal-open="rt-modal" data-mode="create" class="btn-empty-state">
             <i class="fas fa-plus mr-2"></i>
             Tambah RT
           </a>
@@ -185,7 +185,7 @@ bodyClass: 'bg-gray-50', currentPage: 'rt' }) %>
                       <a href="/rt/<%= rt.id %>/detail" class="btn-icon btn-icon-info" title="Detail RT">
                         <i class="fas fa-eye"></i>
                       </a>
-                      <a href="/rt/<%= rt.id %>/edit" class="btn-icon btn-icon-primary" title="Edit RT">
+                      <a href="/rt?edit=<%= rt.id %>" data-modal-open="rt-modal" data-mode="edit" data-id="<%= rt.id %>" class="btn-icon btn-icon-primary" title="Edit RT">
                         <i class="fas fa-edit"></i>
                       </a>
                       <form method="POST" action="/rt/<%= rt.id %>/delete" class="inline-form" id="delete-form-<%= rt.id %>">
@@ -855,7 +855,7 @@ bodyClass: 'bg-gray-50', currentPage: 'rt' }) %>
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
-      cancelButtonColor: #6b7280',
+      cancelButtonColor: '#6b7280',
       confirmButtonText: 'Ya, Hapus',
       cancelButtonText: 'Batal',
       customClass: {
@@ -884,5 +884,7 @@ bodyClass: 'bg-gray-50', currentPage: 'rt' }) %>
     });
   });
 </script>
+
+<%- include('partials/rt-modal') %>
 
 <%- include('../layouts/footer') %>

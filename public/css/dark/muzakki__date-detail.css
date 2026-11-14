@@ -1,0 +1,91 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/muzakki/date-detail.ejs */
+html.dark-mode .page-header {
+    background: linear-gradient(135deg, #0f766e 0%, #16a34a 100%);
+    color: #f7f7f7
+}
+html.dark-mode .btn-back {
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #fff
+}
+html.dark-mode .page-subtitle {
+    color: rgba(255, 255, 255, 0.92)
+}
+html.dark-mode .rt-nav-tabs-section {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .rt-nav-tab {
+    background: #19222a;
+    border: 1px solid #29334c
+}
+html.dark-mode .rt-nav-tab:hover {
+    background: #15331e;
+    border-color: #2d6542
+}
+html.dark-mode .rt-nav-tab-name {
+    color: #d5ddf0
+}
+html.dark-mode .rt-nav-tab-active {
+    background: #16a34a;
+    border-color: #22c55e
+}
+html.dark-mode .rt-nav-tab-active .rt-nav-tab-name {
+    color: #ffffff
+}
+html.dark-mode .stat-card, html.dark-mode .table-card {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .stat-label {
+    color: #7e8593
+}
+html.dark-mode .stat-value {
+    color: #d8dfee
+}
+html.dark-mode .table-title {
+    color: #d8dfee
+}
+html.dark-mode .table-subtitle {
+    color: #7e8593
+}
+html.dark-mode .data-table th, html.dark-mode .data-table td {
+    border-bottom: 1px solid #222b3f
+}
+html.dark-mode .data-table th {
+    background: #19222a;
+    color: #868d9a
+}
+html.dark-mode .primary-text {
+    color: #d8dfee
+}
+html.dark-mode .secondary-text, html.dark-mode .note-text {
+    color: #7e8593
+}
+html.dark-mode .note-text {
+    color: #89f0e8
+}
+html.dark-mode .badge-beras {
+    background: #173d24;
+    color: #9ae9b8
+}
+html.dark-mode .badge-uang {
+    background: #14273f;
+    color: #6c8deb
+}
+html.dark-mode .badge-infak {
+    background: #493f16;
+    color: #f09b67
+}
+html.dark-mode .btn-icon {
+    color: #fff
+}
+html.dark-mode .btn-info {
+    background: #0ea5e9
+}
+html.dark-mode .btn-primary {
+    background: #16a34a
+}
+html.dark-mode .btn-secondary {
+    background: #6b7280
+}

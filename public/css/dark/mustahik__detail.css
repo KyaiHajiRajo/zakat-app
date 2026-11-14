@@ -1,0 +1,189 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/mustahik/detail.ejs */
+html.dark-mode .mustahik-detail-page::before {
+    background: radial-gradient(circle at 8% 8%, rgba(16, 185, 129, 0.08), transparent 33%),
+      radial-gradient(circle at 92% 18%, rgba(59, 130, 246, 0.08), transparent 32%)
+}
+html.dark-mode .mustahik-detail-page .detail-hero {
+    background: radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.26), transparent 34%),
+      linear-gradient(130deg, #0f9f2f 0%, #16a34a 45%, #0d9488 100%)
+}
+html.dark-mode .mustahik-detail-page .detail-hero::after {
+    border: 1px solid rgba(255, 255, 255, 0.24)
+}
+html.dark-mode .mustahik-detail-page .detail-hero h1, html.dark-mode .mustahik-detail-page .detail-hero p, html.dark-mode .mustahik-detail-page .detail-hero a, html.dark-mode .mustahik-detail-page .detail-hero i {
+    color: #ffffff !important
+}
+html.dark-mode .mustahik-detail-page .detail-hero a {
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.3)
+}
+html.dark-mode .mustahik-detail-page .detail-hero a:hover {
+    background: rgba(255, 255, 255, 0.24)
+}
+html.dark-mode .mustahik-detail-page .detail-card {
+    border: 1px solid #232b37
+}
+html.dark-mode .mustahik-detail-page .detail-card:hover {
+    border-color: #28323d
+}
+html.dark-mode .mustahik-detail-page .detail-card > .px-6.py-4.border-b.border-gray-200 {
+    background: linear-gradient(180deg, #0f1a32 0%, #1a232d 100%);
+    border-bottom-color: #232e38 !important
+}
+html.dark-mode .mustahik-detail-page .detail-card-primary .h-20.w-20 > div {
+    border: 2px solid rgba(255, 255, 255, 0.75)
+}
+html.dark-mode .mustahik-detail-page .detail-card-primary .inline-flex.items-center.px-3.py-1.rounded-full {
+    border: 1px solid rgba(15, 23, 42, 0.06)
+}
+html.dark-mode .mustahik-detail-page .detail-table-wrap {
+    background: linear-gradient(180deg, #19222a 0%, #0f1729 100%);
+    border: 1px solid #262e39
+}
+html.dark-mode .mustahik-detail-page .detail-table thead tr {
+    background: transparent
+}
+html.dark-mode .mustahik-detail-page .detail-table thead th {
+    border: 0;
+    color: #76869c !important
+}
+html.dark-mode .mustahik-detail-page .detail-table tbody td {
+    background: #0f1729;
+    border-top: 1px solid #262e39;
+    border-bottom: 1px solid #262e39;
+    color: #d5ddf0
+}
+html.dark-mode .mustahik-detail-page .detail-table tbody td:first-child {
+    border-left: 1px solid #262e39
+}
+html.dark-mode .mustahik-detail-page .detail-table tbody td:last-child {
+    border-right: 1px solid #262e39
+}
+html.dark-mode .mustahik-detail-page .detail-table tbody tr:hover td {
+    background: #15331e;
+    border-color: #224f32
+}
+html.dark-mode .mustahik-detail-page .detail-table tbody td span.inline-flex {
+    border: 1px solid rgba(15, 23, 42, 0.08)
+}
+html.dark-mode .mustahik-detail-page .detail-card-actions .btn-primary {
+    background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
+    color: #ffffff !important;
+    border: none
+}
+html.dark-mode .mustahik-detail-page .detail-card-actions .btn-secondary {
+    background: #19222a;
+    border: 1px solid #29333d;
+    color: #d5ddf0 !important
+}
+html.dark-mode .mustahik-detail-page .detail-card-actions .btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #f7f7f7 !important;
+    border: none
+}
+html.dark-mode .mustahik-detail-page .detail-card-stats .space-y-4 > div {
+    border-bottom: 1px dashed #262e39
+}
+html.dark-mode .mustahik-detail-page .detail-card-stats .space-y-4 > div:last-child {
+    border-bottom: 0
+}
+html.dark-mode .mustahik-detail-page .detail-card-stats .text-sm.font-medium.text-gray-900 {
+    color: #d5ddf0
+}
+html.dark-mode .mustahik-detail-page .detail-hero-kpi {
+    background: rgba(4, 47, 31, 0.34);
+    border: 1px solid rgba(255, 255, 255, 0.28)
+}
+html.dark-mode .mustahik-detail-page .detail-hero-kpi span {
+    color: #ffffff
+}
+html.dark-mode .mustahik-detail-page .detail-hero-kpi strong {
+    color: #ffffff
+}
+html.dark-mode .mustahik-detail-page .detail-profile-row {
+    background: linear-gradient(135deg, #19222a 0%, #1b252e 100%);
+    border: 1px solid #262e39
+}
+html.dark-mode .mustahik-detail-page .detail-profile-avatar-inner {
+    border: 3px solid rgba(255, 255, 255, 0.82)
+}
+html.dark-mode .mustahik-detail-page .detail-profile-rt {
+    color: #7386a1 !important
+}
+html.dark-mode .mustahik-detail-page .detail-meta-item {
+    background: #0f1729;
+    border: 1px solid #232e38
+}
+html.dark-mode .mustahik-detail-page .detail-meta-label {
+    color: #76869c !important
+}
+html.dark-mode .mustahik-detail-page .detail-meta-value .inline-flex {
+    border: 1px solid rgba(15, 23, 42, 0.08)
+}
+html.dark-mode .mustahik-detail-page .detail-meta-date {
+    background: #19222a;
+    border: 1px solid #182b44;
+    color: #a9b9d1 !important
+}
+html.dark-mode .mustahik-detail-page .detail-history-summary-item {
+    background: #19222a;
+    border: 1px solid #182b44;
+    color: #a9b9d1
+}
+html.dark-mode .mustahik-detail-page .detail-history-summary-item i {
+    color: #4d80ef
+}
+html.dark-mode .mustahik-detail-page .detail-history-summary-item strong {
+    color: #d5ddf0
+}
+html.dark-mode .mustahik-detail-page .detail-history-date {
+    color: #d5ddf0 !important
+}
+html.dark-mode .mustahik-detail-page .detail-history-amount {
+    background: #19222a;
+    border: 1px solid #182b44;
+    color: #d5ddf0 !important
+}
+html.dark-mode .mustahik-detail-page .detail-status-badge.status-diterima {
+    border-color: #2d6542
+}
+html.dark-mode .mustahik-detail-page .detail-status-badge.status-disalurkan {
+    border-color: #224062
+}
+html.dark-mode .mustahik-detail-page .detail-status-badge.status-pending {
+    border-color: #fcd34d
+}
+html.dark-mode .mustahik-detail-page .detail-status-badge.status-batal {
+    border-color: #5a2121
+}
+html.dark-mode .mustahik-detail-page .detail-history-pic {
+    color: #7386a1 !important
+}
+html.dark-mode .mustahik-detail-page .detail-stat-item {
+    border-bottom: 1px dashed #25313d
+}
+html.dark-mode .mustahik-detail-page .detail-stat-item:last-child {
+    border-bottom: 0
+}
+@media (max-width: 768px) {
+    html.dark-mode .mustahik-detail-page table.responsive-stack-table.detail-table tbody tr {
+        background: #0f1729;
+        border: 1px solid #262e39
+    }
+}
+@media (max-width: 768px) {
+    html.dark-mode .mustahik-detail-page table.responsive-stack-table.detail-table td {
+        background: transparent;
+        border-bottom: 1px dashed #262e39
+    }
+}
+@media (max-width: 768px) {
+    html.dark-mode .mustahik-detail-page table.responsive-stack-table.detail-table td::before {
+        color: #76869c
+    }
+}
+@media (max-width: 768px) {
+    html.dark-mode .mustahik-detail-page table.responsive-stack-table.detail-table td:last-child {
+        border-bottom: 0
+    }
+}

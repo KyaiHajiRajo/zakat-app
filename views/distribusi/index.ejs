@@ -1674,4 +1674,17 @@
   <!-- Include Modal -->
   <%- include('./partials/modal-form') %>
 
+  <script>
+    // Tautan dari halaman detail: /distribusi?edit=ID langsung membuka modal edit
+    document.addEventListener('DOMContentLoaded', function () {
+      var params = new URLSearchParams(window.location.search);
+      var editId = params.get('edit');
+      if (editId && /^\d+$/.test(editId) && typeof openEditDistribusi === 'function') {
+        openEditDistribusi(editId);
+        params.delete('edit');
+        window.history.replaceState(null, '', window.location.pathname + (params.toString() ? '?' + params : ''));
+      }
+    });
+  </script>
+
   <%- include('../layouts/footer') %>

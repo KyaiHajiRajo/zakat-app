@@ -3143,6 +3143,31 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
       width: auto;
     }
   }
+
+  /* Kartu statistik selalu mengisi baris penuh (1 kartu utama + 4 kartu) */
+  @media (min-width: 1201px) {
+    .stats-grid-modern .stat-card:nth-child(n + 4) {
+      grid-column: span 6;
+    }
+  }
+
+  @media (min-width: 681px) and (max-width: 1200px) {
+    .stats-grid-modern .stat-card:not(.stat-card-featured) {
+      grid-column: span 6;
+    }
+
+    .stats-grid-modern .stat-card-featured {
+      grid-column: span 12;
+    }
+  }
+
+  .chart-surface-badge[style*="--badge-bg"] {
+    background: var(--badge-bg);
+  }
+
+  html.dark-mode .chart-surface-badge[style*="--badge-bg"] {
+    background: var(--badge-bg-dark);
+  }
 </style>
 
 <!-- Enhanced JavaScript -->
@@ -3187,7 +3212,8 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
         areaColorEnd: 'rgba(34, 197, 94, 0.02)',
         pointColor: '#166534',
         pointHalo: 'rgba(22, 163, 74, 0.18)',
-        badgeTone: 'rgba(220, 252, 231, 0.92)'
+        badgeTone: 'rgba(220, 252, 231, 0.92)',
+        badgeToneDark: 'rgba(34, 197, 94, 0.22)'
       },
       total_bayar: {
         label: 'Catatan Terbaru',
@@ -3199,7 +3225,8 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
         areaColorEnd: 'rgba(45, 212, 191, 0.02)',
         pointColor: '#115e59',
         pointHalo: 'rgba(15, 118, 110, 0.18)',
-        badgeTone: 'rgba(204, 251, 241, 0.92)'
+        badgeTone: 'rgba(204, 251, 241, 0.92)',
+        badgeToneDark: 'rgba(20, 184, 166, 0.22)'
       },
       total_beras_kg: {
         label: 'Catatan Terbaru',
@@ -3211,7 +3238,8 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
         areaColorEnd: 'rgba(251, 146, 60, 0.02)',
         pointColor: '#c2410c',
         pointHalo: 'rgba(234, 88, 12, 0.16)',
-        badgeTone: 'rgba(255, 237, 213, 0.92)'
+        badgeTone: 'rgba(255, 237, 213, 0.92)',
+        badgeToneDark: 'rgba(249, 115, 22, 0.22)'
       }
     };
 
@@ -3396,7 +3424,8 @@ bodyClass: 'bg-gray-50', currentPage: 'dashboard' }) %>
 
     if (peakBadgeElement) {
       peakBadgeElement.textContent = `${config.peakLabel}: ${peakPoint.item.label}`;
-      peakBadgeElement.style.background = config.badgeTone;
+      peakBadgeElement.style.setProperty('--badge-bg', config.badgeTone);
+      peakBadgeElement.style.setProperty('--badge-bg-dark', config.badgeToneDark);
       peakBadgeElement.style.borderColor = config.lineGlow;
     }
 

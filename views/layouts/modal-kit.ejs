@@ -1,0 +1,552 @@
+<style>
+  /* ==========================================================
+     MODAL KIT — dipakai bersama oleh semua modal tambah/ubah.
+     Markup tiap modal ada di views/<modul>/partials/<nama>-modal.ejs
+     ========================================================== */
+  .am {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .am.is-open { display: flex; }
+
+  body.am-lock { overflow: hidden; }
+
+  .am-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 20, 12, 0.55);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    transition: opacity 0.24s ease;
+  }
+
+  .am.is-visible .am-backdrop { opacity: 1; }
+
+  .am-panel {
+    position: relative;
+    width: min(var(--am-w, 560px), 100%);
+    max-height: min(92vh, 780px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 26px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(201, 162, 75, 0.2);
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.24s ease, transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .am.is-visible .am-panel {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .am-head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 22px;
+    border-bottom: 1px solid var(--line);
+    background:
+      linear-gradient(135deg, rgba(30, 175, 47, 0.12), rgba(201, 162, 75, 0.1)),
+      var(--surface);
+    overflow: hidden;
+  }
+
+  .am-head::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%231eaf2f' stroke-opacity='0.1' stroke-width='1'%3E%3Crect x='18' y='18' width='36' height='36'/%3E%3Crect x='18' y='18' width='36' height='36' transform='rotate(45 36 36)'/%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .am-head > * { position: relative; }
+
+  .am-head-icon {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #2bc23c 0%, var(--primary-darker) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 10px 18px -8px rgba(30, 175, 47, 0.65);
+    color: #fff;
+    font-size: 18px;
+  }
+
+  .am-head-text { flex: 1; min-width: 0; }
+
+  .am-title {
+    color: var(--ink);
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+  }
+
+  .am-sub {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+
+  .am-close {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .am-close:hover {
+    border-color: rgba(239, 68, 68, 0.45);
+    background: rgba(239, 68, 68, 0.08);
+    color: #dc2626;
+  }
+
+  .am-form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .am-body {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    padding: 22px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: grid;
+    gap: 18px;
+    align-content: start;
+    transition: opacity 0.2s ease;
+  }
+
+  .am-panel[data-loading="1"] .am-body { opacity: 0.35; pointer-events: none; }
+
+  .am-panel[data-loading="1"]::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    height: 30px;
+    margin: -15px 0 0 -15px;
+    border: 3px solid rgba(30, 175, 47, 0.25);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: am-spin 0.7s linear infinite;
+  }
+
+  .am-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 22px;
+    border-top: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+
+  /* ---------- Isi form ---------- */
+  .am-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .am-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--ink-2);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .am-field label .req { margin-left: 2px; color: #ef4444; }
+  .am-field label .opt { color: var(--faint); font-weight: 500; }
+
+  .am-control { position: relative; }
+
+  .am-control > i.lead {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 0.9rem;
+    pointer-events: none;
+    transition: color 0.2s ease;
+  }
+
+  .am-control.is-area > i.lead { top: 15px; transform: none; }
+  .am-control:focus-within > i.lead { color: var(--primary-dark); }
+
+  .am-control input,
+  .am-control select,
+  .am-control textarea {
+    width: 100%;
+    padding-left: 42px;
+    padding-right: 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    background: var(--surface-2);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.92rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+
+  .am-control input,
+  .am-control select { height: 46px; }
+
+  .am-control textarea { min-height: 92px; padding-top: 12px; padding-bottom: 12px; resize: vertical; }
+
+  .am-control input:focus,
+  .am-control select:focus,
+  .am-control textarea:focus {
+    border-color: var(--primary-color);
+    background: var(--surface);
+    box-shadow: 0 0 0 4px rgba(30, 175, 47, 0.14);
+  }
+
+  .am-control.is-invalid input,
+  .am-control.is-invalid select,
+  .am-control.is-invalid textarea {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+  }
+
+  .am-hint { margin-top: 6px; color: var(--muted); font-size: 0.75rem; line-height: 1.45; }
+  .am-hint a { color: var(--primary-dark); font-weight: 600; }
+
+  .am-error {
+    display: none;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    border-radius: 14px;
+    background: rgba(239, 68, 68, 0.08);
+    color: #b91c1c;
+    font-size: 0.86rem;
+    line-height: 1.45;
+  }
+
+  .am-error.is-visible { display: flex; }
+  .am-error i { margin-top: 2px; }
+  html.dark-mode .am-error { color: #fca5a5; }
+
+  .am-preview {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 14px;
+    background: var(--surface-2);
+  }
+
+  .am-preview-badge {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-darker) 100%);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .am-preview-name { color: var(--ink); font-size: 0.9rem; font-weight: 600; word-break: break-word; }
+  .am-preview-meta { margin-top: 2px; color: var(--muted); font-size: 0.75rem; }
+  .am-preview-label {
+    margin-right: auto;
+    color: var(--faint);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .am-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+
+  .am-btn-ghost { border-color: var(--line-strong); background: var(--surface); color: var(--ink-2); }
+  .am-btn-ghost:hover { background: var(--line); }
+
+  .am-btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-darker) 100%);
+    box-shadow: 0 12px 22px -10px rgba(30, 175, 47, 0.7);
+    color: #fff;
+  }
+
+  .am-btn-primary:hover { filter: brightness(1.06); }
+
+  .am-btn[disabled] { cursor: progress; filter: saturate(0.7); }
+
+  .am-btn.is-busy::before {
+    content: "";
+    width: 15px;
+    height: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: am-spin 0.7s linear infinite;
+  }
+
+  @keyframes am-spin { to { transform: rotate(360deg); } }
+
+  /* ---------- HP: bottom sheet ---------- */
+  @media (max-width: 640px) {
+    .am { align-items: flex-end; padding: 0; }
+
+    .am-panel {
+      width: 100%;
+      max-height: 94vh;
+      border-radius: 26px 26px 0 0;
+      transform: translateY(40px);
+    }
+
+    .am-panel::before {
+      content: "";
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      z-index: 2;
+      width: 40px;
+      height: 4px;
+      margin-left: -20px;
+      border-radius: 4px;
+      background: var(--line-strong);
+    }
+
+    .am-head { padding: 24px 18px 16px; }
+    .am-body { padding: 18px; }
+    .am-row { grid-template-columns: 1fr; }
+    .am-foot { padding: 14px 18px calc(14px + env(safe-area-inset-bottom, 0px)); }
+    .am-foot .am-btn { flex: 1; }
+  }
+</style>
+
+<script>
+  (function () {
+    var FOCUSABLE =
+      'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    var openIds = [];
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function open(id, trigger) {
+      var modal = byId(id);
+      if (!modal || modal.classList.contains("is-open")) {
+        return;
+      }
+
+      modal.__lastFocus = document.activeElement;
+      modal.classList.add("is-open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("am-lock");
+      openIds.push(id);
+
+      // dua frame agar transisi masuk berjalan
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          modal.classList.add("is-visible");
+        });
+      });
+
+      modal.dispatchEvent(new CustomEvent("am:open", { detail: { trigger: trigger || null } }));
+    }
+
+    function close(id) {
+      var modal = byId(id);
+      if (!modal || !modal.classList.contains("is-open")) {
+        return;
+      }
+
+      modal.classList.remove("is-visible");
+      modal.setAttribute("aria-hidden", "true");
+      openIds = openIds.filter(function (x) { return x !== id; });
+      if (!openIds.length) {
+        document.body.classList.remove("am-lock");
+      }
+
+      setTimeout(function () {
+        if (!modal.classList.contains("is-visible")) {
+          modal.classList.remove("is-open");
+        }
+      }, 260);
+
+      modal.dispatchEvent(new CustomEvent("am:close"));
+
+      var last = modal.__lastFocus;
+      if (last && last.focus) {
+        try { last.focus(); } catch (error) { /* abaikan */ }
+      }
+    }
+
+    function focusFirst(modal) {
+      var target =
+        modal.querySelector("[data-autofocus]") ||
+        modal.querySelector("input:not([type='hidden']), select, textarea");
+      if (target) {
+        target.focus();
+      }
+    }
+
+    /** Kirim form lewat fetch; pesan galat tampil di [data-am-error] dalam form. */
+    function submit(form, options) {
+      options = options || {};
+      var button = form.querySelector('[type="submit"]');
+      var box = form.querySelector("[data-am-error]");
+
+      function showError(message) {
+        if (!box) { return; }
+        box.querySelector("span").textContent = message;
+        box.classList.add("is-visible");
+      }
+
+      if (box) { box.classList.remove("is-visible"); }
+      if (button) { button.disabled = true; button.classList.add("is-busy"); }
+
+      return fetch(form.getAttribute("action"), {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "X-Requested-With": "fetch",
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        },
+        body: new URLSearchParams(new FormData(form)).toString(),
+      })
+        .then(function (response) {
+          return response.json().catch(function () { return {}; }).then(function (data) {
+            return { ok: response.ok && data.ok !== false, data: data };
+          });
+        })
+        .then(function (result) {
+          if (result.ok) {
+            if (options.onSuccess) {
+              options.onSuccess(result.data);
+            } else if (result.data.redirect) {
+              window.location.href = result.data.redirect;
+            }
+            return;
+          }
+          showError(result.data.message || "Terjadi kesalahan, coba lagi.");
+          if (button) { button.disabled = false; button.classList.remove("is-busy"); }
+        })
+        .catch(function () {
+          showError("Tidak dapat terhubung ke server. Periksa koneksi lalu coba lagi.");
+          if (button) { button.disabled = false; button.classList.remove("is-busy"); }
+        });
+    }
+
+    window.AppModal = { open: open, close: close, focusFirst: focusFirst, submit: submit };
+
+    // Buka lewat atribut: <a data-modal-open="id" ...>
+    document.addEventListener("click", function (event) {
+      var opener = event.target.closest("[data-modal-open]");
+      if (opener && !event.metaKey && !event.ctrlKey && !event.shiftKey) {
+        event.preventDefault();
+        open(opener.getAttribute("data-modal-open"), opener);
+        return;
+      }
+
+      var closer = event.target.closest("[data-modal-close]");
+      if (closer) {
+        var modal = closer.closest(".am");
+        if (modal) {
+          close(modal.id);
+        }
+      }
+    });
+
+    // Status galat hilang begitu pengguna mulai memperbaiki isian
+    function clearInvalid(event) {
+      var form = event.target.closest && event.target.closest(".am-form");
+      if (!form) {
+        return;
+      }
+      var control = event.target.closest("[data-control]");
+      if (control) {
+        control.classList.remove("is-invalid");
+      }
+      var box = form.querySelector("[data-am-error]");
+      if (box) {
+        box.classList.remove("is-visible");
+      }
+    }
+
+    document.addEventListener("input", clearInvalid);
+    document.addEventListener("change", clearInvalid);
+
+    document.addEventListener("keydown", function (event) {
+      if (!openIds.length) {
+        return;
+      }
+
+      var modal = byId(openIds[openIds.length - 1]);
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close(modal.id);
+        return;
+      }
+
+      if (event.key === "Tab") {
+        var items = [].filter.call(modal.querySelectorAll(FOCUSABLE), function (el) {
+          return el.offsetParent !== null;
+        });
+        if (!items.length) {
+          return;
+        }
+        var first = items[0];
+        var last = items[items.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    });
+  })();
+</script>

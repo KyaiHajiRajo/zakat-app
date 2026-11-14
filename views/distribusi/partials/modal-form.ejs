@@ -108,7 +108,7 @@
                   <span class="required">*</span>
                 </label>
                 <div class="input-with-addon">
-                  <input type="number" id="jumlah" name="jumlah" class="form-input" 
+                  <input type="number" id="jumlah" name="jumlah" class="form-input" data-amount-input
                          placeholder="0" step="0.01" min="0" required>
                   <span class="input-addon" id="jumlahUnit">-</span>
                 </div>
@@ -247,7 +247,7 @@
 
 /* Modal Header */
 .modal-header {
-  background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+  background: linear-gradient(135deg, #14912a 0%, #0c6b1e 100%);
   padding: 24px;
   display: flex;
   justify-content: space-between;
@@ -302,7 +302,7 @@
 .modal-subtitle {
   font-size: 14px;
   margin: 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: #ffffff;
 }
 
 .modal-close-btn {
@@ -684,6 +684,16 @@
 
 .input-with-addon .form-input {
   padding-right: 60px;
+}
+
+.input-with-addon.is-prefix .form-input {
+  padding-left: 46px;
+  padding-right: 16px;
+}
+
+.input-with-addon.is-prefix .input-addon {
+  right: auto;
+  left: 16px;
 }
 
 .input-addon {
@@ -1227,6 +1237,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('jenis_zakat').addEventListener('change', function() {
     const unit = this.value === 'beras' ? 'kg' : 'Rp';
     document.getElementById('jumlahUnit').textContent = unit;
+    document.getElementById('jumlahUnit').parentElement.classList.toggle('is-prefix', unit === 'Rp');
   });
   
   // Form validation before submit

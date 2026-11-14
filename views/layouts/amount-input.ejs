@@ -1,0 +1,139 @@
+<script>
+  /*
+   * Format angka otomatis untuk <input data-amount-input name="jumlah">.
+   * - jenis_zakat = uang  -> 1.250.000   (pemisah ribuan)
+   * - jenis_zakat = beras -> 2,5         (koma desimal, maks. 2 angka)
+   * Elemen asli tetap ada (jadi hidden) dan menyimpan angka murni ("1250000" / "2.5"),
+   * sehingga kode lain yang membaca atau mengisi .value tidak perlu diubah.
+   */
+  (function () {
+    var nativeValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+    var nativePlaceholder = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "placeholder");
+    var grouping = new Intl.NumberFormat("id-ID");
+
+    function currentJenis(form) {
+      if (!form) { return ""; }
+      var checked = form.querySelector('input[name="jenis_zakat"]:checked');
+      if (checked) { return checked.value; }
+      var select = form.querySelector('select[name="jenis_zakat"]');
+      return select ? select.value : "";
+    }
+
+    // angka murni (titik desimal) -> teks tampilan
+    function toDisplay(raw, jenis) {
+      var n = parseFloat(raw);
+      if (raw === "" || raw === null || raw === undefined || isNaN(n)) { return ""; }
+      if (jenis === "beras") { return String(n).replace(".", ","); }
+      return grouping.format(Math.floor(n));
+    }
+
+    // teks yang diketik -> { display, raw }
+    function parseTyped(text, jenis) {
+      if (jenis === "beras") {
+        var t = text.replace(/[^\d.,]/g, "");
+        var at = t.search(/[.,]/);
+        var whole = (at < 0 ? t : t.slice(0, at)).replace(/^0+(?=\d)/, "").slice(0, 9);
+        if (at < 0) { return { display: whole, raw: whole }; }
+        var frac = t.slice(at + 1).replace(/[.,]/g, "").slice(0, 2);
+        return {
+          display: (whole || "0") + "," + frac,
+          raw: frac ? (whole || "0") + "." + frac : whole || "0",
+        };
+      }
+      var digits = text.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 12);
+      return { display: digits ? grouping.format(Number(digits)) : "", raw: digits };
+    }
+
+    function enhance(hidden) {
+      if (hidden.dataset.amountReady) { return; }
+      hidden.dataset.amountReady = "1";
+
+      var form = hidden.form;
+      var display = document.createElement("input");
+      display.type = "text";
+      display.className = hidden.className;
+      display.id = hidden.id ? hidden.id + "_display" : "";
+      display.placeholder = hidden.placeholder || "0";
+      display.required = hidden.required;
+      display.disabled = hidden.disabled;
+      display.readOnly = hidden.readOnly;
+      display.autocomplete = "off";
+      display.setAttribute("inputmode", "decimal");
+      display.setAttribute("aria-label", "Jumlah");
+
+      var label = hidden.id ? document.querySelector('label[for="' + hidden.id + '"]') : null;
+      if (label && display.id) { label.setAttribute("for", display.id); }
+
+      var initial = hidden.getAttribute("value") || "";
+      hidden.type = "hidden";
+      hidden.required = false;
+      hidden.parentNode.insertBefore(display, hidden);
+
+      function render(raw) {
+        var jenis = currentJenis(form);
+        display.value = toDisplay(raw, jenis);
+        display.setAttribute("inputmode", jenis === "beras" ? "decimal" : "numeric");
+      }
+
+      // kode lain yang mengisi .value / .placeholder pada elemen asli ikut memperbarui tampilan
+      Object.defineProperty(hidden, "value", {
+        configurable: true,
+        get: function () { return nativeValue.get.call(this); },
+        set: function (v) {
+          var s = v === null || v === undefined ? "" : String(v);
+          nativeValue.set.call(this, s);
+          render(s);
+        },
+      });
+
+      Object.defineProperty(hidden, "placeholder", {
+        configurable: true,
+        get: function () { return nativePlaceholder.get.call(this); },
+        set: function (v) {
+          nativePlaceholder.set.call(this, v);
+          display.placeholder = v;
+        },
+      });
+
+      display.addEventListener("input", function () {
+        var jenis = currentJenis(form);
+        var digitsBefore = display.value.slice(0, display.selectionStart).replace(/\D/g, "").length;
+        var parsed = parseTyped(display.value, jenis);
+
+        display.value = parsed.display;
+        nativeValue.set.call(hidden, parsed.raw);
+
+        // jaga posisi kursor setelah pemisah ribuan ditambahkan
+        if (jenis !== "beras") {
+          var pos = 0, seen = 0;
+          while (pos < display.value.length && seen < digitsBefore) {
+            if (/\d/.test(display.value[pos])) { seen++; }
+            pos++;
+          }
+          display.setSelectionRange(pos, pos);
+        }
+
+        var n = parseFloat(parsed.raw);
+        display.setCustomValidity(parsed.raw && !(n > 0) ? "Jumlah harus lebih dari 0" : "");
+      });
+
+      // ganti jenis zakat -> tampilan ikut menyesuaikan
+      if (form) {
+        form.addEventListener("change", function (event) {
+          if (event.target && event.target.name === "jenis_zakat") {
+            render(nativeValue.get.call(hidden));
+          }
+        });
+      }
+
+      render(initial);
+    }
+
+    function init(root) {
+      (root || document).querySelectorAll("input[data-amount-input]").forEach(enhance);
+    }
+
+    window.AppAmountInput = { init: init };
+    init();
+  })();
+</script>

@@ -707,10 +707,10 @@
       </div>
 
       <div class="rw-detail-hero-actions">
-        <a href="/rw/<%= rw.id %>/edit" class="rw-detail-btn rw-detail-btn-light">
+        <a href="/rw?edit=<%= rw.id %>" data-modal-open="rw-modal" data-mode="edit" data-id="<%= rw.id %>" class="rw-detail-btn rw-detail-btn-light">
           <i class="fas fa-pen"></i>Edit RW
         </a>
-        <a href="/rt/create" class="rw-detail-btn rw-detail-btn-light">
+        <a href="/rt?new=1&rw=<%= rw.id %>" data-modal-open="rt-modal" data-mode="create" data-rw-id="<%= rw.id %>" class="rw-detail-btn rw-detail-btn-light">
           <i class="fas fa-plus"></i>Tambah RT
         </a>
       </div>
@@ -828,7 +828,7 @@
                   <a href="/rt/<%= rt.id %>/detail" class="rw-detail-action rw-detail-action-view" title="Detail RT">
                     <i class="fas fa-eye"></i>
                   </a>
-                  <a href="/rt/<%= rt.id %>/edit" class="rw-detail-action rw-detail-action-edit" title="Edit RT">
+                  <a href="/rt?edit=<%= rt.id %>" data-modal-open="rt-modal" data-mode="edit" data-id="<%= rt.id %>" class="rw-detail-action rw-detail-action-edit" title="Edit RT">
                     <i class="fas fa-pen"></i>
                   </a>
                   <form method="POST" action="/rt/<%= rt.id %>/delete" class="inline delete-rt-form" data-rt-nomor="<%= rt.nomor_rt %>">
@@ -856,7 +856,7 @@
               <a href="/rt/<%= rt.id %>/detail" class="rw-detail-action rw-detail-action-view" title="Detail RT">
                 <i class="fas fa-eye"></i>
               </a>
-              <a href="/rt/<%= rt.id %>/edit" class="rw-detail-action rw-detail-action-edit" title="Edit RT">
+              <a href="/rt?edit=<%= rt.id %>" data-modal-open="rt-modal" data-mode="edit" data-id="<%= rt.id %>" class="rw-detail-action rw-detail-action-edit" title="Edit RT">
                 <i class="fas fa-pen"></i>
               </a>
               <form method="POST" action="/rt/<%= rt.id %>/delete" class="inline delete-rt-form" data-rt-nomor="<%= rt.nomor_rt %>">
@@ -893,7 +893,7 @@
         <i class="fas fa-home"></i>
         <h3>Belum Ada Data RT</h3>
         <p>RW ini belum memiliki RT. Tambahkan RT pertama agar data wilayah lebih lengkap.</p>
-        <a href="/rt/create" class="rw-detail-btn rw-detail-btn-light">
+        <a href="/rt?new=1&rw=<%= rw.id %>" data-modal-open="rt-modal" data-mode="create" data-rw-id="<%= rw.id %>" class="rw-detail-btn rw-detail-btn-light">
           <i class="fas fa-plus"></i>Tambah RT Pertama
         </a>
       </div>
@@ -928,26 +928,29 @@
   });
 </script>
 
-<% if (error) { %>
+<% const errorMessage = [].concat(error || []).filter(Boolean).join(' '); if (errorMessage) { %>
 <script>
   Swal.fire({
     icon: "error",
     title: "Error",
-    text: <%- JSON.stringify(error) %>,
+    text: <%- JSON.stringify(errorMessage).replace(/</g, '\\u003c') %>,
     confirmButtonText: "OK",
   });
 </script>
 <% } %>
 
-<% if (success) { %>
+<% const successMessage = [].concat(success || []).filter(Boolean).join(' '); if (successMessage) { %>
 <script>
   Swal.fire({
     icon: "success",
     title: "Berhasil",
-    text: <%- JSON.stringify(success) %>,
+    text: <%- JSON.stringify(successMessage).replace(/</g, '\\u003c') %>,
     confirmButtonText: "OK",
   });
 </script>
 <% } %>
+
+<%- include('../rt/partials/rt-modal') %>
+<%- include('partials/rw-modal') %>
 
 <%- include('../layouts/footer') %>

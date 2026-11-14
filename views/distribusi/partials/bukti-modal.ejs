@@ -1,0 +1,41 @@
+<%# Pratinjau bukti foto distribusi. Dibuka oleh <a data-modal-open="bukti-modal" data-src="/uploads/..."> %>
+<style>
+  #bukti-modal { --am-w: 780px; }
+  #bukti-modal .am-body { background: var(--surface-2); place-items: center; }
+  #bukti-modal img { display: block; max-width: 100%; max-height: 62vh; border-radius: 14px; box-shadow: var(--shadow-md); }
+</style>
+
+<div class="am" id="bukti-modal" role="dialog" aria-modal="true" aria-labelledby="bukti-modal-title" aria-hidden="true">
+  <div class="am-backdrop" data-modal-close></div>
+
+  <div class="am-panel">
+    <header class="am-head">
+      <span class="am-head-icon"><i class="fas fa-image"></i></span>
+      <div class="am-head-text">
+        <h2 class="am-title" id="bukti-modal-title">Bukti Distribusi</h2>
+        <p class="am-sub">Foto bukti penyaluran zakat</p>
+      </div>
+      <button type="button" class="am-close" data-modal-close aria-label="Tutup"><i class="fas fa-xmark"></i></button>
+    </header>
+
+    <div class="am-body">
+      <img id="bukti-modal-img" src="" alt="Bukti distribusi" />
+    </div>
+
+    <footer class="am-foot">
+      <a id="bukti-modal-open" class="am-btn am-btn-ghost" href="#" target="_blank" rel="noopener"><i class="fas fa-up-right-from-square"></i>Buka di tab baru</a>
+      <button type="button" class="am-btn am-btn-primary" data-modal-close><i class="fas fa-check"></i>Tutup</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var modal = document.getElementById("bukti-modal");
+    modal.addEventListener("am:open", function (event) {
+      var src = event.detail.trigger && event.detail.trigger.getAttribute("data-src");
+      document.getElementById("bukti-modal-img").src = src || "";
+      document.getElementById("bukti-modal-open").href = src || "#";
+    });
+  })();
+</script>

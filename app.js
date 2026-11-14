@@ -51,10 +51,18 @@ app.use(express.json());
 
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
+app.use(
+  "/vendor/flatpickr",
+  express.static(path.join(__dirname, "node_modules", "flatpickr", "dist"))
+);
 
-// Session middleware
+// Session middleware (stored in MySQL so logins survive server restarts)
+const MySQLStore = require("express-mysql-session")(session);
+const sessionStore = new MySQLStore({ clearExpired: true }, pool);
+
 app.use(
   session({
+    store: sessionStore,
     secret: process.env.SESSION_SECRET || "your-default-secret-key",
     resave: false,
     saveUninitialized: false,
@@ -65,14 +73,70 @@ app.use(
   })
 );
 
+// CSS mode gelap per halaman (dibuat oleh `npm run build-dark`)
+const darkManifestPath = path.join(__dirname, "public", "css", "dark", "manifest.json");
+let darkManifest = { mtime: 0, data: {} };
+
+function getDarkManifest() {
+  try {
+    const { mtimeMs } = require("fs").statSync(darkManifestPath);
+    if (mtimeMs !== darkManifest.mtime) {
+      darkManifest = {
+        mtime: mtimeMs,
+        data: JSON.parse(require("fs").readFileSync(darkManifestPath, "utf8")),
+      };
+    }
+  } catch (error) {
+    darkManifest = { mtime: 0, data: {} };
+  }
+  return darkManifest.data;
+}
+
+app.use((req, res, next) => {
+  const render = res.render.bind(res);
+  res.render = (view, ...rest) => {
+    const key = String(view).replace(/^\/+/, "").split("/").join("__");
+    const version = getDarkManifest()[key];
+    if (version) {
+      res.locals.darkCss = `/css/dark/${key}.css?v=${version}`;
+    }
+    return render(view, ...rest);
+  };
+  next();
+});
+
+// Pastikan sesi sudah tersimpan di MySQL sebelum redirect dikirim ke browser
+app.use((req, res, next) => {
+  const redirect = res.redirect.bind(res);
+  res.redirect = (...args) => {
+    if (!req.session) {
+      return redirect(...args);
+    }
+    return req.session.save(() => redirect(...args));
+  };
+  next();
+});
+
 // Flash messages middleware
 app.use(flash());
 
 // Global variables for all routes
 app.use((req, res, next) => {
-  res.locals.success_msg = req.flash("success_msg");
-  res.locals.error_msg = req.flash("error_msg");
-  res.locals.error = req.flash("error");
+  // Baca flash sekali, lalu biarkan route yang memanggil req.flash(tipe) mendapat pesan yang sama
+  // (jika tidak, pesan sudah terhapus sebelum route sempat membacanya).
+  const readFlash = req.flash.bind(req);
+  const consumed = {
+    success_msg: readFlash("success_msg"),
+    error_msg: readFlash("error_msg"),
+    error: readFlash("error"),
+  };
+
+  req.flash = (type, ...rest) =>
+    rest.length === 0 && consumed[type] ? consumed[type] : readFlash(type, ...rest);
+
+  res.locals.success_msg = consumed.success_msg;
+  res.locals.error_msg = consumed.error_msg;
+  res.locals.error = consumed.error;
   res.locals.user = req.session.user || null;
   next();
 });
@@ -106,6 +170,7 @@ app.locals.isAdmin = isAdmin;
 const authRoutes = require("./routes/auth");
 const publicReportRoutes = require("./routes/public-report");
 const usersRoutes = require("./routes/users");
+const profileRoutes = require("./routes/profile");
 const muzakkiRoutes = require("./routes/muzakki");
 const infakRoutes = require("./routes/infak");
 const laporanRoutes = require("./routes/laporan");
@@ -117,6 +182,7 @@ const distribusiRoutes = require("./routes/distribusi");
 // Route middleware
 app.use("/auth", authRoutes);
 app.use("/", publicReportRoutes);
+app.use("/users/profile", isAuthenticated, profileRoutes);
 app.use("/users", isAuthenticated, isAdmin, usersRoutes);
 
 app.use("/muzakki", isAuthenticated, muzakkiRoutes);
@@ -193,14 +259,14 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
     const [recentMuzakki] = await db.execute(`
       SELECT m.*, rt.nomor_rt as rt_nama,
         COALESCE(NULLIF(TRIM(m.nama_muzakki), ''), CONCAT('Muzakki #', m.id)) as nama,
-        CASE 
-          WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
-          ELSE m.jumlah_beras_kg * 12000 
+        CASE
+          WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang
+          ELSE m.jumlah_beras_kg * 12000
         END as jumlah_zakat,
         CASE
-          WHEN m.jumlah_bayar >= CASE 
-            WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
-            ELSE m.jumlah_beras_kg * 12000 
+          WHEN m.jumlah_bayar >= CASE
+            WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang
+            ELSE m.jumlah_beras_kg * 12000
           END THEN 'lunas'
           ELSE 'belum_lunas'
         END as status

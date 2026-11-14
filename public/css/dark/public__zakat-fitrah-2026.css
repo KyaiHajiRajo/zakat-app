@@ -1,0 +1,204 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/public/zakat-fitrah-2026.ejs */
+html.dark-mode .public-report-hero {
+    background: linear-gradient(130deg, #11396f 0%, #1f6aa5 45%, #3aa17e 100%);
+    color: #f8fbff
+}
+html.dark-mode .hero-kicker {
+    border: 1px solid rgba(255, 255, 255, 0.35)
+}
+html.dark-mode .public-report-hero p {
+    color: rgba(245, 251, 255, 0.92)
+}
+html.dark-mode .hero-meta span {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22)
+}
+html.dark-mode .hero-btn {
+    border: none
+}
+html.dark-mode .hero-btn-primary {
+    background: #0f1729;
+    color: #3f87d8
+}
+html.dark-mode .hero-btn-soft {
+    background: rgba(255, 255, 255, 0.15);
+    color: #f9fcff;
+    border: 1px solid rgba(255, 255, 255, 0.35)
+}
+html.dark-mode .public-stat-card {
+    background: #0f1729;
+    border: 1px solid #252f38
+}
+html.dark-mode .public-stat-card-split {
+    background: linear-gradient(135deg, #0f1e33 0%, #0f1729 65%);
+    border-color: #1c2941
+}
+html.dark-mode .stat-split-title {
+    color: #a9b9d1
+}
+html.dark-mode .stat-split-total {
+    background: #101937;
+    color: #c4cfe1;
+    border: 1px solid #1b254c
+}
+html.dark-mode .stat-split-label-uang {
+    background: #3c1313;
+    color: #e75f5f
+}
+html.dark-mode .stat-split-label-beras {
+    background: #173d24;
+    color: #9ae9b8
+}
+html.dark-mode .stat-split-label-neutral {
+    background: #212a37;
+    color: #a9b9d1
+}
+html.dark-mode .stat-split-value {
+    color: #d5ddf0
+}
+html.dark-mode .stat-split-percent {
+    background: #1b252e;
+    color: #7f90a9;
+    border: 1px solid #28323c
+}
+html.dark-mode .stat-icon {
+    color: #fff
+}
+html.dark-mode .stat-icon-blue {
+    background: linear-gradient(135deg, #2d6cdf, #2f5fb5)
+}
+html.dark-mode .stat-icon-teal {
+    background: linear-gradient(135deg, #0ea5a7, #0f766e)
+}
+html.dark-mode .stat-icon-green {
+    background: linear-gradient(135deg, #16a34a, #15803d)
+}
+html.dark-mode .stat-icon-orange {
+    background: linear-gradient(135deg, #f97316, #ea580c)
+}
+html.dark-mode .stat-icon-indigo {
+    background: linear-gradient(135deg, #6366f1, #4f46e5)
+}
+html.dark-mode .stat-icon-slate {
+    background: linear-gradient(135deg, #475569, #334155)
+}
+html.dark-mode .stat-value {
+    color: #d5ddf0
+}
+html.dark-mode .stat-label {
+    color: #76869c
+}
+html.dark-mode .public-table-panel {
+    background: #0f1729;
+    border: 1px solid #27313b
+}
+html.dark-mode .panel-header {
+    background: linear-gradient(180deg, #0f1e33 0%, #102036 100%);
+    border-bottom: 1px solid #232c37
+}
+html.dark-mode .panel-header h2 {
+    color: #d5ddf0
+}
+html.dark-mode .panel-header p {
+    color: #76869c
+}
+html.dark-mode .panel-badge {
+    background: #173d24;
+    color: #acebc5;
+    border: 1px solid #2d6542
+}
+html.dark-mode .panel-tab {
+    background: #19222a;
+    border: 1px solid #2f3946;
+    color: #a9b9d1
+}
+html.dark-mode .panel-tab:hover {
+    background: #102137;
+    border-color: #224062;
+    color: #6487ea
+}
+html.dark-mode .panel-tab.is-active {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #ffffff;
+    border-color: #1d4ed8
+}
+html.dark-mode .panel-filter-box {
+    background: #0f1729;
+    border: 1px solid #2f3946;
+    color: #7386a0
+}
+html.dark-mode .panel-filter-box i {
+    color: #76869c
+}
+html.dark-mode .panel-filter-box input, html.dark-mode .panel-filter-box select {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #d5ddf0
+}
+html.dark-mode .filter-empty-state {
+    background: #19222a;
+    border: 1px dashed #2f3946;
+    color: #7f8da3
+}
+html.dark-mode .public-report-table thead tr {
+    background: #19242a
+}
+html.dark-mode .public-report-table th, html.dark-mode .public-report-table td {
+    border-bottom: 1px solid #222b33
+}
+html.dark-mode .public-report-table th {
+    color: #7386a1
+}
+html.dark-mode .public-report-table tbody tr:hover {
+    background: #0f1e33
+}
+html.dark-mode .master-id-text {
+    color: #76869c
+}
+html.dark-mode .rt-id-badge {
+    background: #12233e;
+    color: #6d8bdf;
+    border: 1px solid #1c3350
+}
+html.dark-mode .kategori-badge {
+    background: #1a1338;
+    color: #9c6de5
+}
+html.dark-mode .jenis-uang {
+    background: #3c1313;
+    color: #e75f5f
+}
+html.dark-mode .jenis-beras {
+    background: #173d24;
+    color: #9ae9b8
+}
+html.dark-mode .empty-state {
+    color: #76869c
+}
+html.dark-mode .empty-state i {
+    color: #94a3b8
+}
+html.dark-mode .empty-state h3 {
+    color: #d5ddf0
+}
+@media (max-width: 768px) {
+    html.dark-mode .public-report-table tr {
+        border: 1px solid #262e39
+    }
+}
+@media (max-width: 768px) {
+    html.dark-mode .public-report-table td {
+        border-bottom: 1px solid #212931
+    }
+}
+@media (max-width: 768px) {
+    html.dark-mode .public-report-table td:last-child {
+        border-bottom: none
+    }
+}
+@media (max-width: 768px) {
+    html.dark-mode .public-report-table td::before {
+        color: #76869c
+    }
+}

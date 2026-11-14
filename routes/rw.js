@@ -1,4 +1,5 @@
 const express = require("express");
+const { reply, safeReturn } = require("../utils/respond");
 const router = express.Router();
 
 // GET /rw - Tampilkan daftar RW
@@ -31,116 +32,130 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET /rw/create - Form tambah RW
-router.get("/create", (req, res) => {
-  res.render("rw/create", {
-    title: "Tambah RW - Zakat Fitrah App",
-    user: req.session.user,
-    error: req.flash("error"),
-    success: req.flash("success"),
-  });
+// GET /rw/form-data?id= - Data untuk modal tambah/ubah RW (JSON)
+router.get("/form-data", async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    let rw = null;
+    if (req.query.id) {
+      const [rows] = await db.execute(
+        "SELECT id, nomor_rw, ketua_rw, keterangan FROM rw WHERE id = ?",
+        [req.query.id]
+      );
+      if (rows.length === 0) {
+        return res.status(404).json({ ok: false, message: "RW tidak ditemukan" });
+      }
+      rw = rows[0];
+    }
+    res.json({ ok: true, rw });
+  } catch (error) {
+    console.error("Error loading RW form data:", error);
+    res.status(500).json({ ok: false, message: "Gagal memuat data form" });
+  }
 });
+
+// GET /rw/create - Form tambah RW kini berupa modal di halaman daftar
+router.get("/create", (req, res) => {
+  res.redirect("/rw?new=1");
+});
+
+// Validasi bersama untuk tambah/ubah RW
+async function validateRw(db, body, excludeId) {
+  const nomorRw = String(body.nomor_rw || "").trim();
+  const ketuaRw = String(body.ketua_rw || "").trim();
+  const keterangan = String(body.keterangan || "").trim();
+
+  if (!nomorRw || !ketuaRw) return { error: "Nomor RW dan Ketua RW harus diisi" };
+  if (nomorRw.length > 10) return { error: "Nomor RW maksimal 10 karakter" };
+  if (ketuaRw.length > 100) return { error: "Nama ketua RW maksimal 100 karakter" };
+  if (keterangan.length > 100) return { error: "Keterangan maksimal 100 karakter" };
+
+  const [existing] = await db.execute(
+    "SELECT id FROM rw WHERE nomor_rw = ? AND id != ?",
+    [nomorRw, excludeId || 0]
+  );
+  if (existing.length > 0) return { error: "Nomor RW sudah terdaftar" };
+
+  return { nomorRw, ketuaRw, keterangan: keterangan || null };
+}
 
 // POST /rw/create - Simpan RW baru
 router.post("/create", async (req, res) => {
+  const back = safeReturn(req.body.return_to, "/rw");
   try {
     const db = req.app.locals.db;
-    const { nomor_rw, ketua_rw, keterangan } = req.body;
-
-    // Validasi input
-    if (!nomor_rw || !ketua_rw) {
-      req.flash("error", "Nomor RW dan Ketua RW harus diisi");
-      return res.redirect("/rw/create");
+    const data = await validateRw(db, req.body);
+    if (data.error) {
+      return reply(req, res, { ok: false, message: data.error, redirect: back });
     }
 
-    // Cek apakah nomor RW sudah ada
-    const [existing] = await db.execute(
-      "SELECT id FROM rw WHERE nomor_rw = ?",
-      [nomor_rw]
-    );
-
-    if (existing.length > 0) {
-      req.flash("error", "Nomor RW sudah terdaftar");
-      return res.redirect("/rw/create");
-    }
-
-    // Insert RW baru
     await db.execute(
       "INSERT INTO rw (nomor_rw, ketua_rw, keterangan) VALUES (?, ?, ?)",
-      [nomor_rw, ketua_rw, keterangan || null]
+      [data.nomorRw, data.ketuaRw, data.keterangan]
     );
 
-    req.flash("success", `RW ${nomor_rw} berhasil ditambahkan`);
-    res.redirect("/rw");
+    reply(req, res, {
+      ok: true,
+      message: `${data.nomorRw} berhasil ditambahkan`,
+      redirect: back,
+    });
   } catch (error) {
     console.error("Error creating RW:", error);
-    req.flash("error", "Gagal menambahkan RW");
-    res.redirect("/rw/create");
+    reply(req, res, {
+      ok: false,
+      message: "Gagal menambahkan RW",
+      redirect: back,
+      status: 500,
+    });
   }
 });
 
-// GET /rw/:id/edit - Form edit RW
-router.get("/:id/edit", async (req, res) => {
-  try {
-    const db = req.app.locals.db;
-    const [rows] = await db.execute("SELECT * FROM rw WHERE id = ?", [
-      req.params.id,
-    ]);
-
-    if (rows.length === 0) {
-      req.flash("error", "RW tidak ditemukan");
-      return res.redirect("/rw");
-    }
-
-    res.render("rw/edit", {
-      title: "Edit RW - Zakat Fitrah App",
-      user: req.session.user,
-      rw: rows[0],
-      error: req.flash("error"),
-      success: req.flash("success"),
-    });
-  } catch (error) {
-    console.error("Error fetching RW for edit:", error);
-    req.flash("error", "Gagal mengambil data RW");
-    res.redirect("/rw");
-  }
+// GET /rw/:id/edit - Form edit RW kini berupa modal di halaman daftar
+router.get("/:id/edit", (req, res) => {
+  if (!/^\d+$/.test(req.params.id)) return res.redirect("/rw");
+  res.redirect(`/rw?edit=${req.params.id}`);
 });
 
 // POST /rw/:id/edit - Update RW
 router.post("/:id/edit", async (req, res) => {
+  const back = safeReturn(req.body.return_to, "/rw");
   try {
     const db = req.app.locals.db;
-    const { nomor_rw, ketua_rw, keterangan } = req.body;
-
-    // Validasi input
-    if (!nomor_rw || !ketua_rw) {
-      req.flash("error", "Nomor RW dan Ketua RW harus diisi");
-      return res.redirect(`/rw/${req.params.id}/edit`);
+    const [current] = await db.execute("SELECT id FROM rw WHERE id = ?", [
+      req.params.id,
+    ]);
+    if (current.length === 0) {
+      return reply(req, res, {
+        ok: false,
+        message: "RW tidak ditemukan",
+        redirect: back,
+        status: 404,
+      });
     }
 
-    // Cek apakah nomor RW sudah ada (kecuali untuk RW yang sedang diedit)
-    const [existing] = await db.execute(
-      "SELECT id FROM rw WHERE nomor_rw = ? AND id != ?",
-      [nomor_rw, req.params.id]
-    );
-
-    if (existing.length > 0) {
-      req.flash("error", "Nomor RW sudah terdaftar");
-      return res.redirect(`/rw/${req.params.id}/edit`);
+    const data = await validateRw(db, req.body, req.params.id);
+    if (data.error) {
+      return reply(req, res, { ok: false, message: data.error, redirect: back });
     }
 
-    // Update RW
     await db.execute(
       "UPDATE rw SET nomor_rw = ?, ketua_rw = ?, keterangan = ? WHERE id = ?",
-      [nomor_rw, ketua_rw, keterangan || null, req.params.id]
+      [data.nomorRw, data.ketuaRw, data.keterangan, req.params.id]
     );
 
-    req.flash("success", `RW ${nomor_rw} berhasil diperbarui`);
-    res.redirect("/rw");
+    reply(req, res, {
+      ok: true,
+      message: `${data.nomorRw} berhasil diperbarui`,
+      redirect: back,
+    });
   } catch (error) {
     console.error("Error updating RW:", error);
-    req.flash("error", "Gagal memperbarui RW");
-    res.redirect(`/rw/${req.params.id}/edit`);
+    reply(req, res, {
+      ok: false,
+      message: "Gagal memperbarui RW",
+      redirect: back,
+      status: 500,
+    });
   }
 });
 

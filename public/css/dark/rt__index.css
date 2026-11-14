@@ -1,0 +1,180 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/rt/index.ejs */
+html.dark-mode .page-header {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 50%, #0f8a1f 100%)
+}
+html.dark-mode .page-header::before {
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)
+}
+html.dark-mode .header-icon-box {
+    background: #0f1729;
+    color: white
+}
+html.dark-mode .header-text-box {
+    color: white
+}
+html.dark-mode .header-title-text {
+    color: white
+}
+html.dark-mode .header-subtitle-text {
+    color: rgba(255, 255, 255, 0.95)
+}
+html.dark-mode .btn-action-primary {
+    background: #0f1729;
+    color: #1EAF2F
+}
+html.dark-mode .btn-action-primary:hover {
+    background: #111a2e
+}
+html.dark-mode .btn-action-secondary {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid #191f2e
+}
+html.dark-mode .btn-action-secondary:hover {
+    background: #0f1729;
+    color: #1EAF2F
+}
+html.dark-mode .stat-box {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .stat-box-primary .stat-decoration {
+    background: #1EAF2F
+}
+html.dark-mode .stat-box-success .stat-decoration {
+    background: #10b981
+}
+html.dark-mode .stat-box-info .stat-decoration {
+    background: #3b82f6
+}
+html.dark-mode .stat-box-warning .stat-decoration {
+    background: #f59e0b
+}
+html.dark-mode .stat-icon-wrapper {
+    color: white
+}
+html.dark-mode .stat-icon-primary {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%)
+}
+html.dark-mode .stat-icon-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%)
+}
+html.dark-mode .stat-icon-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)
+}
+html.dark-mode .stat-icon-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%)
+}
+html.dark-mode .stat-value-text {
+    color: #d8dfee
+}
+html.dark-mode .stat-label-text {
+    color: #7e8593
+}
+html.dark-mode .table-section {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .table-header-wrapper {
+    background: linear-gradient(to right, #19222a, #121b31);
+    border-bottom: 1px solid #222b3f
+}
+html.dark-mode .table-header-icon {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white
+}
+html.dark-mode .table-title {
+    color: #d8dfee
+}
+html.dark-mode .table-subtitle {
+    color: #7e8593
+}
+html.dark-mode .table-badge {
+    background: #1a422d;
+    color: #a0f9e0
+}
+html.dark-mode .empty-state-icon {
+    background: linear-gradient(135deg, #121b31, #15203a);
+    color: #9ca3af
+}
+html.dark-mode .empty-state-title {
+    color: #d8dfee
+}
+html.dark-mode .empty-state-desc {
+    color: #7e8593
+}
+html.dark-mode .btn-empty-state {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white
+}
+html.dark-mode .data-table thead tr {
+    background: linear-gradient(to right, #19222a, #121b31);
+    border-bottom: 2px solid #222b3f
+}
+html.dark-mode .data-table th {
+    color: #a9b8d1
+}
+html.dark-mode .data-table tbody tr {
+    border-bottom: 1px solid #222b3f
+}
+html.dark-mode .data-table tbody tr:hover {
+    background: linear-gradient(to right, #15331e, #173d24)
+}
+html.dark-mode .cell-content-secondary {
+    color: #7e8593
+}
+html.dark-mode .rw-badge {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white
+}
+html.dark-mode .rt-number {
+    color: #d8dfee
+}
+html.dark-mode .ketua-name {
+    color: #d8dfee
+}
+html.dark-mode .cell-subtitle {
+    color: #9ca3af
+}
+html.dark-mode .badge-stat-primary {
+    background: #14273f;
+    color: #728de7
+}
+html.dark-mode .badge-success {
+    background: #1a422d;
+    color: #a0f9e0
+}
+html.dark-mode .badge-danger {
+    background: #3c1313;
+    color: #e36262
+}
+html.dark-mode .amount-display {
+    color: #d8dfee
+}
+html.dark-mode .btn-icon {
+    border: none
+}
+html.dark-mode .btn-icon-info {
+    background: #14273f;
+    color: #728de7
+}
+html.dark-mode .btn-icon-info:hover {
+    background: #3b82f6;
+    color: white
+}
+html.dark-mode .btn-icon-primary {
+    background: #1a422d;
+    color: #a0f9e0
+}
+html.dark-mode .btn-icon-primary:hover {
+    background: #1EAF2F;
+    color: #111827
+}
+html.dark-mode .btn-icon-danger {
+    background: #3c1313;
+    color: #e36262
+}
+html.dark-mode .btn-icon-danger:hover {
+    background: #ef4444;
+    color: white
+}

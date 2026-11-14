@@ -1,966 +1,628 @@
 <%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'distribusi' }) %>
 
-<div class="max-w-full mx-auto px-1 sm:px-2 lg:px-3 distribusi-detail-page">
-  <!-- Header -->
-  <div class="mb-8 detail-hero">
-    <div class="flex items-center">
-      <a href="/distribusi" class="text-gray-500 hover:text-gray-700 mr-4">
-        <i class="fas fa-arrow-left text-lg"></i>
-      </a>
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">
-          <i class="fas fa-info-circle mr-2 text-primary-600"></i>Detail
-          Distribusi
-        </h1>
-        <p class="text-gray-600 mt-1">Informasi lengkap distribusi zakat</p>
-      </div>
-    </div>
-  </div>
+<%
+  const d = distribusi;
+  const isUang = d.jenis_zakat === 'uang';
+  const jumlah = Number(d.jumlah) || 0;
+  const amountText = isUang
+    ? 'Rp ' + Math.floor(jumlah).toLocaleString('id-ID')
+    : jumlah.toLocaleString('id-ID', { maximumFractionDigits: 2 }) + ' kg';
+  const code = '#' + String(d.id).padStart(6, '0');
+  const fmtDate = (v) => v ? new Date(v).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+  const fmtTime = (v) => v ? new Date(v).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '';
+  const fmtAmount = (jenis, value) => jenis === 'uang'
+    ? 'Rp ' + Math.floor(Number(value) || 0).toLocaleString('id-ID')
+    : (Number(value) || 0).toLocaleString('id-ID', { maximumFractionDigits: 2 }) + ' kg';
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 detail-layout">
-    <!-- Main Content -->
-    <div class="lg:col-span-2 detail-main">
-      <!-- Distribution Info -->
-      <div class="bg-white shadow-sm rounded-lg mb-6 detail-card detail-card-info">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-900">
-              <i class="fas fa-share-alt mr-2 text-primary-600"></i>Informasi
-              Distribusi
-            </h2>
-            <span
-              class="status-chip inline-flex px-3 py-1 text-sm font-semibold rounded-full <% if (distribusi.status === 'diterima') { %>bg-green-100 text-green-800<% } else if (distribusi.status === 'disalurkan') { %>bg-blue-100 text-blue-800<% } else if (distribusi.status === 'pending') { %>bg-yellow-100 text-yellow-800<% } else { %>bg-red-100 text-red-800<% } %>"
-            >
-              <% if (distribusi.status === 'diterima') { %>
-              <i class="fas fa-check mr-1"></i>
-              <% } else if (distribusi.status === 'disalurkan') { %>
-              <i class="fas fa-truck mr-1"></i>
-              <% } else if (distribusi.status === 'pending') { %>
-              <i class="fas fa-clock mr-1"></i>
-              <% } else { %>
-              <i class="fas fa-times mr-1"></i>
-              <% } %> <%= distribusi.status.charAt(0).toUpperCase() +
-              distribusi.status.slice(1) %>
-            </span>
-          </div>
-        </div>
-        <div class="p-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 detail-grid">
-            <div>
-              <label class="block text-sm font-medium text-gray-500 mb-1"
-                >ID Distribusi</label
-              >
-              <p class="text-sm text-gray-900 font-mono">
-                #<%= distribusi.id.toString().padStart(6, '0') %>
-              </p>
-            </div>
+  const statusMeta = {
+    pending: { label: 'Menunggu', icon: 'fa-hourglass-half', tone: 'warn' },
+    disalurkan: { label: 'Disalurkan', icon: 'fa-truck', tone: 'info' },
+    diterima: { label: 'Diterima', icon: 'fa-circle-check', tone: 'ok' },
+    batal: { label: 'Dibatalkan', icon: 'fa-ban', tone: 'err' }
+  };
+  const st = statusMeta[d.status] || statusMeta.pending;
 
-            <div>
-              <label class="block text-sm font-medium text-gray-500 mb-1"
-                >Tanggal Distribusi</label
-              >
-              <p class="text-sm text-gray-900">
-                <i class="fas fa-calendar mr-2"></i>
-                <%= new
-                Date(distribusi.tanggal_distribusi).toLocaleDateString('id-ID',
-                { day: 'numeric', month: 'long', year: 'numeric' }) %>
-              </p>
-            </div>
+  const flow = d.status === 'batal'
+    ? [
+        { key: 'pending', label: 'Dibuat', icon: 'fa-file-circle-plus' },
+        { key: 'batal', label: 'Dibatalkan', icon: 'fa-ban' }
+      ]
+    : [
+        { key: 'pending', label: 'Dibuat', icon: 'fa-file-circle-plus' },
+        { key: 'disalurkan', label: 'Disalurkan', icon: 'fa-truck' },
+        { key: 'diterima', label: 'Diterima', icon: 'fa-circle-check' }
+      ];
+  const order = { pending: 0, disalurkan: 1, diterima: 2, batal: 1 };
+  const activeIdx = order[d.status] !== undefined ? order[d.status] : 0;
 
-            <div>
-              <label class="block text-sm font-medium text-gray-500 mb-1"
-                >Jenis & Jumlah Zakat</label
-              >
-              <div class="flex items-center">
-                <% if (distribusi.jenis_zakat === 'beras') { %>
-                <div
-                  class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-3"
-                >
-                  <i class="fas fa-seedling text-white text-sm"></i>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-900">
-                    <%= parseFloat(distribusi.jumlah).toLocaleString('id-ID') %>
-                    kg Beras
-                  </p>
-                  <p class="text-xs text-gray-500">Zakat dalam bentuk beras</p>
-                </div>
-                <% } else { %>
-                <div
-                  class="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center mr-3"
-                >
-                  <i class="fas fa-coins text-white text-sm"></i>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-900">
-                    Rp <%= parseFloat(distribusi.jumlah).toLocaleString('id-ID')
-                    %>
-                  </p>
-                  <p class="text-xs text-gray-500">Zakat dalam bentuk uang</p>
-                </div>
-                <% } %>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-500 mb-1"
-                >PIC Distribusi</label
-              >
-              <p class="text-sm text-gray-900">
-                <i class="fas fa-user mr-2"></i>
-                <%= distribusi.user_nama || 'System' %>
-              </p>
-            </div>
-
-            <% if (distribusi.keterangan) { %>
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-500 mb-1"
-                >Keterangan</label
-              >
-              <p class="text-sm text-gray-900 bg-gray-50 p-3 rounded-md">
-                <%= distribusi.keterangan %>
-              </p>
-            </div>
-            <% } %>
-
-            <!-- Bukti Foto -->
-            <% if (distribusi.bukti_foto) { %>
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-500 mb-2">
-                <i class="fas fa-camera mr-2"></i>Bukti Foto Distribusi
-              </label>
-              <div class="relative group foto-preview-wrap">
-                <img 
-                  src="<%= distribusi.bukti_foto %>" 
-                  alt="Bukti Distribusi" 
-                  class="w-full h-auto object-contain rounded-lg border-2 border-gray-200 shadow-sm hover:shadow-md transition-all cursor-pointer"
-                  onclick="openImageModal('<%= distribusi.bukti_foto %>')"
-                >
-                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded-lg transition-all flex items-center justify-center">
-                  <button 
-                    onclick="openImageModal('<%= distribusi.bukti_foto %>')"
-                    class="opacity-0 group-hover:opacity-100 bg-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
-                  >
-                    <i class="fas fa-search-plus mr-2"></i>Lihat Lebih Besar
-                  </button>
-                </div>
-              </div>
-            </div>
-            <% } %>
-          </div>
-        </div>
-      </div>
-
-      <!-- Mustahik Info -->
-      <div class="bg-white shadow-sm rounded-lg detail-card detail-card-mustahik">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-lg font-semibold text-gray-900">
-            <i class="fas fa-user-friends mr-2 text-primary-600"></i>Informasi
-            Mustahik
-          </h2>
-        </div>
-        <div class="p-6">
-          <div class="flex items-center mb-4">
-            <div class="flex-shrink-0 h-16 w-16">
-              <div
-                class="h-16 w-16 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex items-center justify-center"
-              >
-                <span class="text-xl font-bold text-white">
-                  <%= distribusi.mustahik_nama.charAt(0).toUpperCase() %>
-                </span>
-              </div>
-            </div>
-            <div class="ml-4">
-              <h3 class="text-lg font-bold text-gray-900">
-                <a
-                  href="/mustahik/detail/<%= distribusi.mustahik_id %>"
-                  class="hover:text-primary-600"
-                >
-                  <%= distribusi.mustahik_nama %>
-                </a>
-              </h3>
-              <div class="flex items-center space-x-3 mt-1">
-                <% if (distribusi.kategori) { %>
-                <span
-                  class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium <% if (distribusi.kategori === 'fakir') { %>bg-red-100 text-red-800<% } else if (distribusi.kategori === 'miskin') { %>bg-orange-100 text-orange-800<% } else if (distribusi.kategori === 'amil') { %>bg-green-100 text-green-800<% } else if (distribusi.kategori === 'mualaf') { %>bg-blue-100 text-blue-800<% } else if (distribusi.kategori === 'fisabilillah') { %>bg-purple-100 text-purple-800<% } else { %>bg-gray-100 text-gray-800<% } %>"
-                >
-                  <%= distribusi.kategori.charAt(0).toUpperCase() +
-                  distribusi.kategori.slice(1) %>
-                </span>
-                <% } %>
-                <% if (distribusi.rt_nama) { %>
-                <span class="text-sm text-gray-500">
-                  <i class="fas fa-home mr-1"></i>RT <%= distribusi.rt_nama %>
-                </span>
-                <% } %>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-gray-50 rounded-lg p-4">
-            <h4 class="text-sm font-medium text-gray-700 mb-3">
-              Riwayat Distribusi Lainnya
-            </h4>
-            <% if (typeof otherDistributions === 'undefined' || otherDistributions.length === 0) { %>
-            <p class="text-sm text-gray-500">
-              Tidak ada distribusi lain untuk mustahik ini
-            </p>
-            <% } else { %>
-            <div class="space-y-2">
-              <% otherDistributions.slice(0, 3).forEach(d => { %>
-              <div
-                class="flex items-center justify-between bg-white rounded-md p-2"
-              >
-                <div class="flex items-center">
-                  <% if (d.jenis_zakat === 'beras') { %>
-                  <i class="fas fa-seedling text-green-600 mr-2"></i>
-                  <span class="text-sm text-gray-900">
-                    <%= parseFloat(d.jumlah).toLocaleString('id-ID') %> kg Beras
-                  </span>
-                  <% } else { %>
-                  <i class="fas fa-coins text-yellow-600 mr-2"></i>
-                  <span class="text-sm text-gray-900">
-                    Rp <%= parseFloat(d.jumlah).toLocaleString('id-ID') %>
-                  </span>
-                  <% } %>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <span
-                    class="inline-flex px-2 py-1 text-xs font-semibold rounded-full <% if (d.status === 'diterima') { %>bg-green-100 text-green-800<% } else if (d.status === 'disalurkan') { %>bg-blue-100 text-blue-800<% } else if (d.status === 'pending') { %>bg-yellow-100 text-yellow-800<% } else { %>bg-red-100 text-red-800<% } %>"
-                  >
-                    <%= d.status.charAt(0).toUpperCase() + d.status.slice(1) %>
-                  </span>
-                  <span class="text-xs text-gray-500">
-                    <%= new Date(d.created_at).toLocaleDateString('id-ID') %>
-                  </span>
-                </div>
-              </div>
-              <% }); %> <% if (otherDistributions.length > 3) { %>
-              <div class="text-center pt-2">
-                <a
-                  href="/mustahik/detail/<%= distribusi.mustahik_id %>"
-                  class="text-sm text-primary-600 hover:text-primary-800"
-                >
-                  Lihat semua (<%= otherDistributions.length %> distribusi)
-                </a>
-              </div>
-              <% } %>
-            </div>
-            <% } %>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sidebar -->
-    <div class="lg:col-span-1 detail-side">
-      <!-- Quick Actions -->
-      <div class="bg-white shadow-sm rounded-lg mb-6 detail-card detail-card-actions">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-900">
-            <i class="fas fa-bolt mr-2 text-primary-600"></i>Aksi Cepat
-          </h3>
-        </div>
-        <div class="p-6 space-y-3">
-          <% if (distribusi.status === 'pending' || distribusi.status ===
-          'disalurkan') { %>
-          <a
-            href="/distribusi/edit/<%= distribusi.id %>"
-            class="btn-primary w-full text-center"
-          >
-            <i class="fas fa-edit mr-2"></i>Edit Distribusi
-          </a>
-          <% } %> <% if (distribusi.status === 'pending') { %>
-          <form
-            method="POST"
-            action="/distribusi/update-status/<%= distribusi.id %>"
-            class="space-y-2"
-          >
-            <input type="hidden" name="status" value="disalurkan" />
-            <button type="submit" class="btn-secondary w-full">
-              <i class="fas fa-truck mr-2"></i>Tandai Disalurkan
-            </button>
-          </form>
-          <% } %> <% if (distribusi.status === 'disalurkan') { %>
-          <form
-            method="POST"
-            action="/distribusi/update-status/<%= distribusi.id %>"
-            class="space-y-2"
-          >
-            <input type="hidden" name="status" value="diterima" />
-            <button type="submit" class="btn-success w-full">
-              <i class="fas fa-check mr-2"></i>Tandai Diterima
-            </button>
-          </form>
-          <% } %> <% if (distribusi.status === 'pending') { %>
-          <form
-            method="POST"
-            action="/distribusi/update-status/<%= distribusi.id %>"
-            id="cancelForm"
-          >
-            <input type="hidden" name="status" value="batal" />
-            <button type="submit" class="btn-danger w-full">
-              <i class="fas fa-times mr-2"></i>Batalkan
-            </button>
-          </form>
-          <% } %>
-
-          <a
-            href="/distribusi/create?mustahik_id=<%= distribusi.mustahik_id %>"
-            class="btn-secondary w-full text-center"
-          >
-            <i class="fas fa-plus mr-2"></i>Distribusi Lagi
-          </a>
-
-          <% if (distribusi.status === 'pending') { %>
-          <form
-            method="POST"
-            action="/distribusi/delete/<%= distribusi.id %>?_method=DELETE"
-            id="deleteForm"
-          >
-            <button type="submit" class="btn-danger w-full">
-              <i class="fas fa-trash mr-2"></i>Hapus
-            </button>
-          </form>
-          <% } %>
-        </div>
-      </div>
-
-      <!-- Timeline -->
-      <div class="bg-white shadow-sm rounded-lg detail-card detail-card-timeline">
-        <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-900">
-            <i class="fas fa-history mr-2 text-primary-600"></i>Timeline
-          </h3>
-        </div>
-        <div class="p-6">
-          <div class="flow-root">
-            <ul class="-mb-8">
-              <!-- Created -->
-              <li>
-                <div class="relative pb-8">
-                  <div
-                    class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
-                  ></div>
-                  <div class="relative flex space-x-3">
-                    <div>
-                      <span
-                        class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center ring-8 ring-white"
-                      >
-                        <i class="fas fa-plus text-white text-xs"></i>
-                      </span>
-                    </div>
-                    <div
-                      class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4"
-                    >
-                      <div>
-                        <p class="text-sm text-gray-500">Distribusi dibuat</p>
-                      </div>
-                      <div
-                        class="text-right text-sm whitespace-nowrap text-gray-500"
-                      >
-                        <%= new
-                        Date(distribusi.created_at).toLocaleDateString('id-ID')
-                        %>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </li>
-
-              <!-- Status updates based on current status -->
-              <% if (distribusi.status === 'disalurkan' || distribusi.status ===
-              'diterima') { %>
-              <li>
-                <div class="relative pb-8">
-                  <% if (distribusi.status === 'diterima') { %>
-                  <div
-                    class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
-                  ></div>
-                  <% } %>
-                  <div class="relative flex space-x-3">
-                    <div>
-                      <span
-                        class="h-8 w-8 rounded-full bg-yellow-500 flex items-center justify-center ring-8 ring-white"
-                      >
-                        <i class="fas fa-truck text-white text-xs"></i>
-                      </span>
-                    </div>
-                    <div
-                      class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4"
-                    >
-                      <div>
-                        <p class="text-sm text-gray-500">Zakat disalurkan</p>
-                      </div>
-                      <div
-                        class="text-right text-sm whitespace-nowrap text-gray-500"
-                      >
-                        <%= new
-                        Date(distribusi.updated_at).toLocaleDateString('id-ID')
-                        %>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </li>
-              <% } %> <% if (distribusi.status === 'diterima') { %>
-              <li>
-                <div class="relative">
-                  <div class="relative flex space-x-3">
-                    <div>
-                      <span
-                        class="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white"
-                      >
-                        <i class="fas fa-check text-white text-xs"></i>
-                      </span>
-                    </div>
-                    <div
-                      class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4"
-                    >
-                      <div>
-                        <p class="text-sm text-gray-500">
-                          Zakat diterima mustahik
-                        </p>
-                      </div>
-                      <div
-                        class="text-right text-sm whitespace-nowrap text-gray-500"
-                      >
-                        <%= new
-                        Date(distribusi.updated_at).toLocaleDateString('id-ID')
-                        %>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </li>
-              <% } else if (distribusi.status === 'batal') { %>
-              <li>
-                <div class="relative">
-                  <div class="relative flex space-x-3">
-                    <div>
-                      <span
-                        class="h-8 w-8 rounded-full bg-red-500 flex items-center justify-center ring-8 ring-white"
-                      >
-                        <i class="fas fa-times text-white text-xs"></i>
-                      </span>
-                    </div>
-                    <div
-                      class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4"
-                    >
-                      <div>
-                        <p class="text-sm text-gray-500">
-                          Distribusi dibatalkan
-                        </p>
-                      </div>
-                      <div
-                        class="text-right text-sm whitespace-nowrap text-gray-500"
-                      >
-                        <%= new
-                        Date(distribusi.updated_at).toLocaleDateString('id-ID')
-                        %>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </li>
-              <% } else if (distribusi.status === 'pending') { %>
-              <li>
-                <div class="relative">
-                  <div class="relative flex space-x-3">
-                    <div>
-                      <span
-                        class="h-8 w-8 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white"
-                      >
-                        <i class="fas fa-clock text-white text-xs"></i>
-                      </span>
-                    </div>
-                    <div
-                      class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4"
-                    >
-                      <div>
-                        <p class="text-sm text-gray-500">Menunggu distribusi</p>
-                      </div>
-                      <div
-                        class="text-right text-sm whitespace-nowrap text-gray-500"
-                      >
-                        Pending
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </li>
-              <% } %>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+  const kategori = String(d.mustahik_kategori || '-').replace(/_/g, ' ');
+  const canEdit = d.status === 'pending' || d.status === 'disalurkan';
+  const canDelete = d.status === 'pending' || d.status === 'batal';
+  const backPath = '/distribusi/detail/' + d.id;
+%>
 
 <style>
-  .distribusi-detail-page {
-    width: 100%;
-    max-width: 100%;
-    padding-top: 0.75rem;
-    padding-bottom: 1.5rem;
-    padding-left: 0.1rem;
-    padding-right: 0.1rem;
-    position: relative;
-  }
-
-  .distribusi-detail-page::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(circle at 8% 8%, rgba(16, 185, 129, 0.08), transparent 33%),
-      radial-gradient(circle at 92% 18%, rgba(59, 130, 246, 0.08), transparent 32%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .distribusi-detail-page > * {
-    position: relative;
-    z-index: 1;
-  }
-
-  .distribusi-detail-page .detail-hero {
-    position: relative;
-    margin-bottom: 1.25rem;
-    padding: 1.2rem 1.35rem;
-    border-radius: 1rem;
-    background:
-      radial-gradient(circle at 88% 18%, rgba(255, 255, 255, 0.28), transparent 34%),
-      linear-gradient(130deg, #0f9f2f 0%, #16a34a 45%, #0d9488 100%);
-    box-shadow: 0 14px 34px rgba(22, 163, 74, 0.24);
+  .dd-card {
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--card-radius);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
     overflow: hidden;
-  }
-
-  .distribusi-detail-page .detail-hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    border: 1px solid rgba(255, 255, 255, 0.24);
-    pointer-events: none;
-  }
-
-  .distribusi-detail-page .detail-hero h1,
-  .distribusi-detail-page .detail-hero p,
-  .distribusi-detail-page .detail-hero a,
-  .distribusi-detail-page .detail-hero i {
-    color: #ffffff !important;
-  }
-
-  .distribusi-detail-page .detail-hero a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.35rem;
-    height: 2.35rem;
-    border-radius: 0.7rem;
-    background: rgba(255, 255, 255, 0.18);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    transition: 0.2s ease;
-  }
-
-  .distribusi-detail-page .detail-hero a:hover {
-    transform: translateX(-2px);
-    background: rgba(255, 255, 255, 0.24);
-  }
-
-  .distribusi-detail-page .detail-layout {
-    gap: 1.25rem;
-  }
-
-  .distribusi-detail-page .detail-card {
-    border: 1px solid #e7edf6;
-    border-radius: 1rem;
-    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
-    overflow: hidden;
-    transition: transform 0.26s ease, box-shadow 0.26s ease, border-color 0.26s ease;
-    animation: distribusiFadeUp 0.45s ease both;
-  }
-
-  .distribusi-detail-page .detail-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
-    border-color: #d9e3ef;
-  }
-
-  .distribusi-detail-page .detail-card > .px-6.py-4.border-b.border-gray-200 {
-    background: linear-gradient(180deg, #f9fbff 0%, #f3f7fb 100%);
-    border-bottom-color: #e5edf5 !important;
-  }
-
-  .distribusi-detail-page .status-chip {
-    padding: 0.45rem 0.8rem;
-    border-radius: 999px;
-    letter-spacing: 0.01em;
-    white-space: nowrap;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
-  }
-
-  .distribusi-detail-page .detail-grid > div,
-  .distribusi-detail-page .detail-main .bg-gray-50.rounded-lg.p-4,
-  .distribusi-detail-page .detail-main .space-y-2 > div {
     min-width: 0;
   }
 
-  .distribusi-detail-page .detail-grid p,
-  .distribusi-detail-page .detail-grid span,
-  .distribusi-detail-page .detail-main h3,
-  .distribusi-detail-page .detail-main h4 {
-    overflow-wrap: anywhere;
-  }
-
-  .distribusi-detail-page .detail-main .relative.group img {
-    border-radius: 0.9rem;
-    border-color: #dbe4ef !important;
-  }
-
-  .distribusi-detail-page .foto-preview-wrap {
-    max-width: min(100%, 560px);
-    margin: 0 auto;
-  }
-
-  .distribusi-detail-page .foto-preview-wrap img {
-    width: 100%;
-    object-fit: contain;
-    max-height: 14rem !important;
-    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
-    padding: 0.35rem;
-  }
-
-  .distribusi-detail-page .detail-main .bg-gray-50.rounded-lg.p-4 {
-    border: 1px solid #e6edf5;
-    background: linear-gradient(180deg, #f8fbff 0%, #f3f7fb 100%);
-  }
-
-  .distribusi-detail-page .detail-main .space-y-2 > div {
-    border: 1px solid #edf2f8;
-    border-radius: 0.6rem;
-  }
-
-  .distribusi-detail-page .detail-main .w-8.h-8 {
-    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.14);
-  }
-
-  .distribusi-detail-page .detail-side .detail-card {
-    position: sticky;
-    top: 86px;
-  }
-
-  .distribusi-detail-page .detail-side .detail-card + .detail-card {
-    position: static;
-  }
-
-  .distribusi-detail-page .detail-card-actions .btn-primary,
-  .distribusi-detail-page .detail-card-actions .btn-secondary,
-  .distribusi-detail-page .detail-card-actions .btn-success,
-  .distribusi-detail-page .detail-card-actions .btn-danger {
-    border-radius: 0.75rem;
-    font-weight: 700;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .distribusi-detail-page .detail-card-actions .btn-primary,
-  .distribusi-detail-page .detail-card-actions .btn-success {
-    background: linear-gradient(135deg, #16a34a 0%, #0d9488 100%);
-    color: #ffffff !important;
-    border: none;
-    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.24);
-  }
-
-  .distribusi-detail-page .detail-card-actions .btn-secondary {
-    border: 1px solid #d8e3ee;
-    background: #f8fafc;
-    color: #0f172a !important;
-  }
-
-  .distribusi-detail-page .detail-card-actions .btn-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: #ffffff !important;
-    border: none;
-    box-shadow: 0 8px 18px rgba(239, 68, 68, 0.22);
-  }
-
-  .distribusi-detail-page .detail-card-actions .btn-primary:hover,
-  .distribusi-detail-page .detail-card-actions .btn-secondary:hover,
-  .distribusi-detail-page .detail-card-actions .btn-success:hover,
-  .distribusi-detail-page .detail-card-actions .btn-danger:hover {
-    transform: translateY(-2px);
-  }
-
-  .distribusi-detail-page .detail-card-timeline .text-sm.text-gray-500 {
-    color: #475569 !important;
-  }
-
-  .distribusi-detail-page .detail-card-timeline ul.-mb-8 {
+  .dd-card-head {
     display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
   }
 
-  .distribusi-detail-page .detail-card-timeline li > .relative {
-    padding-bottom: 0 !important;
+  .dd-card-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-darker) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 8px 14px -6px rgba(30, 175, 47, 0.5);
+    color: #fff;
+    font-size: 14px;
   }
 
-  .distribusi-detail-page .detail-card-timeline li .absolute.top-4.left-4 {
-    display: none;
+  .dd-card-title { color: var(--ink); font-size: 0.95rem; font-weight: 700; }
+  .dd-card-sub { margin-top: 1px; color: var(--muted); font-size: 0.76rem; }
+  .dd-card-body { flex: 1; display: flex; flex-direction: column; padding: 18px 20px 20px; }
+
+  /* ---------- Ringkasan + tombol ---------- */
+  .dd-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 22px 24px 20px;
+    background:
+      radial-gradient(460px 170px at 100% -30%, rgba(30, 175, 47, 0.14), transparent 70%),
+      linear-gradient(135deg, rgba(201, 162, 75, 0.08), transparent 60%),
+      var(--surface);
   }
 
-  .distribusi-detail-page .detail-card-timeline li .relative.flex.space-x-3 {
-    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-    border: 1px solid #e5edf5;
-    border-radius: 0.8rem;
-    padding: 0.55rem 0.75rem;
+  .dd-hero-label {
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
   }
 
-  .distribusi-detail-page .detail-card-timeline li .h-8.w-8 {
-    width: 2rem !important;
-    height: 2rem !important;
-    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.14);
+  .dd-hero-amount {
+    margin-top: 6px;
+    color: var(--ink);
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
   }
 
-  .distribusi-detail-page .detail-card-timeline li .ring-8 {
-    box-shadow: 0 0 0 4px #ffffff;
+  .dd-hero-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .dd-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 13px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 0.78rem;
+    font-weight: 700;
   }
 
-  .distribusi-detail-page .detail-card:nth-of-type(1) { animation-delay: 0.02s; }
-  .distribusi-detail-page .detail-card:nth-of-type(2) { animation-delay: 0.08s; }
-  .distribusi-detail-page .detail-side .detail-card:nth-of-type(1) { animation-delay: 0.1s; }
-  .distribusi-detail-page .detail-side .detail-card:nth-of-type(2) { animation-delay: 0.14s; }
+  .dd-chip.tone-warn { background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.4); color: #b45309; }
+  .dd-chip.tone-info { background: rgba(59, 130, 246, 0.12); border-color: rgba(59, 130, 246, 0.38); color: #1d4ed8; }
+  .dd-chip.tone-ok { background: rgba(30, 175, 47, 0.14); border-color: rgba(30, 175, 47, 0.4); color: var(--primary-darker); }
+  .dd-chip.tone-err { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.38); color: #b91c1c; }
+  html.dark-mode .dd-chip.tone-warn { color: #fcd34d; }
+  html.dark-mode .dd-chip.tone-info { color: #93c5fd; }
+  html.dark-mode .dd-chip.tone-ok { color: #86efac; }
+  html.dark-mode .dd-chip.tone-err { color: #fca5a5; }
 
-  @keyframes distribusiFadeUp {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  .dd-meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
   }
 
-  @media (max-width: 1024px) {
-    .distribusi-detail-page .detail-side .detail-card {
-      position: static;
-      top: auto;
-    }
+  .dd-meta-item { padding: 15px 24px; border-right: 1px solid var(--line); min-width: 0; }
+  .dd-meta-item:last-child { border-right: 0; }
+
+  .dd-meta-label {
+    color: var(--muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
 
-  @media (max-width: 768px) {
-    .distribusi-detail-page {
-      padding-top: 0.5rem;
-      padding-bottom: 1rem;
-      padding-left: 0.08rem;
-      padding-right: 0.08rem;
-    }
+  .dd-meta-value { margin-top: 4px; color: var(--ink); font-size: 0.9rem; font-weight: 600; word-break: break-word; }
+  .dd-meta-value small { display: block; margin-top: 1px; color: var(--muted); font-size: 0.74rem; font-weight: 500; }
 
-    .distribusi-detail-page .detail-hero {
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .distribusi-detail-page .detail-hero .flex.items-center {
-      align-items: flex-start;
-      gap: 0.75rem;
-    }
-
-    .distribusi-detail-page .detail-hero h1 {
-      font-size: 1.5rem !important;
-      line-height: 1.2;
-    }
-
-    .distribusi-detail-page .detail-layout {
-      gap: 1rem;
-    }
-
-    .distribusi-detail-page .detail-card {
-      border-radius: 0.9rem;
-    }
-
-    .distribusi-detail-page .detail-card .p-6,
-    .distribusi-detail-page .detail-card .px-6.py-4 {
-      padding-left: 1rem !important;
-      padding-right: 1rem !important;
-    }
-
-    .distribusi-detail-page .detail-card .px-6.py-4 {
-      padding-top: 0.9rem !important;
-      padding-bottom: 0.9rem !important;
-    }
-
-    .distribusi-detail-page .detail-main .flex.items-center.justify-between {
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .distribusi-detail-page .detail-main .flex.items-center.mb-4 {
-      align-items: flex-start;
-      gap: 0.8rem;
-    }
-
-    .distribusi-detail-page .detail-main .flex.items-center.mb-4 .ml-4 {
-      margin-left: 0 !important;
-      min-width: 0;
-    }
-
-    .distribusi-detail-page .detail-main .flex.items-center.mb-4 .h-16.w-16,
-    .distribusi-detail-page .detail-main .flex.items-center.mb-4 .h-16.w-16 > div {
-      width: 3rem !important;
-      height: 3rem !important;
-    }
-
-    .distribusi-detail-page .detail-main .flex.items-center.mb-4 h3 {
-      font-size: 1rem !important;
-      line-height: 1.25;
-    }
-
-    .distribusi-detail-page .detail-main .flex.items-center.space-x-3.mt-1 {
-      gap: 0.35rem !important;
-      flex-wrap: wrap;
-    }
-
-    .distribusi-detail-page .detail-main .space-y-2 > div {
-      align-items: flex-start;
-      gap: 0.4rem;
-      flex-wrap: wrap;
-      justify-content: space-between;
-    }
-
-    .distribusi-detail-page .foto-preview-wrap img {
-      max-height: 11rem !important;
-    }
+  .dd-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    border-top: 1px solid var(--line);
+    background: var(--surface-2);
   }
 
-  @media (max-width: 480px) {
-    .distribusi-detail-page .detail-hero {
-      padding: 0.85rem 0.8rem;
-    }
+  .dd-toolbar form { display: contents; }
+  .dd-toolbar .dd-spacer { flex: 1; }
 
-    .distribusi-detail-page .detail-hero h1 {
-      font-size: 1.25rem !important;
-    }
-
-    .distribusi-detail-page .detail-hero p {
-      font-size: 0.86rem !important;
-    }
-
-    .distribusi-detail-page .detail-card .p-6,
-    .distribusi-detail-page .detail-card .px-6.py-4 {
-      padding-left: 0.8rem !important;
-      padding-right: 0.8rem !important;
-    }
-
-    .distribusi-detail-page .status-chip {
-      font-size: 0.75rem !important;
-      padding: 0.35rem 0.65rem;
-    }
-
-    .distribusi-detail-page .detail-card-timeline li .relative.flex.space-x-3 {
-      padding: 0.5rem 0.6rem;
-    }
-
-    .distribusi-detail-page .foto-preview-wrap img {
-      max-height: 9rem !important;
-    }
+  .dd-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 18px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: filter 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   }
 
-  @media (hover: none) and (pointer: coarse) {
-    .distribusi-detail-page .detail-card:hover,
-    .distribusi-detail-page .detail-card-actions .btn-primary:hover,
-    .distribusi-detail-page .detail-card-actions .btn-secondary:hover,
-    .distribusi-detail-page .detail-card-actions .btn-success:hover,
-    .distribusi-detail-page .detail-card-actions .btn-danger:hover {
-      transform: none;
-    }
+  .dd-btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-darker) 100%);
+    box-shadow: 0 12px 22px -12px rgba(30, 175, 47, 0.75);
+    color: #fff;
+  }
+  .dd-btn-primary:hover { filter: brightness(1.07); }
+
+  .dd-btn-outline { border-color: var(--line-strong); background: var(--surface); color: var(--ink-2); }
+  .dd-btn-outline i { color: var(--primary-dark); }
+  .dd-btn-outline:hover { border-color: rgba(30, 175, 47, 0.55); background: rgba(30, 175, 47, 0.07); color: var(--ink); }
+
+  .dd-btn-warn { border-color: rgba(245, 158, 11, 0.5); background: var(--surface); color: #b45309; }
+  .dd-btn-warn:hover { background: rgba(245, 158, 11, 0.12); }
+  html.dark-mode .dd-btn-warn { color: #fcd34d; }
+
+  .dd-btn-danger { border-color: rgba(239, 68, 68, 0.45); background: var(--surface); color: #dc2626; }
+  .dd-btn-danger:hover { background: rgba(239, 68, 68, 0.1); }
+  html.dark-mode .dd-btn-danger { color: #fca5a5; }
+
+  /* ---------- Alur status ---------- */
+  .dd-steps {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    padding: 18px 12px 16px;
+  }
+
+  .dd-step { position: relative; text-align: center; padding: 0 6px; }
+
+  .dd-step::before {
+    content: "";
+    position: absolute;
+    top: 18px;
+    left: -50%;
+    right: 50%;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--line-strong);
+  }
+
+  .dd-step:first-child::before { display: none; }
+  .dd-step.is-done::before,
+  .dd-step.is-current::before { background: linear-gradient(90deg, var(--primary-color), var(--primary-dark)); }
+  .dd-step.is-err::before { background: linear-gradient(90deg, var(--primary-color), #dc2626); }
+
+  .dd-step-dot {
+    position: relative;
+    z-index: 1;
+    width: 38px;
+    height: 38px;
+    margin: 0 auto 8px;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--line-strong);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--faint);
+    font-size: 13px;
+  }
+
+  .dd-step.is-done .dd-step-dot { border-color: transparent; background: var(--primary-color); color: #fff; }
+
+  .dd-step.is-current .dd-step-dot {
+    border-color: transparent;
+    background: linear-gradient(135deg, #2bc23c 0%, var(--primary-darker) 100%);
+    box-shadow: 0 0 0 5px rgba(30, 175, 47, 0.18);
+    color: #fff;
+  }
+
+  .dd-step.is-current.is-err .dd-step-dot {
+    background: linear-gradient(135deg, #f26a6a 0%, #dc2626 100%);
+    box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.18);
+  }
+
+  .dd-step-label { color: var(--muted); font-size: 0.82rem; font-weight: 600; }
+  .dd-step.is-done .dd-step-label,
+  .dd-step.is-current .dd-step-label { color: var(--ink); }
+  .dd-step-date { margin-top: 2px; color: var(--faint); font-size: 0.72rem; line-height: 1.35; }
+  .dd-step.is-current .dd-step-date,
+  .dd-step.is-done .dd-step-date { color: var(--muted); }
+
+  /* ---------- Dua kartu sejajar ---------- */
+  .dd-two {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .dd-person { display: flex; align-items: center; gap: 14px; }
+
+  .dd-avatar {
+    width: 58px;
+    height: 58px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2bc23c 0%, var(--forest) 100%);
+    box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px rgba(201, 162, 75, 0.7);
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .dd-person-name { color: var(--ink); font-size: 1.1rem; font-weight: 700; line-height: 1.25; word-break: break-word; }
+  .dd-person-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+  .dd-person-meta .category-badge { text-transform: capitalize; }
+
+  .dd-person-actions { margin-top: auto; padding-top: 18px; }
+  .dd-person-actions .dd-btn { width: 100%; }
+
+  .dd-proof {
+    position: relative;
+    display: block;
+    flex: 1;
+    width: 100%;
+    min-height: 190px;
+    padding: 0;
+    border: 0;
+    border-radius: 16px;
+    background: var(--surface-2);
+    overflow: hidden;
+    cursor: zoom-in;
+  }
+
+  .dd-proof img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+  .dd-proof-hint {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 13px;
+    border-radius: 999px;
+    background: rgba(8, 20, 12, 0.65);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .dd-empty {
+    flex: 1;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 6px;
+    min-height: 150px;
+    padding: 20px 16px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 16px;
+    background: var(--surface-2);
+    color: var(--muted);
+    font-size: 0.86rem;
+    text-align: center;
+  }
+
+  .dd-empty i { color: var(--faint); font-size: 26px; }
+  .dd-card .dd-history + .dd-empty, .dd-card-body > .dd-empty:only-child { min-height: 110px; }
+  .dd-empty strong { color: var(--ink-2); }
+
+  /* ---------- Riwayat ---------- */
+  .dd-history { display: grid; gap: 8px; }
+
+  .dd-history-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto 18px;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface-2);
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .dd-history-item:hover { border-color: rgba(30, 175, 47, 0.45); background: rgba(30, 175, 47, 0.06); }
+  .dd-history-item > i { color: var(--faint); font-size: 12px; }
+  .dd-history-date { color: var(--ink); font-size: 0.88rem; font-weight: 600; }
+  .dd-history-amount { color: var(--ink); font-size: 0.9rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .dd-history-kind { color: var(--muted); font-size: 0.74rem; }
+
+  .dd-mini { padding: 3px 11px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
+  .dd-mini.tone-warn { background: rgba(245, 158, 11, 0.16); color: #b45309; }
+  .dd-mini.tone-info { background: rgba(59, 130, 246, 0.14); color: #1d4ed8; }
+  .dd-mini.tone-ok { background: rgba(30, 175, 47, 0.16); color: var(--primary-darker); }
+  .dd-mini.tone-err { background: rgba(239, 68, 68, 0.14); color: #b91c1c; }
+  html.dark-mode .dd-mini.tone-warn { color: #fcd34d; }
+  html.dark-mode .dd-mini.tone-info { color: #93c5fd; }
+  html.dark-mode .dd-mini.tone-ok { color: #86efac; }
+  html.dark-mode .dd-mini.tone-err { color: #fca5a5; }
+
+  @media (max-width: 900px) {
+    .dd-two { grid-template-columns: 1fr; }
+    .dd-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dd-meta-item:nth-child(2) { border-right: 0; }
+    .dd-meta-item:nth-child(-n + 2) { border-bottom: 1px solid var(--line); }
+  }
+
+  @media (max-width: 640px) {
+    .dd-top { padding: 18px 16px 16px; }
+    .dd-hero-amount { font-size: 1.8rem; }
+    .dd-meta-item { padding: 13px 16px; }
+
+    .dd-toolbar { display: grid; grid-template-columns: 1fr 1fr; padding: 14px 16px; }
+    .dd-toolbar .dd-spacer { display: none; }
+    .dd-toolbar .dd-btn { width: 100%; padding: 0 10px; }
+    .dd-toolbar .dd-btn-primary { grid-column: 1 / -1; }
+
+    .dd-history-item { grid-template-columns: minmax(0, 1fr) auto; row-gap: 4px; }
+    .dd-history-item > i { display: none; }
+    .dd-history-item .dd-mini { grid-row: 1; grid-column: 2; }
+    .dd-step-date { font-size: 0.66rem; }
   }
 </style>
 
-<!-- Image Modal for Full View -->
-<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4" onclick="closeImageModal()">
-  <div class="relative max-w-5xl max-h-full" onclick="event.stopPropagation()">
-    <button 
-      onclick="closeImageModal()" 
-      class="absolute top-4 right-4 bg-white text-gray-800 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition-all shadow-lg z-10"
-    >
-      <i class="fas fa-times"></i>
-    </button>
-    <img 
-      id="modalImage" 
-      src="" 
-      alt="Bukti Distribusi" 
-      class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
-    >
+<div class="page-wrapper">
+  <div class="page-header">
+    <div class="header-content-wrapper">
+      <div class="header-left-section">
+        <div class="header-icon-box"><i class="fas fa-share-nodes"></i></div>
+        <div>
+          <h1 class="header-title-text">Detail Distribusi</h1>
+          <p class="header-subtitle-text"><%= code %> · <%= d.mustahik_nama || 'Mustahik' %></p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="/distribusi" class="btn-action btn-action-primary"><i class="fas fa-arrow-left"></i>Kembali</a>
+      </div>
+    </div>
   </div>
+
+  <!-- Ringkasan + tombol aksi -->
+  <section class="dd-card">
+    <div class="dd-top">
+      <div>
+        <div class="dd-hero-label">Jumlah Distribusi</div>
+        <div class="dd-hero-amount"><%= amountText %></div>
+      </div>
+      <div class="dd-hero-chips">
+        <span class="dd-chip"><i class="fas <%= isUang ? 'fa-money-bill-wave' : 'fa-wheat-awn' %>"></i><%= isUang ? 'Zakat Uang' : 'Zakat Beras' %></span>
+        <span class="dd-chip tone-<%= st.tone %>"><i class="fas <%= st.icon %>"></i><%= st.label %></span>
+      </div>
+    </div>
+
+    <div class="dd-meta">
+      <div class="dd-meta-item">
+        <div class="dd-meta-label">Kode</div>
+        <div class="dd-meta-value"><%= code %></div>
+      </div>
+      <div class="dd-meta-item">
+        <div class="dd-meta-label">Petugas (PIC)</div>
+        <div class="dd-meta-value"><%= d.user_nama || '-' %></div>
+      </div>
+      <div class="dd-meta-item">
+        <div class="dd-meta-label">Dibuat</div>
+        <div class="dd-meta-value"><%= fmtDate(d.created_at) %><small><%= fmtTime(d.created_at) %> WIB</small></div>
+      </div>
+      <div class="dd-meta-item">
+        <div class="dd-meta-label">Diperbarui</div>
+        <div class="dd-meta-value"><%= fmtDate(d.updated_at) %><small><%= fmtTime(d.updated_at) %> WIB</small></div>
+      </div>
+    </div>
+
+    <div class="dd-toolbar">
+      <% if (d.status === 'pending') { %>
+        <form method="POST" action="/distribusi/status/<%= d.id %>?_method=PUT" data-confirm-title="Tandai disalurkan?" data-confirm-text="Status berubah menjadi Disalurkan." data-confirm-button="Ya, Tandai" data-confirm-color="#1EAF2F">
+          <input type="hidden" name="status" value="disalurkan" />
+          <input type="hidden" name="return_to" value="<%= backPath %>" />
+          <button type="submit" class="dd-btn dd-btn-primary"><i class="fas fa-truck"></i>Tandai Disalurkan</button>
+        </form>
+      <% } else if (d.status === 'disalurkan') { %>
+        <form method="POST" action="/distribusi/status/<%= d.id %>?_method=PUT" data-confirm-title="Tandai diterima?" data-confirm-text="Penerima sudah menerima zakat ini." data-confirm-button="Ya, Sudah Diterima" data-confirm-color="#1EAF2F">
+          <input type="hidden" name="status" value="diterima" />
+          <input type="hidden" name="return_to" value="<%= backPath %>" />
+          <button type="submit" class="dd-btn dd-btn-primary"><i class="fas fa-circle-check"></i>Tandai Diterima</button>
+        </form>
+      <% } %>
+
+      <% if (canEdit) { %>
+        <a href="/distribusi?edit=<%= d.id %>" class="dd-btn dd-btn-outline"><i class="fas fa-pen-to-square"></i>Edit</a>
+      <% } %>
+      <a href="/distribusi/create?mustahik_id=<%= d.mustahik_id %>" class="dd-btn dd-btn-outline"><i class="fas fa-plus"></i>Distribusi Lagi</a>
+
+      <span class="dd-spacer"></span>
+
+      <% if (d.status === 'pending') { %>
+        <form method="POST" action="/distribusi/status/<%= d.id %>?_method=PUT" data-confirm-title="Batalkan distribusi?" data-confirm-text="Distribusi ini akan ditandai Dibatalkan." data-confirm-button="Ya, Batalkan" data-confirm-color="#f59e0b">
+          <input type="hidden" name="status" value="batal" />
+          <input type="hidden" name="return_to" value="<%= backPath %>" />
+          <button type="submit" class="dd-btn dd-btn-warn"><i class="fas fa-ban"></i>Batalkan</button>
+        </form>
+      <% } %>
+      <% if (canDelete) { %>
+        <form method="POST" action="/distribusi/delete/<%= d.id %>?_method=DELETE" data-confirm-title="Hapus distribusi?" data-confirm-text="Data ini akan dihapus permanen dan tidak bisa dikembalikan." data-confirm-button="Ya, Hapus" data-confirm-color="#ef4444">
+          <button type="submit" class="dd-btn dd-btn-danger"><i class="fas fa-trash"></i>Hapus</button>
+        </form>
+      <% } %>
+    </div>
+  </section>
+
+  <!-- Alur status -->
+  <section class="dd-card">
+    <div class="dd-steps" aria-label="Alur status distribusi">
+      <% flow.forEach(function (step, i) {
+           const state = i < activeIdx ? 'is-done' : (i === activeIdx ? 'is-current' : '');
+           const err = step.key === 'batal' ? ' is-err' : '';
+           let date = 'Menunggu';
+           if (i === 0) date = fmtDate(d.created_at) + ' · ' + fmtTime(d.created_at);
+           else if (i === activeIdx) date = fmtDate(d.updated_at) + ' · ' + fmtTime(d.updated_at);
+           else if (i < activeIdx) date = 'Selesai';
+      %>
+        <div class="dd-step <%= state %><%= err %>">
+          <div class="dd-step-dot"><i class="fas <%= i < activeIdx && i !== 0 ? 'fa-check' : step.icon %>"></i></div>
+          <div class="dd-step-label"><%= step.label %></div>
+          <div class="dd-step-date"><%= date %></div>
+        </div>
+      <% }); %>
+    </div>
+  </section>
+
+  <!-- Penerima + bukti (tinggi sama) -->
+  <div class="dd-two">
+    <section class="dd-card">
+      <div class="dd-card-head">
+        <span class="dd-card-icon"><i class="fas fa-user-group"></i></span>
+        <div>
+          <div class="dd-card-title">Penerima</div>
+          <div class="dd-card-sub">Mustahik penerima zakat</div>
+        </div>
+      </div>
+      <div class="dd-card-body">
+        <div class="dd-person">
+          <div class="dd-avatar"><%= (d.mustahik_nama || '?').charAt(0).toUpperCase() %></div>
+          <div style="min-width: 0">
+            <div class="dd-person-name"><%= d.mustahik_nama || '-' %></div>
+            <div class="dd-person-meta">
+              <span class="category-badge category-<%= d.mustahik_kategori %>"><i class="fas fa-tag"></i><%= kategori %></span>
+              <span class="category-badge" style="background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line)"><i class="fas fa-house"></i><%= d.rt_nama || 'Tanpa RT' %></span>
+            </div>
+          </div>
+        </div>
+        <div class="dd-person-actions">
+          <a href="/mustahik/detail/<%= d.mustahik_id %>" class="dd-btn dd-btn-outline"><i class="fas fa-id-card"></i>Lihat Profil Mustahik</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="dd-card">
+      <div class="dd-card-head">
+        <span class="dd-card-icon"><i class="fas fa-image"></i></span>
+        <div>
+          <div class="dd-card-title">Bukti Distribusi</div>
+          <div class="dd-card-sub">Foto penyaluran zakat kepada penerima</div>
+        </div>
+      </div>
+      <div class="dd-card-body">
+        <% if (d.bukti_foto) { %>
+          <button type="button" class="dd-proof" data-modal-open="bukti-modal" data-src="<%= d.bukti_foto %>" aria-label="Perbesar bukti distribusi">
+            <img src="<%= d.bukti_foto %>" alt="Bukti distribusi <%= code %>" loading="lazy" />
+            <span class="dd-proof-hint"><i class="fas fa-magnifying-glass-plus"></i>Perbesar</span>
+          </button>
+        <% } else { %>
+          <div class="dd-empty">
+            <i class="fas fa-image"></i>
+            <strong>Belum ada bukti foto</strong>
+            <span>Tambahkan foto lewat tombol Edit.</span>
+          </div>
+        <% } %>
+      </div>
+    </section>
+  </div>
+
+  <!-- Riwayat -->
+  <section class="dd-card">
+    <div class="dd-card-head">
+      <span class="dd-card-icon"><i class="fas fa-clock-rotate-left"></i></span>
+      <div>
+        <div class="dd-card-title">Riwayat Penerima Ini</div>
+        <div class="dd-card-sub">Distribusi lain untuk mustahik yang sama</div>
+      </div>
+    </div>
+    <div class="dd-card-body">
+      <% if (riwayat && riwayat.length) { %>
+        <div class="dd-history">
+          <% riwayat.forEach(function (h) { const hs = statusMeta[h.status] || statusMeta.pending; %>
+            <a href="/distribusi/detail/<%= h.id %>" class="dd-history-item">
+              <div>
+                <div class="dd-history-date"><%= fmtDate(h.created_at) %></div>
+                <div class="dd-history-kind"><%= h.jenis_zakat === 'uang' ? 'Zakat uang' : 'Zakat beras' %></div>
+              </div>
+              <div class="dd-history-amount"><%= fmtAmount(h.jenis_zakat, h.jumlah) %></div>
+              <span class="dd-mini tone-<%= hs.tone %>"><%= hs.label %></span>
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <div class="dd-empty">
+          <i class="fas fa-inbox"></i>
+          <span>Belum ada distribusi lain untuk penerima ini.</span>
+        </div>
+      <% } %>
+    </div>
+  </section>
 </div>
 
 <script>
-  // Image modal functions
-  function openImageModal(imageSrc) {
-    const modal = document.getElementById('imageModal');
-    const modalImage = document.getElementById('modalImage');
-    modalImage.src = imageSrc;
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeImageModal() {
-    const modal = document.getElementById('imageModal');
-    modal.classList.add('hidden');
-    document.body.style.overflow = 'auto';
-  }
-
-  // Close modal on ESC key
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      closeImageModal();
-    }
+  // Konfirmasi sebelum aksi yang mengubah data
+  document.querySelectorAll("form[data-confirm-title]").forEach(function (form) {
+    form.addEventListener("submit", function (event) {
+      if (form.dataset.confirmed === "1") {
+        return;
+      }
+      event.preventDefault();
+      Swal.fire({
+        title: form.dataset.confirmTitle,
+        text: form.dataset.confirmText,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: form.dataset.confirmColor || "#1EAF2F",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: form.dataset.confirmButton || "Ya",
+        cancelButtonText: "Batal",
+        reverseButtons: true,
+      }).then(function (result) {
+        if (result.isConfirmed) {
+          form.dataset.confirmed = "1";
+          form.submit();
+        }
+      });
+    });
   });
-
-  // Handle cancel form submission with SweetAlert2
-  const cancelForm = document.getElementById("cancelForm");
-  if (cancelForm) {
-    cancelForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-
-      showConfirm(
-        "Apakah Anda yakin ingin membatalkan distribusi ini?",
-        "Konfirmasi Pembatalan",
-        {
-          icon: "warning",
-          confirmText: "Ya, Batalkan",
-          cancelText: "Tidak",
-          confirmColor: "#ef4444",
-        }
-      ).then((result) => {
-        if (result.isConfirmed) {
-          this.submit();
-        }
-      });
-    });
-  }
-
-  // Handle delete form submission with SweetAlert2
-  const deleteForm = document.getElementById("deleteForm");
-  if (deleteForm) {
-    deleteForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-
-      showDeleteConfirm(
-        "distribusi ini",
-        "Apakah Anda yakin ingin menghapus distribusi ini? Tindakan ini tidak dapat dibatalkan."
-      ).then((result) => {
-        if (result.isConfirmed) {
-          this.submit();
-        }
-      });
-    });
-  }
 </script>
+
+<%- include('partials/bukti-modal') %>
 
 <%- include('../layouts/footer') %>

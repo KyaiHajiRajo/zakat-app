@@ -1,0 +1,530 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/dashboard.ejs */
+html.dark-mode .dashboard-header {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 50%, #0f8a1f 100%)
+}
+html.dark-mode .header-decoration {
+    background: rgba(255, 255, 255, 0.1)
+}
+html.dark-mode .header-icon-wrapper {
+    background: #0f1729
+}
+html.dark-mode .header-title {
+    color: white
+}
+html.dark-mode .header-subtitle {
+    color: rgba(255, 255, 255, 0.95)
+}
+html.dark-mode .header-name {
+    color: #fbbf24
+}
+html.dark-mode .calendar-combined-card {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff
+}
+html.dark-mode .calendar-row-label {
+    color: #dcfce7
+}
+html.dark-mode .calendar-row-subvalue {
+    color: rgba(255, 255, 255, 0.92)
+}
+html.dark-mode .calendar-divider {
+    background: rgba(255, 255, 255, 0.24)
+}
+html.dark-mode .date-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: white
+}
+html.dark-mode .hijri-calendar-card {
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff
+}
+html.dark-mode .hijri-calendar-header {
+    color: #dcfce7
+}
+html.dark-mode .hijri-calendar-subdate {
+    color: rgba(255, 255, 255, 0.92)
+}
+html.dark-mode .stat-card {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .stat-card-blue .stat-icon {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white
+}
+html.dark-mode .stat-card-green .stat-icon {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white
+}
+html.dark-mode .stat-card-purple .stat-icon {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white
+}
+html.dark-mode .stat-card-red .stat-icon {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #f7f7f7
+}
+html.dark-mode .stat-card-orange .stat-icon {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #111827
+}
+html.dark-mode .stat-card-blue .stat-badge {
+    background: #1a422d;
+    color: #a0f9e0
+}
+html.dark-mode .stat-card-green .stat-badge {
+    background: #1a422d;
+    color: #a0f9e0
+}
+html.dark-mode .stat-card-purple .stat-badge {
+    background: #1a1338;
+    color: #9c6de5
+}
+html.dark-mode .stat-card-red .stat-badge {
+    background: #3c1313;
+    color: #e36262
+}
+html.dark-mode .stat-card-orange .stat-badge {
+    background: #573b1a;
+    color: #f19e6b
+}
+html.dark-mode .stat-value {
+    color: #d8dfee
+}
+html.dark-mode .stat-label {
+    color: #a9b8d1
+}
+html.dark-mode .stat-description {
+    color: #7e8593
+}
+html.dark-mode .stat-footer {
+    border-top: 1px solid #222b3f;
+    color: #7e8593
+}
+html.dark-mode .quick-actions-section {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .section-icon {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white
+}
+html.dark-mode .icon-blue {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%)
+}
+html.dark-mode .icon-green {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%)
+}
+html.dark-mode .section-title {
+    color: #d8dfee
+}
+html.dark-mode .section-subtitle {
+    color: #7e8593
+}
+html.dark-mode .badge-blue {
+    background: #1a422d;
+    color: #a0f9e0
+}
+html.dark-mode .badge-green {
+    background: #1a422d;
+    color: #a0f9e0
+}
+html.dark-mode .action-card {
+    border: 2px solid transparent
+}
+html.dark-mode .action-primary {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%)
+}
+html.dark-mode .action-indigo {
+    background: linear-gradient(135deg, #1EAF2F 0%, #0f8a1f 100%)
+}
+html.dark-mode .action-green {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%)
+}
+html.dark-mode .action-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: white
+}
+html.dark-mode .action-title {
+    color: white
+}
+html.dark-mode .action-desc {
+    color: rgba(255, 255, 255, 0.9)
+}
+html.dark-mode .action-arrow {
+    color: white
+}
+html.dark-mode .data-section {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .data-section .section-header {
+    background: linear-gradient(to right, #19222a, #121b31);
+    border-bottom: 1px solid #222b3f
+}
+html.dark-mode .data-item {
+    background: linear-gradient(to right, #19222a, #0f1729);
+    border: 1px solid #222b3f
+}
+html.dark-mode .data-item:hover {
+    background: linear-gradient(to right, #15331e, #1a422d);
+    border-color: #2d6542
+}
+html.dark-mode .data-item-number {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white
+}
+html.dark-mode .data-item-rt-icon {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white
+}
+html.dark-mode .data-item-name {
+    color: #d8dfee
+}
+html.dark-mode .data-item-amount {
+    color: #d8dfee
+}
+html.dark-mode .data-item-info {
+    color: #7e8593
+}
+html.dark-mode .status-success {
+    background: #1a422d;
+    color: #a0f9e0
+}
+html.dark-mode .status-warning {
+    background: #493f16;
+    color: #f09b67
+}
+html.dark-mode .section-footer {
+    border-top: 1px solid #222b3f
+}
+html.dark-mode .btn-view-all {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white
+}
+html.dark-mode .empty-icon {
+    background: #121b31;
+    color: #9ca3af
+}
+html.dark-mode .empty-title {
+    color: #d8dfee
+}
+html.dark-mode .empty-desc {
+    color: #7e8593
+}
+html.dark-mode .btn-empty-action {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white
+}
+html.dark-mode .dashboard-header {
+    background: linear-gradient(135deg, #169b2a 0%, #11853a 52%, #0d6e3c 100%)
+}
+html.dark-mode .header-icon-wrapper {
+    border: 1px solid rgba(15, 23, 42, 0.08)
+}
+html.dark-mode .date-badge {
+    border: 1px solid rgba(255, 255, 255, 0.22)
+}
+html.dark-mode .stat-card {
+    border: 1px solid #262e39
+}
+html.dark-mode .stat-card-blue::before {
+    background: linear-gradient(90deg, #16a34a, #22c55e)
+}
+html.dark-mode .stat-card-green::before {
+    background: linear-gradient(90deg, #059669, #34d399)
+}
+html.dark-mode .stat-card-purple::before {
+    background: linear-gradient(90deg, #7c3aed, #322165)
+}
+html.dark-mode .stat-card-red::before {
+    background: linear-gradient(90deg, #dc2626, #fb7185)
+}
+html.dark-mode .stat-card-orange::before {
+    background: linear-gradient(90deg, #d97706, #fbbf24)
+}
+html.dark-mode .quick-actions-section, html.dark-mode .data-section {
+    border: 1px solid #262e39
+}
+html.dark-mode .quick-actions-section {
+    background: linear-gradient(180deg, #0f1729 0%, #19222a 100%)
+}
+html.dark-mode .data-section {
+    background: linear-gradient(180deg, #0f1729 0%, #19222a 100%)
+}
+html.dark-mode .data-section .section-header {
+    background: linear-gradient(130deg, #19222a 0%, #1b252e 100%);
+    border-bottom: 1px solid #262e39
+}
+html.dark-mode .action-card {
+    background: #0f1729
+}
+html.dark-mode .action-primary {
+    background: linear-gradient(180deg, #0f1729 0%, #15331e 100%);
+    border-color: #2d6542
+}
+html.dark-mode .action-indigo {
+    background: linear-gradient(180deg, #0f1729 0%, #102137 100%);
+    border-color: #224062
+}
+html.dark-mode .action-green {
+    background: linear-gradient(180deg, #0f1729 0%, #143526 100%);
+    border-color: #275741
+}
+html.dark-mode .action-primary .action-icon {
+    background: #16a34a
+}
+html.dark-mode .action-indigo .action-icon {
+    background: #2563eb
+}
+html.dark-mode .action-green .action-icon {
+    background: #059669
+}
+html.dark-mode .action-title {
+    color: #d5ddf0
+}
+html.dark-mode .action-desc {
+    color: #76869c
+}
+html.dark-mode .action-arrow {
+    color: #a9b9d1
+}
+html.dark-mode .data-item {
+    background: #0f1729;
+    border: 1px solid #262e39
+}
+html.dark-mode .data-item:hover {
+    background: #19222a;
+    border-color: #2f3946
+}
+html.dark-mode .data-item-amount {
+    background: #19222a;
+    border: 1px solid #262e39
+}
+html.dark-mode .data-item-info {
+    color: #76869c
+}
+html.dark-mode .status-badge {
+    border: 1px solid transparent
+}
+html.dark-mode .status-success {
+    border-color: #2d6542
+}
+html.dark-mode .status-warning {
+    border-color: #fcd34d
+}
+html.dark-mode .dashboard-header {
+    background: linear-gradient(132deg, #17803a 0%, #0f6c36 56%, #0f766e 100%);
+    border: 1px solid rgba(255, 255, 255, 0.22)
+}
+html.dark-mode .date-badge, html.dark-mode .hijri-calendar-card {
+    background: rgba(255, 255, 255, 0.16)
+}
+html.dark-mode .stat-card {
+    border: 1px solid #28313c
+}
+html.dark-mode .stat-badge {
+    border: 1px solid rgba(15, 23, 42, 0.06)
+}
+html.dark-mode .quick-actions-section, html.dark-mode .data-section {
+    border: 1px solid #27313b
+}
+html.dark-mode .overview-shell, html.dark-mode .analytics-main-card, html.dark-mode .analytics-side-panel {
+    background: radial-gradient(circle at top right, rgba(22, 163, 74, 0.08), transparent 34%),
+      linear-gradient(180deg, #0f1729 0%, #1e2b1a 100%);
+    border: 1px solid #2a3f34
+}
+html.dark-mode .overview-kicker {
+    background: #1c3123;
+    color: #9ae9b8
+}
+html.dark-mode .overview-title, html.dark-mode .analytics-title {
+    color: #d5ddf0
+}
+html.dark-mode .overview-description, html.dark-mode .analytics-description {
+    color: #76869c
+}
+html.dark-mode .overview-pill {
+    background: rgba(15, 23, 41, 0.88);
+    border: 1px solid #2a3f30;
+    color: #acebc5
+}
+html.dark-mode .stats-grid-modern .stat-card {
+    background: rgba(15, 23, 41, 0.95);
+    border: 1px solid rgba(42, 63, 52, 0.95)
+}
+html.dark-mode .stats-grid-modern .stat-card::after {
+    background: radial-gradient(circle, rgba(15, 23, 41, 0.55) 0%, rgba(255, 255, 255, 0) 72%)
+}
+html.dark-mode .stats-grid-modern .stat-card-featured {
+    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.35), transparent 34%),
+      linear-gradient(135deg, #14863a 0%, #0f7a50 55%, #0f766e 100%);
+    border-color: transparent;
+    color: #ffffff
+}
+html.dark-mode .stat-overline {
+    color: rgba(255, 255, 255, 0.78)
+}
+html.dark-mode .stat-card-featured .stat-badge {
+    background: rgba(255, 255, 255, 0.16);
+    color: #f8fafc;
+    border: 1px solid rgba(255, 255, 255, 0.18)
+}
+html.dark-mode .stat-card-featured .stat-icon {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff
+}
+html.dark-mode .stat-card-featured .stat-value, html.dark-mode .stat-card-featured .stat-label, html.dark-mode .stat-card-featured .stat-description, html.dark-mode .stat-card-featured .stat-footer {
+    color: #ffffff
+}
+html.dark-mode .stat-card-featured .stat-description, html.dark-mode .stat-card-featured .stat-footer {
+    color: rgba(255, 255, 255, 0.88)
+}
+html.dark-mode .stat-trend-indicator {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.16)
+}
+html.dark-mode .stat-chip {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #ffffff
+}
+html.dark-mode .stats-grid-modern .stat-card:not(.stat-card-featured) .stat-badge {
+    border: 1px solid rgba(15, 23, 42, 0.06)
+}
+html.dark-mode .stats-grid-modern .stat-card:not(.stat-card-featured) .stat-description {
+    color: #76869c
+}
+html.dark-mode .chart-switcher {
+    background: #1d3022;
+    border: 1px solid #2a3f2f
+}
+html.dark-mode .chart-switch {
+    background: transparent;
+    border: none;
+    color: #7386a1
+}
+html.dark-mode .chart-switch:hover, html.dark-mode .chart-switch.is-active {
+    background: linear-gradient(135deg, #15803d 0%, #0f766e 100%);
+    color: #ffffff
+}
+html.dark-mode .analytics-summary-item {
+    background: radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 42%),
+      linear-gradient(180deg, #0f1729 0%, #1a2b1a 100%);
+    border: 1px solid #2a3e2f
+}
+html.dark-mode .analytics-summary-item::after {
+    background: linear-gradient(90deg, rgba(22, 163, 74, 0.82), rgba(13, 148, 136, 0.4))
+}
+html.dark-mode .analytics-summary-label {
+    color: #76869c
+}
+html.dark-mode .analytics-summary-value {
+    color: #d5ddf0
+}
+html.dark-mode .analytics-chart-stage {
+    background: linear-gradient(145deg, rgba(15, 23, 41, 0.96), rgba(27, 45, 34, 0.94)),
+      radial-gradient(circle at top left, rgba(34, 197, 94, 0.16), transparent 34%);
+    border: 1px solid rgba(46, 68, 54, 0.9)
+}
+html.dark-mode .chart-surface {
+    background: radial-gradient(circle at 0% 0%, rgba(134, 239, 172, 0.24), transparent 36%),
+      radial-gradient(circle at 100% 0%, rgba(45, 212, 191, 0.18), transparent 34%),
+      linear-gradient(180deg, rgba(15, 23, 41, 0.95) 0%, rgba(27, 44, 32, 0.92) 100%)
+}
+html.dark-mode .chart-surface-glow-left {
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.34) 0%, rgba(34, 197, 94, 0) 70%)
+}
+html.dark-mode .chart-surface-glow-right {
+    background: radial-gradient(circle, rgba(13, 148, 136, 0.24) 0%, rgba(13, 148, 136, 0) 72%)
+}
+html.dark-mode .chart-surface-kicker {
+    background: rgba(21, 51, 30, 0.92);
+    border: 1px solid rgba(34, 79, 50, 0.9);
+    color: #9ae9b8
+}
+html.dark-mode .chart-surface-title {
+    color: #d5ddf0
+}
+html.dark-mode .chart-surface-badge {
+    background: rgba(15, 23, 41, 0.88);
+    border: 1px solid rgba(47, 57, 70, 0.74);
+    color: #d5ddf0
+}
+html.dark-mode .chart-y-axis-item {
+    color: #76869c
+}
+html.dark-mode .chart-plot-area {
+    background: linear-gradient(180deg, rgba(25, 41, 25, 0.94) 0%, rgba(28, 46, 35, 0.94) 100%);
+    border: 1px solid rgba(42, 63, 50, 0.95)
+}
+html.dark-mode .chart-plot-overlay {
+    background: linear-gradient(180deg, rgba(34, 197, 94, 0.04) 0%, rgba(255, 255, 255, 0) 100%),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px)
+}
+html.dark-mode .chart-axis-labels span {
+    background: rgba(15, 23, 41, 0.86);
+    border: 1px solid rgba(42, 63, 50, 0.95);
+    color: #76869c
+}
+html.dark-mode .chart-axis-labels span.is-active {
+    background: linear-gradient(135deg, #15803d 0%, #0f766e 100%);
+    border-color: transparent;
+    color: #ffffff
+}
+html.dark-mode .chart-tooltip {
+    background: rgba(15, 23, 41, 0.96);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    color: #d5ddf0
+}
+html.dark-mode .chart-tooltip-date {
+    color: #76869c
+}
+html.dark-mode .chart-tooltip-value {
+    color: #d5ddf0
+}
+html.dark-mode .chart-tooltip-meta {
+    color: #7386a1
+}
+html.dark-mode .chart-focus-card {
+    background: rgba(15, 23, 41, 0.88);
+    border: 1px solid rgba(42, 63, 50, 0.95)
+}
+html.dark-mode .chart-focus-label {
+    color: #76869c
+}
+html.dark-mode .chart-focus-value {
+    color: #d5ddf0
+}
+html.dark-mode .chart-focus-meta {
+    color: #7386a1
+}
+html.dark-mode .insight-card {
+    background: linear-gradient(180deg, #0f1729 0%, #192a22 100%);
+    border: 1px solid #2a3e2f
+}
+html.dark-mode .insight-card-muted {
+    background: linear-gradient(180deg, #1a2b1d 0%, #1d3025 100%)
+}
+html.dark-mode .insight-label {
+    color: #76869c
+}
+html.dark-mode .insight-value {
+    color: #d5ddf0
+}
+html.dark-mode .insight-note {
+    color: #76869c
+}
+@media (max-width: 900px) {
+    html.dark-mode .chart-y-axis-item {
+        background: rgba(15, 23, 41, 0.82);
+        border: 1px solid rgba(42, 63, 50, 0.95)
+    }
+}
+html.dark-mode .chart-surface-badge[style*="--badge-bg"] {
+    background: var(--badge-bg)
+}

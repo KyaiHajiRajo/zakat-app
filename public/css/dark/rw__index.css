@@ -1,0 +1,134 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/rw/index.ejs */
+html.dark-mode .rw-index-bg-a {
+    background: radial-gradient(circle, rgba(34, 197, 94, 0.22) 0%, rgba(34, 197, 94, 0) 70%)
+}
+html.dark-mode .rw-index-bg-b {
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.16) 0%, rgba(59, 130, 246, 0) 72%)
+}
+html.dark-mode .rw-index-hero {
+    background: linear-gradient(125deg, #0f766e 0%, #16a34a 56%, #22c55e 100%);
+    color: #fff
+}
+html.dark-mode .rw-index-hero::after {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 70%)
+}
+html.dark-mode .rw-index-subtitle {
+    color: rgba(255, 255, 255, 0.92)
+}
+html.dark-mode .rw-index-add-btn {
+    background: rgba(15, 23, 41, 0.92);
+    color: #a0f9e0
+}
+html.dark-mode .rw-index-stat {
+    background: #0f1729;
+    border: 1px solid #29334c
+}
+html.dark-mode .rw-index-stat-icon {
+    color: #fff
+}
+html.dark-mode .rw-index-stat-icon-rw {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)
+}
+html.dark-mode .rw-index-stat-icon-rt {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%)
+}
+html.dark-mode .rw-index-stat-icon-muzakki {
+    background: linear-gradient(135deg, #ea580c 0%, #f97316 100%)
+}
+html.dark-mode .rw-index-stat-label {
+    color: #76869c
+}
+html.dark-mode .rw-index-stat-value {
+    color: #d5ddf0
+}
+html.dark-mode .rw-index-card {
+    background: #0f1729;
+    border: 1px solid #29334c
+}
+html.dark-mode .rw-index-card-head {
+    background: linear-gradient(180deg, #19222a 0%, #0f1729 100%);
+    border-bottom: 1px solid #222b3f
+}
+html.dark-mode .rw-index-card-title {
+    color: #d5ddf0
+}
+html.dark-mode .rw-index-card-subtitle {
+    color: #76869c
+}
+html.dark-mode .rw-index-count-chip {
+    background: #173d24;
+    color: #9ae9b8
+}
+html.dark-mode .rw-index-table thead th {
+    background: #19222a;
+    border-bottom: 1px solid #222b3f;
+    color: #7f8da3
+}
+html.dark-mode .rw-index-table tbody td {
+    border-bottom: 1px solid #222a33;
+    color: #d5ddf0
+}
+html.dark-mode .rw-index-table tbody tr:hover {
+    background: #19222a
+}
+html.dark-mode .rw-index-rw-icon {
+    background: linear-gradient(135deg, #1a422d 0%, #1e4d2e 100%);
+    color: #89f9d9
+}
+html.dark-mode .rw-index-rw-name {
+    color: #d5ddf0
+}
+html.dark-mode .rw-index-rw-id {
+    color: #76869c
+}
+html.dark-mode .rw-index-badge-rt {
+    background: #14273f;
+    color: #6c8deb
+}
+html.dark-mode .rw-index-badge-muzakki {
+    background: #173d24;
+    color: #9ae9b8
+}
+html.dark-mode .rw-index-action {
+    background: #19222a;
+    border: 1px solid transparent;
+    color: #a9b9d1
+}
+html.dark-mode .rw-index-action-view {
+    background: #102137;
+    color: #6487ea
+}
+html.dark-mode .rw-index-action-edit {
+    background: #25113a;
+    color: #9d6cf2
+}
+html.dark-mode .rw-index-action-delete {
+    background: #3c1313;
+    color: #e75f5f;
+    border: 0
+}
+html.dark-mode .rw-index-mobile-card {
+    background: #0f1729;
+    border: 1px solid #262e39
+}
+html.dark-mode .rw-index-mobile-name {
+    color: #d5ddf0
+}
+html.dark-mode .rw-index-mobile-sub {
+    color: #76869c
+}
+html.dark-mode .rw-index-mobile-label {
+    color: #76869c
+}
+html.dark-mode .rw-index-mobile-value {
+    color: #d5ddf0
+}
+html.dark-mode .rw-index-empty i {
+    color: #94a3b8
+}
+html.dark-mode .rw-index-empty h3 {
+    color: #d5ddf0
+}
+html.dark-mode .rw-index-empty p {
+    color: #76869c
+}

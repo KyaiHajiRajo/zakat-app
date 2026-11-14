@@ -23,6 +23,27 @@
         if (useDark) {
           document.documentElement.classList.add("dark-mode");
         }
+
+        // Matikan transisi saat halaman dimuat agar tidak ada "kedip" terang → gelap
+        var root = document.documentElement;
+        root.classList.add("no-transition");
+        var release = function () {
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              root.classList.remove("no-transition");
+            });
+          });
+        };
+        window.addEventListener("load", release);
+        setTimeout(release, 1500);
+
+        try {
+          if (localStorage.getItem("sidebar-collapsed") === "1") {
+            document.documentElement.classList.add("sidebar-collapsed");
+          }
+        } catch (error) {
+          // Ignore storage failures.
+        }
       })();
     </script>
     <link rel="shortcut icon" href="/public/images/logo.png" type="image/x-icon">
@@ -33,1613 +54,13 @@
     />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-    <style>
-      /* ============================================
-         GLOBAL CSS VARIABLES - Edit di sini untuk mengubah semua halaman
-         ============================================ */
-      :root {
-        /* Spacing - Ubah nilai di sini untuk semua halaman */
-        --wrapper-padding: 8px;
-        --wrapper-gap: 14px;
-        --card-padding: 16px;
-        --card-radius: 16px;
-        --header-padding: 20px;
-        --header-radius: 20px;
-        
-        /* Colors */
-        --primary-color: #1EAF2F;
-        --primary-dark: #16a127;
-        --primary-darker: #0f8a1f;
-        
-        /* Font Sizes */
-        --title-size: 28px;
-        --subtitle-size: 15px;
-        --label-size: 14px;
-        --value-size: 24px;
-        --small-size: 12px;
-        
-        /* Icon Sizes */
-        --icon-lg: 48px;
-        --icon-md: 40px;
-        --icon-sm: 32px;
-        --icon-xs: 24px;
-      }
-
-      /* ============================================
-         GLOBAL PAGE WRAPPER
-         ============================================ */
-      .page-wrapper,
-      .dashboard-wrapper {
-        width: 100%;
-        max-width: 100%;
-        margin: 0 auto;
-        padding: var(--wrapper-padding);
-        display: flex;
-        flex-direction: column;
-        gap: var(--wrapper-gap);
-      }
-
-      /* ============================================
-         GLOBAL PAGE HEADER
-         ============================================ */
-      .page-header {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 50%, var(--primary-darker) 100%);
-        border-radius: var(--header-radius);
-        padding: var(--header-padding);
-        box-shadow: 0 6px 20px rgba(30, 175, 47, 0.25);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .page-header::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -10%;
-        width: 300px;
-        height: 300px;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-        border-radius: 50%;
-      }
-
-      .header-content-wrapper {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 12px;
-      }
-
-      .header-left-section {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .header-icon-box {
-        width: 64px;
-        height: 64px;
-        background: white;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        color: white;
-        flex-shrink: 0;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-        padding: 8px;
-        overflow: hidden;
-      }
-
-      .header-icon-box i {
-        font-size: 28px;
-        background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-
-      .header-logo {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-      }
-
-      .header-title-text {
-        font-size: var(--title-size);
-        font-weight: 700;
-        margin: 0;
-        color: white;
-      }
-
-      .header-subtitle-text {
-        font-size: var(--subtitle-size);
-        margin: 0;
-        color: rgba(255, 255, 255, 0.95);
-      }
-
-      .header-actions {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-
-      .btn-action {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 16px;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 12px;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      }
-
-      .btn-action-primary {
-        background: white;
-        color: var(--primary-color);
-      }
-
-      .btn-action-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      }
-
-      /* ============================================
-         GLOBAL STATISTICS CARDS
-         ============================================ */
-      .stats-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 10px;
-      }
-
-      .stats-container-5 {
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      }
-
-      .stat-box {
-        background: white;
-        border-radius: var(--card-radius);
-        padding: var(--card-padding);
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-        border: 1px solid #e5e7eb;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .stat-box:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      }
-
-      .stat-icon-wrapper {
-        width: var(--icon-md);
-        height: var(--icon-md);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        color: white;
-        flex-shrink: 0;
-      }
-
-      .stat-icon-primary { background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%); }
-      .stat-icon-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
-      .stat-icon-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-      .stat-icon-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-      .stat-icon-info { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
-
-      .stat-value-text {
-        font-size: var(--value-size);
-        font-weight: 700;
-        color: #111827;
-        line-height: 1;
-        margin-bottom: 4px;
-      }
-
-      .stat-label-text {
-        font-size: var(--label-size);
-        color: #6b7280;
-        font-weight: 500;
-      }
-
-      /* ============================================
-         GLOBAL FILTER SECTION
-         ============================================ */
-      .filter-section {
-        background: white;
-        border-radius: var(--card-radius);
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-        border: 1px solid #e5e7eb;
-        overflow: hidden;
-      }
-
-      .filter-header {
-        background: linear-gradient(to right, #f9fafb, #f3f4f6);
-        padding: 10px 14px;
-        border-bottom: 1px solid #e5e7eb;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .filter-header-icon {
-        width: var(--icon-sm);
-        height: var(--icon-sm);
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 12px;
-      }
-
-      .filter-title {
-        font-size: 14px;
-        font-weight: 700;
-        color: #111827;
-        margin: 0;
-      }
-
-      .filter-subtitle {
-        font-size: var(--small-size);
-        color: #6b7280;
-        margin: 0;
-      }
-
-      .filter-content {
-        padding: 14px;
-      }
-
-      .filter-form {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 12px;
-      }
-
-      .filter-input-group {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .filter-label {
-        font-size: var(--small-size);
-        font-weight: 600;
-        color: #374151;
-      }
-
-      .filter-input,
-      .filter-select {
-        width: 100%;
-        padding: 8px 10px;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 12px;
-        transition: all 0.2s ease;
-      }
-
-      .filter-input:focus,
-      .filter-select:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(30, 175, 47, 0.1);
-      }
-
-      /* ============================================
-         GLOBAL TABLE SECTION
-         ============================================ */
-      .table-section {
-        background: white;
-        border-radius: var(--card-radius);
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-        border: 1px solid #e5e7eb;
-        overflow: hidden;
-      }
-
-      .table-header-wrapper {
-        background: linear-gradient(to right, #f9fafb, #f3f4f6);
-        padding: 12px 16px;
-        border-bottom: 1px solid #e5e7eb;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-
-      .table-header-left {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .table-header-icon {
-        width: var(--icon-md);
-        height: var(--icon-md);
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 14px;
-      }
-
-      .table-title {
-        font-size: 16px;
-        font-weight: 700;
-        color: #111827;
-        margin: 0;
-      }
-
-      .table-subtitle {
-        font-size: var(--small-size);
-        color: #6b7280;
-        margin: 0;
-      }
-
-      .table-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 10px;
-        background: #d1fae5;
-        color: #065f46;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 600;
-      }
-
-      .table-content-wrapper {
-        padding: 14px;
-      }
-
-      .table-header-right {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-
-      /* ============================================
-         GLOBAL DATA TABLE
-         ============================================ */
-      .data-table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      .data-table thead tr {
-        background: linear-gradient(to right, #f9fafb, #f3f4f6);
-        border-bottom: 2px solid #e5e7eb;
-      }
-
-      .data-table th {
-        padding: 10px 12px;
-        text-align: left;
-        font-size: 11px;
-        font-weight: 600;
-        color: #374151;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      .data-table tbody tr {
-        border-bottom: 1px solid #e5e7eb;
-        transition: all 0.3s ease;
-      }
-
-      .data-table tbody tr:hover {
-        background: linear-gradient(to right, #f0fdf4, #dcfce7);
-      }
-
-      .data-table td {
-        padding: 10px 12px;
-        font-size: 12px;
-      }
-
-      /* ============================================
-         GLOBAL ACTION BUTTONS
-         ============================================ */
-      .action-buttons-group {
-        display: flex;
-        gap: 6px;
-        align-items: center;
-      }
-
-      .btn-icon {
-        width: 30px;
-        height: 30px;
-        border-radius: 8px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 12px;
-        text-decoration: none;
-      }
-
-      .btn-icon-info { background: #dbeafe; color: #1e40af; }
-      .btn-icon-info:hover { background: #3b82f6; color: white; transform: translateY(-2px); }
-
-      .btn-icon-primary { background: #d1fae5; color: #065f46; }
-      .btn-icon-primary:hover { background: #1EAF2F; color: white; transform: translateY(-2px); }
-
-      .btn-icon-danger { background: #fee2e2; color: #991b1b; }
-      .btn-icon-danger:hover { background: #ef4444; color: white; transform: translateY(-2px); }
-
-      /* ============================================
-         GLOBAL CATEGORY BADGES
-         ============================================ */
-      .category-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 8px;
-        border-radius: 8px;
-        font-size: 10px;
-        font-weight: 600;
-      }
-
-      .category-fakir { background: #fee2e2; color: #991b1b; }
-      .category-miskin { background: #fed7aa; color: #9a3412; }
-      .category-amil { background: #d1fae5; color: #065f46; }
-      .category-mualaf { background: #dbeafe; color: #1e40af; }
-      .category-fisabilillah { background: #e9d5ff; color: #6b21a8; }
-      .category-ibnu_sabil { background: #fef3c7; color: #92400e; }
-      .category-gharimin { background: #fce7f3; color: #831843; }
-      .category-riqab { background: #e0e7ff; color: #3730a3; }
-
-      /* ============================================
-         GLOBAL EMPTY STATE
-         ============================================ */
-      .empty-state-box {
-        text-align: center;
-        padding: 40px 16px;
-      }
-
-      .empty-state-icon {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 14px;
-        font-size: 24px;
-        color: #9ca3af;
-      }
-
-      .empty-state-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #111827;
-        margin: 0 0 6px 0;
-      }
-
-      .empty-state-desc {
-        font-size: 13px;
-        color: #6b7280;
-        margin: 0 0 18px 0;
-      }
-
-      .btn-empty-state {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 10px 18px;
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-        color: white;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 12px;
-        text-decoration: none;
-        transition: all 0.3s ease;
-      }
-
-      .btn-empty-state:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(30, 175, 47, 0.3);
-      }
-
-      /* ============================================
-         GLOBAL MOBILE CARD VIEW
-         ============================================ */
-      .mobile-view { display: none; }
-      .desktop-view { display: block; }
-
-      .mobile-card {
-        background: white;
-        border-radius: var(--card-radius);
-        border: 1px solid #e5e7eb;
-        padding: 14px;
-        margin-bottom: 10px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-      }
-
-      .mobile-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 12px;
-      }
-
-      .mobile-card-name {
-        font-size: 14px;
-        font-weight: 600;
-        color: #111827;
-        margin: 0 0 2px 0;
-      }
-
-      .mobile-card-body {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-      }
-
-      .mobile-card-label {
-        font-size: 10px;
-        font-weight: 600;
-        color: #6b7280;
-        text-transform: uppercase;
-        margin: 0 0 4px 0;
-      }
-
-      .mobile-card-value {
-        font-size: 12px;
-        color: #111827;
-      }
-
-      /* ============================================
-         GLOBAL RESPONSIVE
-         ============================================ */
-      @media (max-width: 768px) {
-        :root {
-          --wrapper-padding: 6px;
-          --wrapper-gap: 10px;
-          --header-padding: 12px;
-          --title-size: 18px;
-          --value-size: 18px;
-        }
-
-        .stats-container,
-        .stats-container-5 {
-          grid-template-columns: repeat(2, 1fr);
-        }
-
-        .filter-form {
-          grid-template-columns: 1fr;
-        }
-
-        .desktop-view { display: none; }
-        .mobile-view { display: block; }
-
-        .header-content-wrapper {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
-        .header-actions {
-          width: 100%;
-        }
-
-        .btn-action {
-          flex: 1;
-          justify-content: center;
-        }
-
-        .table-header-wrapper {
-          align-items: flex-start;
-        }
-
-        .table-header-right {
-          width: 100%;
-          justify-content: flex-start;
-        }
-
-        /* Convert all data tables to vertical cards on mobile */
-        table.responsive-stack-table {
-          width: 100%;
-          min-width: 0 !important;
-          max-width: 100%;
-          table-layout: fixed;
-          border-collapse: separate;
-          border-spacing: 0;
-        }
-
-        table.responsive-stack-table thead {
-          border: 0;
-          clip: rect(0 0 0 0);
-          height: 1px;
-          margin: -1px;
-          overflow: hidden;
-          padding: 0;
-          position: absolute;
-          width: 1px;
-        }
-
-        table.responsive-stack-table tbody,
-        table.responsive-stack-table tr,
-        table.responsive-stack-table td {
-          display: block;
-          width: 100%;
-        }
-
-        table.responsive-stack-table tbody tr {
-          background: #ffffff;
-          border: 1px solid #e5e7eb;
-          border-radius: 12px;
-          margin-bottom: 12px;
-          overflow: hidden;
-          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-        }
-
-        table.responsive-stack-table tbody tr:hover {
-          background: #ffffff;
-        }
-
-        table.responsive-stack-table td {
-          align-items: flex-start;
-          border-bottom: 1px solid #f3f4f6;
-          display: flex;
-          gap: 10px;
-          justify-content: space-between;
-          padding: 10px 12px;
-          text-align: right;
-          overflow-wrap: anywhere;
-          word-break: break-word;
-        }
-
-        table.responsive-stack-table td:last-child {
-          border-bottom: 0;
-        }
-
-        table.responsive-stack-table td::before {
-          color: #6b7280;
-          content: attr(data-label);
-          flex: 1;
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 0.4px;
-          min-width: 110px;
-          text-align: left;
-          text-transform: uppercase;
-        }
-
-        .table-responsive-wrapper,
-        .rw-index-table-wrap,
-        .rw-detail-table-wrap,
-        .detail-table-wrap {
-          overflow-x: hidden !important;
-        }
-
-        table.responsive-stack-table td[data-label=""]::before {
-          content: "Kolom";
-        }
-
-        table.responsive-stack-table .action-buttons-group {
-          justify-content: flex-end;
-          margin-left: auto;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .stats-container,
-        .stats-container-5 {
-          grid-template-columns: 1fr;
-        }
-
-        .mobile-card-body {
-          grid-template-columns: 1fr;
-        }
-
-        table.responsive-stack-table td {
-          flex-direction: column;
-          gap: 6px;
-          text-align: left;
-        }
-
-        table.responsive-stack-table td::before {
-          min-width: 0;
-        }
-      }
-
-      /* ============================================
-         UTILITY CLASSES
-         ============================================ */
-      .mr-2 { margin-right: 8px; }
-      .inline-form { display: inline; }
-
-      * {
-        text-decoration: none;
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      
-      /* Sidebar - Modern Refined Design */
-      .sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 260px;
-        background: #ffffff;
-        border-right: 1px solid #e5e7eb;
-        transition: transform 0.3s ease;
-        z-index: 1000;
-        overflow-y: auto;
-        overflow-x: hidden;
-      }
-      
-      .sidebar::-webkit-scrollbar {
-        width: 3px;
-      }
-      
-      .sidebar::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      
-      .sidebar::-webkit-scrollbar-thumb {
-        background: #d1d5db;
-        border-radius: 10px;
-      }
-      
-      .sidebar::-webkit-scrollbar-thumb:hover {
-        background: #9ca3af;
-      }
-      
-      .sidebar-hidden {
-        transform: translateX(-100%);
-      }
-      
-      /* Logo - Clean & Minimal */
-      .sidebar-logo {
-        padding: 24px 20px;
-      }
-
-      .sidebar-logo-link {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        text-decoration: none;
-        transition: transform 0.2s ease;
-      }
-
-      .sidebar-logo-link:hover {
-        transform: scale(0.98);
-      }
-      
-      .sidebar-logo-img {
-        width: 52px;
-        height: 52px;
-        border-radius: 14px;
-        object-fit: contain;
-        flex-shrink: 0;
-      }
-      
-      .sidebar-logo-text {
-        flex: 1;
-      }
-
-      .sidebar-logo-name {
-        color: #111827;
-        font-size: 1.2rem;
-        font-weight: bold;
-        line-height: 1.2;
-        margin-bottom: 2px;
-        letter-spacing: -0.01em;
-      }
-
-      .sidebar-logo-tagline {
-        color: #6b7280;
-        font-size: 0.68rem;
-        font-weight: 400;
-        letter-spacing: 0.02em;
-      }
-      
-      /* Navigation - Modern & Clean */
-      .sidebar-nav {
-        padding: 20px 16px 24px;
-      }
-
-      .nav-group {
-        margin-bottom: 28px;
-      }
-
-      .nav-group:last-of-type {
-        margin-bottom: 0;
-      }
-
-      .nav-group-title {
-        padding: 0 8px 10px;
-        color: #9ca3af;
-        font-size: 0.68rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-      }
-      
-      .nav-link {
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 11px 12px;
-        margin: 3px 0;
-        color: #6b7280;
-        border-radius: 10px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        text-decoration: none;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .nav-link::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 3px;
-        height: 0;
-        background: linear-gradient(180deg, #1EAF2F 0%, #16a127 100%);
-        border-radius: 0 3px 3px 0;
-        transition: height 0.2s ease;
-      }
-
-      .nav-link i {
-        width: 20px;
-        font-size: 17px;
-        text-align: center;
-        transition: transform 0.2s ease;
-      }
-
-      .nav-link span {
-        flex: 1;
-      }
-      
-      .nav-link:hover {
-        background: #f9fafb;
-        color: #1EAF2F;
-        transform: translateX(2px);
-      }
-
-      .nav-link:hover i {
-        transform: scale(1.1);
-      }
-      
-      .nav-link.active {
-        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-        color: #1EAF2F;
-        font-weight: 600;
-      }
-
-      .nav-link.active::before {
-        height: 60%;
-      }
-
-      .nav-link.active i {
-        transform: scale(1.05);
-      }
-
-      /* Footer - Minimal */
-      .sidebar-footer {
-        margin-top: 40px;
-        padding: 16px 12px;
-        text-align: center;
-        color: #d1d5db;
-        font-size: 0.7rem;
-        font-weight: 500;
-        border-top: 1px solid #f3f4f6;
-        letter-spacing: 0.5px;
-      }
-      
-      /* Top Navbar */
-      .top-navbar {
-        position: fixed;
-        top: 0;
-        left: 260px;
-        right: 0;
-        height: 70px;
-        background: white;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-        z-index: 999;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 30px;
-        transition: left 0.3s ease;
-        gap: 12px;
-        overflow: visible;
-      }
-      
-      .top-navbar-mobile {
-        left: 0;
-      }
-      
-      .navbar-brand {
-        display: none;
-        align-items: center;
-        color: #1eaf2f;
-        font-size: 1.25rem;
-        font-weight: 700;
-        min-width: 0;
-      }
-      
-      .navbar-brand-logo {
-        width: 40px;
-        height: 40px;
-        margin-right: 10px;
-        flex-shrink: 0;
-      }
-
-      .navbar-brand-text {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      
-      /* Hamburger Menu */
-      .hamburger-btn {
-        display: none;
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        color: #1eaf2f;
-        cursor: pointer;
-        padding: 5px;
-        transition: all 0.3s ease;
-      }
-      
-      .hamburger-btn:hover {
-        color: #16a127;
-      }
-      
-      /* User Dropdown */
-      .top-navbar-right {
-        margin-left: auto;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        min-width: 0;
-        flex-shrink: 0;
-      }
-
-      .user-dropdown-container {
-        position: relative;
-        flex-shrink: 0;
-      }
-      
-      .user-dropdown-btn {
-        display: flex;
-        align-items: center;
-        background: #f8f9fa;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 50px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-      
-      .user-dropdown-btn:hover {
-        background: #e9ecef;
-      }
-      
-      .user-avatar {
-        width: 35px;
-        height: 35px;
-        background: linear-gradient(135deg, #1eaf2f 0%, #0f8a1f 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-        margin-right: 10px;
-      }
-      
-      .user-name {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: #333;
-        margin-right: 8px;
-      }
-      
-      .user-dropdown {
-        position: absolute;
-        top: calc(100% + 10px);
-        right: 0;
-        width: 220px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-10px);
-        transition: all 0.3s ease;
-        z-index: 1050;
-      }
-      
-      .user-dropdown.show {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-      }
-      
-      .user-dropdown-header {
-        padding: 15px;
-        border-bottom: 1px solid #e9ecef;
-      }
-      
-      .user-dropdown-name {
-        font-weight: 600;
-        color: #333;
-        font-size: 0.95rem;
-      }
-      
-      .user-dropdown-phone {
-        font-size: 0.8rem;
-        color: #6c757d;
-        margin-top: 2px;
-      }
-      
-      .user-dropdown-item {
-        display: flex;
-        align-items: center;
-        padding: 12px 15px;
-        color: #495057;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-        border: none;
-        background: none;
-        width: 100%;
-        text-align: left;
-        cursor: pointer;
-      }
-      
-      .user-dropdown-item:hover {
-        background: #f8f9fa;
-        color: #1eaf2f;
-      }
-      
-      .user-dropdown-item i {
-        margin-right: 10px;
-        width: 20px;
-        text-align: center;
-      }
-      
-      .user-dropdown-item.logout:hover {
-        background: #fff5f5;
-        color: #dc3545;
-      }
-      
-      /* Main Content */
-      .main-content {
-        margin-left: 260px;
-        margin-top: 70px;
-        padding: 18px;
-        min-height: calc(100vh - 70px);
-        transition: margin-left 0.3s ease;
-        width: calc(100% - 260px);
-        max-width: 100%;
-        overflow-x: hidden;
-      }
-
-      /* Keep all admin pages compact and consistent across modules */
-      .main-content > .page-wrapper,
-      .main-content > .dashboard-wrapper,
-      .main-content .page-wrapper,
-      .main-content .dashboard-wrapper {
-        max-width: 100% !important;
-        width: 100% !important;
-        margin: 0 auto !important;
-        padding-left: clamp(2px, 0.5vw, 8px) !important;
-        padding-right: clamp(2px, 0.5vw, 8px) !important;
-      }
-
-      .main-content > .max-w-7xl,
-      .main-content > .max-w-6xl,
-      .main-content > .max-w-5xl,
-      .main-content > .max-w-4xl,
-      .main-content > .max-w-3xl,
-      .main-content > div[class*="max-w-"][class*="mx-auto"] {
-        max-width: 100% !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-        padding-left: clamp(2px, 0.5vw, 8px) !important;
-        padding-right: clamp(2px, 0.5vw, 8px) !important;
-      }
-      
-      .main-content-full {
-        margin-left: 0;
-        width: 100%;
-      }
-      
-      /* Sidebar Overlay for Mobile */
-      .sidebar-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 999;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-      
-      .sidebar-overlay.show {
-        display: block;
-        opacity: 1;
-      }
-      
-      /* Mobile Responsive */
-      @media (max-width: 768px) {
-        .sidebar {
-          transform: translateX(-100%);
-          box-shadow: 2px 0 12px rgba(0, 0, 0, 0.08);
-          width: min(82vw, 280px);
-        }
-        
-        .sidebar.show {
-          transform: translateX(0);
-        }
-        
-        .top-navbar {
-          left: 0;
-          height: 64px;
-          padding: 0 10px;
-          gap: 8px;
-        }
-        
-        .navbar-brand {
-          display: flex;
-          flex: 1;
-          min-width: 0;
-          font-size: 1rem;
-        }
-
-        .navbar-brand-logo {
-          width: 34px;
-          height: 34px;
-          margin-right: 8px;
-        }
-
-        .navbar-brand-text {
-          font-size: 0.95rem;
-        }
-        
-        .hamburger-btn {
-          display: block;
-          font-size: 1.25rem;
-          padding: 6px;
-          border-radius: 10px;
-          background: #f8fafc;
-          border: 1px solid #e5e7eb;
-        }
-        
-        .main-content {
-          margin-left: 0;
-          margin-top: 64px;
-          width: 100%;
-          padding: 12px 6px;
-        }
-
-        .main-content > .page-wrapper,
-        .main-content > .dashboard-wrapper,
-        .main-content .page-wrapper,
-        .main-content .dashboard-wrapper,
-        .main-content > .max-w-7xl,
-        .main-content > .max-w-6xl,
-        .main-content > .max-w-5xl,
-        .main-content > .max-w-4xl,
-        .main-content > .max-w-3xl,
-        .main-content > div[class*="max-w-"][class*="mx-auto"] {
-          padding-left: 2px !important;
-          padding-right: 2px !important;
-        }
-        
-        .top-navbar-right {
-          gap: 6px;
-        }
-
-        .user-dropdown-btn {
-          padding: 6px 10px;
-        }
-
-        .user-avatar {
-          width: 31px;
-          height: 31px;
-          margin-right: 0;
-          font-size: 0.82rem;
-        }
-
-        .user-dropdown-btn .fa-chevron-down {
-          font-size: 0.75rem;
-          margin-left: 6px;
-        }
-
-        .user-name {
-          display: none;
-        }
-
-        .user-dropdown {
-          width: min(92vw, 300px);
-        }
-
-        .sidebar-logo {
-          padding: 20px 16px;
-        }
-
-        .sidebar-logo-img {
-          width: 44px;
-          height: 44px;
-        }
-
-        .sidebar-logo-name {
-          font-size: 0.98rem;
-        }
-
-        .sidebar-logo-tagline {
-          font-size: 0.63rem;
-        }
-
-        .sidebar-nav {
-          padding: 18px 14px 22px;
-        }
-
-        .nav-link {
-          padding: 10px;
-          font-size: 0.88rem;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .sidebar {
-          width: min(82vw, 250px);
-        }
-
-        .top-navbar {
-          height: 60px;
-          padding: 0 8px;
-          gap: 6px;
-        }
-
-        .navbar-brand-logo {
-          width: 30px;
-          height: 30px;
-          margin-right: 0;
-        }
-
-        .navbar-brand-text {
-          display: none;
-        }
-
-        .top-navbar-right {
-          gap: 4px;
-        }
-
-        .theme-toggle-btn {
-          padding: 7px 8px;
-          border-radius: 10px;
-        }
-
-        .user-dropdown-btn {
-          padding: 5px 7px;
-        }
-
-        .user-avatar {
-          width: 28px;
-          height: 28px;
-          font-size: 0.74rem;
-        }
-
-        .user-dropdown-btn .fa-chevron-down {
-          display: none;
-        }
-
-        .user-dropdown {
-          right: -2px;
-          width: min(94vw, 290px);
-        }
-
-        .main-content {
-          margin-top: 60px;
-          padding: 8px;
-        }
-
-        .sidebar-logo {
-          padding: 18px 14px;
-        }
-
-        .sidebar-logo-img {
-          width: 40px;
-          height: 40px;
-        }
-
-        .sidebar-logo-name {
-          font-size: 0.95rem;
-        }
-
-        .nav-link {
-          font-size: 0.85rem;
-          padding: 9px;
-        }
-      }
-
-      .theme-toggle-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        border: 1px solid #d1d5db;
-        background: #f8fafc;
-        color: #0f172a;
-        border-radius: 999px;
-        padding: 8px 14px;
-        font-size: 0.82rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.25s ease;
-      }
-
-      .theme-toggle-btn:hover {
-        transform: translateY(-1px);
-        border-color: #a7f3d0;
-        background: #ecfdf5;
-      }
-
-      .theme-toggle-btn:focus-visible {
-        outline: 2px solid rgba(16, 185, 129, 0.5);
-        outline-offset: 2px;
-      }
-
-      .theme-toggle-btn .theme-label {
-        line-height: 1;
-      }
-
-      @media (max-width: 768px) {
-        .theme-toggle-btn {
-          padding: 8px 10px;
-          border-radius: 12px;
-        }
-
-        .theme-toggle-btn .theme-label {
-          display: none;
-        }
-      }
-
-      html.dark-mode {
-        color-scheme: dark;
-      }
-
-      body {
-        transition: background 0.3s ease, color 0.3s ease;
-      }
-
-      html.dark-mode body {
-        background: radial-gradient(
-            circle at 0% 0%,
-            rgba(16, 185, 129, 0.14),
-            transparent 28%
-          ),
-          linear-gradient(145deg, #020617 0%, #0b1220 50%, #111827 100%) !important;
-        color: #e5e7eb;
-      }
-
-      html.dark-mode .sidebar {
-        background: #0f172a;
-        border-right-color: #1f2937;
-      }
-
-      html.dark-mode .sidebar-logo-name {
-        color: #f8fafc;
-      }
-
-      html.dark-mode .sidebar-logo-tagline,
-      html.dark-mode .nav-group-title,
-      html.dark-mode .sidebar-footer {
-        color: #94a3b8;
-      }
-
-      html.dark-mode .nav-link {
-        color: #cbd5e1;
-      }
-
-      html.dark-mode .nav-link:hover {
-        background: #111827;
-        color: #6ee7b7;
-      }
-
-      html.dark-mode .nav-link.active {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(45, 212, 191, 0.12) 100%);
-        color: #6ee7b7;
-      }
-
-      html.dark-mode .top-navbar {
-        background: rgba(2, 6, 23, 0.92);
-        border-bottom: 1px solid #1f2937;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-      }
-
-      html.dark-mode .hamburger-btn,
-      html.dark-mode .navbar-brand {
-        color: #6ee7b7;
-      }
-
-      html.dark-mode .hamburger-btn {
-        background: #111827;
-        border-color: #1f2937;
-      }
-
-      html.dark-mode .user-dropdown-btn {
-        background: #111827;
-        color: #e5e7eb;
-        border: 1px solid #1f2937;
-      }
-
-      html.dark-mode .user-dropdown-btn:hover {
-        background: #1f2937;
-      }
-
-      html.dark-mode .user-name {
-        color: #e5e7eb;
-      }
-
-      html.dark-mode .user-dropdown {
-        background: #0f172a;
-        border: 1px solid #1f2937;
-      }
-
-      html.dark-mode .user-dropdown-header {
-        border-bottom-color: #1f2937;
-      }
-
-      html.dark-mode .user-dropdown-name {
-        color: #f8fafc;
-      }
-
-      html.dark-mode .user-dropdown-phone {
-        color: #94a3b8;
-      }
-
-      html.dark-mode .user-dropdown-item {
-        color: #cbd5e1;
-      }
-
-      html.dark-mode .user-dropdown-item:hover {
-        background: #111827;
-        color: #6ee7b7;
-      }
-
-      html.dark-mode .user-dropdown-item.logout:hover {
-        background: rgba(239, 68, 68, 0.14);
-      }
-
-      html.dark-mode .main-content {
-        background: transparent;
-      }
-
-      html.dark-mode .sidebar-overlay {
-        background: rgba(2, 6, 23, 0.7);
-      }
-
-      html.dark-mode .theme-toggle-btn {
-        background: #111827;
-        border-color: #1f2937;
-        color: #6ee7b7;
-      }
-
-      html.dark-mode .theme-toggle-btn:hover {
-        background: #1f2937;
-        border-color: #2dd4bf;
-      }
-
-      html.dark-mode .bg-white {
-        background-color: #0f172a !important;
-      }
-
-      html.dark-mode .bg-gray-50,
-      html.dark-mode .bg-gray-100 {
-        background-color: #0b1220 !important;
-      }
-
-      html.dark-mode .text-gray-900,
-      html.dark-mode .text-gray-800 {
-        color: #f8fafc !important;
-      }
-
-      html.dark-mode .text-gray-700,
-      html.dark-mode .text-gray-600 {
-        color: #cbd5e1 !important;
-      }
-
-      html.dark-mode .text-gray-500,
-      html.dark-mode .text-gray-400 {
-        color: #94a3b8 !important;
-      }
-
-      html.dark-mode .border-gray-100,
-      html.dark-mode .border-gray-200,
-      html.dark-mode .border-gray-300 {
-        border-color: #1f2937 !important;
-      }
-
-      html.dark-mode .stat-box,
-      html.dark-mode .filter-section,
-      html.dark-mode .table-section,
-      html.dark-mode .mobile-card {
-        background: #0f172a;
-        border-color: #1f2937;
-      }
-
-      html.dark-mode .filter-header,
-      html.dark-mode .table-header-wrapper,
-      html.dark-mode .data-table thead tr {
-        background: #111827;
-        border-color: #1f2937;
-      }
-
-      html.dark-mode .data-table tbody tr {
-        border-bottom-color: #1f2937;
-      }
-
-      html.dark-mode .data-table tbody tr:hover {
-        background: rgba(16, 185, 129, 0.12);
-      }
-
-      @media (max-width: 768px) {
-        html.dark-mode table.responsive-stack-table tbody tr {
-          background: #0f172a;
-          border-color: #1f2937;
-          box-shadow: none;
-        }
-
-        html.dark-mode table.responsive-stack-table td {
-          border-bottom-color: #1f2937;
-        }
-
-        html.dark-mode table.responsive-stack-table td::before {
-          color: #94a3b8;
-        }
-      }
-
-      html.dark-mode .table-badge {
-        background: rgba(16, 185, 129, 0.18);
-        color: #6ee7b7;
-      }
-
-      html.dark-mode footer {
-        background: #020617 !important;
-        border-top-color: #1f2937 !important;
-      }
-
-      body.sidebar-open {
-        overflow: hidden;
-      }
-      
-      /* Smooth scrolling */
-      html {
-        scroll-behavior: smooth;
-      }
-    </style>
+    <%- include("theme") %>
+    <link rel="stylesheet" href="/vendor/flatpickr/flatpickr.min.css" />
+    <script src="/vendor/flatpickr/flatpickr.min.js"></script>
+    <script src="/vendor/flatpickr/l10n/id.js"></script>
+    <% if (typeof darkCss !== 'undefined' && darkCss) { %>
+    <link rel="stylesheet" href="<%= darkCss %>" />
+    <% } %>
     
     <!-- SweetAlert2 Helper Functions -->
     <script>
@@ -1773,130 +194,190 @@
     </script>
   </head>
   <body class="<%= bodyClass || 'bg-gray-50' %>">
-    <!-- Sidebar Overlay -->
-    <% if (typeof user !== 'undefined' && user) { %>
+    <% if (typeof user !== 'undefined' && user) {
+      const shellPage = (typeof currentPage !== 'undefined' && currentPage) ? currentPage : '';
+      const shellLabels = {
+        dashboard: 'Dashboard',
+        users: 'Manajemen User',
+        rt: 'Data RW/RT',
+        muzakki: 'Muzakki',
+        mustahik: 'Mustahik',
+        distribusi: 'Distribusi',
+        infak: 'Infak',
+        laporan: 'Laporan',
+        profile: 'Profil Saya'
+      };
+      const shellTitle = shellLabels[shellPage] || 'Zakat - App';
+      const shellDate = new Date().toLocaleDateString('id-ID', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      });
+      const shellTabs = ['dashboard', 'muzakki', 'distribusi', 'laporan'];
+      const shellName = user.name || 'User';
+      const shellRole = user.role === 'admin' ? 'Admin' : 'Panitia';
+    %>
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-    
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar" id="sidebar">
-      <!-- Logo -->
+
+    <!-- Sidebar (drawer di mobile) -->
+    <aside class="sidebar" id="sidebar" aria-label="Menu utama">
       <div class="sidebar-logo">
         <a href="/dashboard" class="sidebar-logo-link">
           <img src="/images/logo-dkm.png" alt="Logo" class="sidebar-logo-img">
           <div class="sidebar-logo-text">
-            <div class="sidebar-logo-name font-bold text-gray-800">Zakat - App</div>
+            <div class="sidebar-logo-name">Zakat - App</div>
             <div class="sidebar-logo-tagline">Digital Management</div>
           </div>
         </a>
+        <button type="button" class="sidebar-close" onclick="toggleSidebar()" aria-label="Tutup menu">
+          <i class="fas fa-xmark"></i>
+        </button>
       </div>
-      
-      <!-- Navigation -->
+
       <nav class="sidebar-nav">
         <div class="nav-group">
           <div class="nav-group-title">Menu Utama</div>
-          <a href="/dashboard" class="nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'dashboard') ? 'active' : '' %>">
-            <i class="fas fa-tachometer-alt"></i>
+          <a href="/dashboard" class="nav-link <%= shellPage === 'dashboard' ? 'active' : '' %>" data-tip-collapsed="Dashboard" data-tip-pos="right" <%- shellPage === 'dashboard' ? 'aria-current="page"' : '' %>>
+            <i class="fas fa-gauge-high"></i>
             <span>Dashboard</span>
           </a>
-          <a href="/users" class="nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'users') ? 'active' : '' %>">
-            <i class="fas fa-user-cog"></i>
+          <a href="/users" class="nav-link <%= shellPage === 'users' ? 'active' : '' %>" data-tip-collapsed="Manajemen User" data-tip-pos="right" <%- shellPage === 'users' ? 'aria-current="page"' : '' %>>
+            <i class="fas fa-user-gear"></i>
             <span>Manajemen User</span>
           </a>
         </div>
-        
+
         <div class="nav-group">
           <div class="nav-group-title">Manajemen Data</div>
-          <a href="/rt-rw" class="nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'rt') ? 'active' : '' %>">
-            <i class="fas fa-home"></i>
+          <a href="/rt-rw" class="nav-link <%= shellPage === 'rt' ? 'active' : '' %>" data-tip-collapsed="Data RW/RT" data-tip-pos="right" <%- shellPage === 'rt' ? 'aria-current="page"' : '' %>>
+            <i class="fas fa-house-user"></i>
             <span>Data RW/RT</span>
           </a>
-          <a href="/muzakki" class="nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'muzakki') ? 'active' : '' %>">
+          <a href="/muzakki" class="nav-link <%= shellPage === 'muzakki' ? 'active' : '' %>" data-tip-collapsed="Muzakki" data-tip-pos="right" <%- shellPage === 'muzakki' ? 'aria-current="page"' : '' %>>
             <i class="fas fa-users"></i>
             <span>Muzakki</span>
           </a>
-          <a href="/mustahik" class="nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'mustahik') ? 'active' : '' %>">
-            <i class="fas fa-user-friends"></i>
+          <a href="/mustahik" class="nav-link <%= shellPage === 'mustahik' ? 'active' : '' %>" data-tip-collapsed="Mustahik" data-tip-pos="right" <%- shellPage === 'mustahik' ? 'aria-current="page"' : '' %>>
+            <i class="fas fa-people-group"></i>
             <span>Mustahik</span>
           </a>
-          <a href="/distribusi" class="nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'distribusi') ? 'active' : '' %>">
-            <i class="fas fa-share-alt"></i>
+          <a href="/distribusi" class="nav-link <%= shellPage === 'distribusi' ? 'active' : '' %>" data-tip-collapsed="Distribusi" data-tip-pos="right" <%- shellPage === 'distribusi' ? 'aria-current="page"' : '' %>>
+            <i class="fas fa-share-nodes"></i>
             <span>Distribusi</span>
           </a>
-          <a href="/infak" class="nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'infak') ? 'active' : '' %>">
+          <a href="/infak" class="nav-link <%= shellPage === 'infak' ? 'active' : '' %>" data-tip-collapsed="Infak" data-tip-pos="right" <%- shellPage === 'infak' ? 'aria-current="page"' : '' %>>
             <i class="fas fa-hand-holding-heart"></i>
             <span>Infak</span>
           </a>
         </div>
-        
+
         <div class="nav-group">
           <div class="nav-group-title">Reporting</div>
-          <a href="/laporan" class="nav-link <%= (typeof currentPage !== 'undefined' && currentPage === 'laporan') ? 'active' : '' %>">
-            <i class="fas fa-chart-bar"></i>
+          <a href="/laporan" class="nav-link <%= shellPage === 'laporan' ? 'active' : '' %>" data-tip-collapsed="Laporan" data-tip-pos="right" <%- shellPage === 'laporan' ? 'aria-current="page"' : '' %>>
+            <i class="fas fa-chart-column"></i>
             <span>Laporan</span>
           </a>
         </div>
-
-        <div class="sidebar-footer">
-          <span>v1.0.0</span>
-        </div>
       </nav>
-    </aside>
-    
-    <!-- Top Navbar -->
-    <nav class="top-navbar" id="topNavbar">
-      <!-- Hamburger Menu (Mobile Only) -->
-      <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleSidebar()">
-        <i class="fas fa-bars"></i>
-      </button>
-      
-      <!-- Logo for Mobile -->
-      <div class="navbar-brand">
-        <img src="/images/logo-dkm.png" alt="Logo" class="navbar-brand-logo">
-        <span class="navbar-brand-text">Zakat - App</span>
-      </div>
-      
 
-      <!-- Right section with theme toggle + user dropdown -->
+      <div class="sidebar-user">
+        <a href="/users/profile" class="sidebar-user-main" data-tip-collapsed="<%= shellName %> · <%= shellRole %>" data-tip-pos="right" aria-label="Profil saya">
+          <span class="sidebar-user-avatar"><%= shellName.charAt(0).toUpperCase() %></span>
+          <span class="sidebar-user-meta">
+            <span class="su-name"><%= shellName %></span>
+            <span class="su-role"><%= shellRole %></span>
+            <span class="su-phone"><%= user.nomor_wa || '' %></span>
+          </span>
+        </a>
+        <form method="POST" action="/auth/logout" id="logoutForm" class="sidebar-user-form">
+          <button type="submit" class="su-logout" aria-label="Keluar" data-tip="Keluar" data-tip-pos="right">
+            <i class="fas fa-right-from-bracket"></i>
+          </button>
+        </form>
+      </div>
+    </aside>
+
+    <button type="button" class="sidebar-handle" id="sidebarCollapseBtn" aria-label="Sembunyikan sidebar" aria-pressed="false" data-tip="Sembunyikan sidebar" data-tip-pos="right">
+      <i class="fas fa-chevron-left" id="sidebarCollapseIcon"></i>
+    </button>
+
+    <!-- Top Navbar -->
+    <header class="top-navbar" id="topNavbar">
+      <a href="/dashboard" class="navbar-brand">
+        <img src="/images/logo-dkm.png" alt="Logo" class="navbar-brand-logo">
+        <span class="navbar-brand-text"><%= shellPage ? shellTitle : 'Zakat - App' %></span>
+      </a>
+
+      <div class="topbar-heading">
+        <div class="topbar-title"><%= shellTitle %></div>
+        <div class="topbar-date"><i class="fas fa-calendar-day"></i><span><%= shellDate %></span></div>
+      </div>
+
       <div class="top-navbar-right">
+        <button type="button" class="search-trigger" id="searchTrigger" aria-label="Cari menu" aria-haspopup="dialog" data-tip="Cari menu" data-tip-pos="bottom">
+          <i class="fas fa-magnifying-glass"></i>
+          <span class="search-trigger-text">Cari menu…</span>
+          <kbd class="search-kbd" id="searchKbd">Ctrl K</kbd>
+        </button>
+
         <button
           type="button"
           id="themeToggleAdmin"
-          class="theme-toggle-btn"
-          aria-label="Toggle dark mode"
-          title="Toggle dark mode"
+          class="theme-switch"
+          role="switch"
+          aria-checked="false"
+          aria-label="Mode gelap"
+          data-tip="Mode terang / gelap"
+          data-tip-pos="bottom"
         >
-          <i id="themeToggleAdminIcon" class="fas fa-moon"></i>
-          <span id="themeToggleAdminLabel" class="theme-label">Dark</span>
+          <i class="fas fa-sun theme-switch-icon theme-switch-sun" aria-hidden="true"></i>
+          <i class="fas fa-moon theme-switch-icon theme-switch-moon" aria-hidden="true"></i>
+          <span class="theme-switch-knob" aria-hidden="true"></span>
         </button>
+      </div>
+    </header>
 
-        <div class="user-dropdown-container">
-          <button class="user-dropdown-btn" onclick="toggleUserDropdown()">
-            <div class="user-avatar">
-              <%= (user && user.name) ? user.name.charAt(0).toUpperCase() : 'U' %>
-            </div>
-            <span class="user-name"><%= (user && user.name) ? user.name : 'User' %></span>
-            <i class="fas fa-chevron-down"></i>
-          </button>
-          
-          <div class="user-dropdown" id="userDropdown">
-            <div class="user-dropdown-header">
-              <div class="user-dropdown-name"><%= (user && user.name) ? user.name : 'User' %></div>
-              <div class="user-dropdown-phone"><%= (user && user.nomor_wa) ? user.nomor_wa : 'No Phone' %></div>
-            </div>
-            <a href="/users/profile" class="user-dropdown-item">
-              <i class="fas fa-user"></i>
-              <span>Profile Saya</span>
-            </a>
-            <form method="POST" action="/auth/logout">
-              <button type="submit" class="user-dropdown-item logout">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Keluar</span>
-              </button>
-            </form>
-          </div>
+    <!-- Bottom navigation (mobile) -->
+    <nav class="bottom-nav" aria-label="Navigasi bawah">
+      <a href="/dashboard" class="bottom-nav-item <%= shellPage === 'dashboard' ? 'active' : '' %>">
+        <span class="bn-icon"><i class="fas fa-house"></i></span>
+        <span class="bn-label">Beranda</span>
+      </a>
+      <a href="/muzakki" class="bottom-nav-item <%= shellPage === 'muzakki' ? 'active' : '' %>">
+        <span class="bn-icon"><i class="fas fa-users"></i></span>
+        <span class="bn-label">Muzakki</span>
+      </a>
+      <a href="/distribusi" class="bottom-nav-item <%= shellPage === 'distribusi' ? 'active' : '' %>">
+        <span class="bn-icon"><i class="fas fa-share-nodes"></i></span>
+        <span class="bn-label">Distribusi</span>
+      </a>
+      <a href="/laporan" class="bottom-nav-item <%= shellPage === 'laporan' ? 'active' : '' %>">
+        <span class="bn-icon"><i class="fas fa-chart-column"></i></span>
+        <span class="bn-label">Laporan</span>
+      </a>
+      <button type="button" class="bottom-nav-item <%= (shellPage && !shellTabs.includes(shellPage)) ? 'active' : '' %>" onclick="toggleSidebar()" aria-label="Buka menu lengkap">
+        <span class="bn-icon"><i class="fas fa-bars-staggered"></i></span>
+        <span class="bn-label">Menu</span>
+      </button>
+    </nav>
+
+    <!-- Command palette (Ctrl/Cmd + K) -->
+    <div class="cmdk" id="cmdk" aria-hidden="true">
+      <div class="cmdk-backdrop" data-cmdk-close></div>
+      <div class="cmdk-panel" role="dialog" aria-modal="true" aria-label="Cari menu">
+        <div class="cmdk-search">
+          <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+          <input id="cmdkInput" type="text" autocomplete="off" spellcheck="false" placeholder="Cari menu atau aksi…" role="combobox" aria-expanded="true" aria-controls="cmdkList" aria-autocomplete="list">
+          <kbd>Esc</kbd>
+        </div>
+        <div class="cmdk-list" id="cmdkList" role="listbox"></div>
+        <div class="cmdk-foot">
+          <span><kbd>↑</kbd><kbd>↓</kbd> pilih</span>
+          <span><kbd>↵</kbd> buka</span>
+          <span><kbd>Esc</kbd> tutup</span>
         </div>
       </div>
-    </nav>
+    </div>
+
+    <div class="app-tooltip" id="appTooltip" role="tooltip"></div>
     <% } %>
 
     <!-- Main Content -->
@@ -1949,17 +430,9 @@
       }
 
       function updateThemeToggleUI(theme) {
-        const icon = document.getElementById("themeToggleAdminIcon");
-        const label = document.getElementById("themeToggleAdminLabel");
-        const isDark = theme === "dark";
-
-        if (icon) {
-          icon.classList.toggle("fa-sun", isDark);
-          icon.classList.toggle("fa-moon", !isDark);
-        }
-
-        if (label) {
-          label.textContent = isDark ? "Light" : "Dark";
+        const toggle = document.getElementById("themeToggleAdmin");
+        if (toggle) {
+          toggle.setAttribute("aria-checked", theme === "dark" ? "true" : "false");
         }
       }
 
@@ -2006,23 +479,429 @@
 
       window.toggleSidebar = toggleSidebar;
 
-      function toggleUserDropdown() {
-        const dropdown = document.getElementById("userDropdown");
-        if (dropdown) {
-          dropdown.classList.toggle("show");
+      (function () {
+        const root = document.documentElement;
+        const isDesktop = function () { return window.innerWidth > 768; };
+        const isMac = /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent || "");
+
+        /* ---------- Tooltip ---------- */
+        const tip = document.getElementById("appTooltip");
+        let tipTarget = null;
+
+        function tipText(el) {
+          if (el.hasAttribute("data-tip-collapsed")) {
+            return root.classList.contains("sidebar-collapsed") && isDesktop()
+              ? el.getAttribute("data-tip-collapsed")
+              : null;
+          }
+          return el.getAttribute("data-tip");
         }
-      }
 
-      window.toggleUserDropdown = toggleUserDropdown;
-
-      document.addEventListener("click", function (event) {
-        const userDropdownContainer = event.target.closest(".user-dropdown-container");
-        const userDropdown = document.getElementById("userDropdown");
-
-        if (!userDropdownContainer && userDropdown && userDropdown.classList.contains("show")) {
-          userDropdown.classList.remove("show");
+        function hideTip() {
+          tipTarget = null;
+          if (tip) {
+            tip.classList.remove("show");
+          }
         }
-      });
+
+        function showTip(el) {
+          const text = tipText(el);
+          if (!tip || !text) {
+            hideTip();
+            return;
+          }
+
+          tipTarget = el;
+          tip.textContent = text;
+
+          const r = el.getBoundingClientRect();
+          const tw = tip.offsetWidth;
+          const th = tip.offsetHeight;
+          const pos = el.getAttribute("data-tip-pos") || "bottom";
+          let left;
+          let top;
+
+          if (pos === "right") {
+            left = r.right + 12;
+            top = r.top + r.height / 2 - th / 2;
+          } else if (pos === "top") {
+            left = r.left + r.width / 2 - tw / 2;
+            top = r.top - th - 10;
+          } else {
+            left = r.left + r.width / 2 - tw / 2;
+            top = r.bottom + 10;
+          }
+
+          tip.style.left = Math.max(8, Math.min(left, window.innerWidth - tw - 8)) + "px";
+          tip.style.top = Math.max(8, Math.min(top, window.innerHeight - th - 8)) + "px";
+          tip.classList.add("show");
+        }
+
+        function tipHost(node) {
+          return node && node.closest ? node.closest("[data-tip],[data-tip-collapsed]") : null;
+        }
+
+        document.addEventListener("mouseover", function (e) {
+          const el = tipHost(e.target);
+          if (!el) {
+            if (tipTarget) {
+              hideTip();
+            }
+            return;
+          }
+          if (el !== tipTarget) {
+            showTip(el);
+          }
+        });
+
+        document.addEventListener("focusin", function (e) {
+          const el = tipHost(e.target);
+          if (el && el !== tipTarget) {
+            showTip(el);
+          }
+        });
+
+        document.addEventListener("focusout", hideTip);
+        document.addEventListener("mousedown", hideTip);
+        window.addEventListener("scroll", hideTip, true);
+        window.addEventListener("resize", hideTip);
+
+        /* ---------- Sidebar collapse ---------- */
+        const collapseBtn = document.getElementById("sidebarCollapseBtn");
+
+        function syncCollapseUi() {
+          if (!collapseBtn) {
+            return;
+          }
+          const collapsed = root.classList.contains("sidebar-collapsed");
+          const label = collapsed ? "Tampilkan sidebar" : "Sembunyikan sidebar";
+          collapseBtn.setAttribute("aria-pressed", collapsed ? "true" : "false");
+          collapseBtn.setAttribute("aria-label", label);
+          collapseBtn.setAttribute("data-tip", label);
+
+          const icon = document.getElementById("sidebarCollapseIcon");
+          if (icon) {
+            icon.className = collapsed ? "fas fa-chevron-right" : "fas fa-chevron-left";
+          }
+        }
+
+        function setCollapsed(collapsed) {
+          root.classList.toggle("sidebar-collapsed", collapsed);
+          try {
+            localStorage.setItem("sidebar-collapsed", collapsed ? "1" : "0");
+          } catch (error) {
+            // Ignore storage failures.
+          }
+          syncCollapseUi();
+          hideTip();
+        }
+
+        function toggleCollapse() {
+          setCollapsed(!root.classList.contains("sidebar-collapsed"));
+        }
+
+        window.toggleSidebarCollapse = toggleCollapse;
+        syncCollapseUi();
+
+        if (collapseBtn) {
+          collapseBtn.addEventListener("click", function () {
+            toggleCollapse();
+            // tooltip baru tampil lagi setelah animasi selesai, jika kursor masih di atas tombol
+            setTimeout(function () {
+              if (collapseBtn.matches(":hover")) {
+                showTip(collapseBtn);
+              }
+            }, 320);
+          });
+        }
+
+        /* ---------- Command palette (Ctrl/Cmd + K) ---------- */
+        const cmdk = document.getElementById("cmdk");
+        const input = document.getElementById("cmdkInput");
+        const listEl = document.getElementById("cmdkList");
+        const trigger = document.getElementById("searchTrigger");
+        const kbd = document.getElementById("searchKbd");
+
+        if (kbd) {
+          kbd.textContent = isMac ? "⌘ K" : "Ctrl K";
+        }
+        if (trigger) {
+          trigger.setAttribute("data-tip", "Cari menu (" + (isMac ? "⌘K" : "Ctrl+K") + ")");
+        }
+
+        let all = [];
+        let shown = [];
+        let active = 0;
+        let lastFocus = null;
+
+        function esc(text) {
+          return String(text).replace(/[&<>"']/g, function (c) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+          });
+        }
+
+        function highlight(label, q) {
+          if (!q) {
+            return esc(label);
+          }
+          const i = label.toLowerCase().indexOf(q);
+          if (i < 0) {
+            return esc(label);
+          }
+          return (
+            esc(label.slice(0, i)) +
+            "<mark>" + esc(label.slice(i, i + q.length)) + "</mark>" +
+            esc(label.slice(i + q.length))
+          );
+        }
+
+        function buildItems() {
+          const items = [];
+
+          document.querySelectorAll("#sidebar .nav-group").forEach(function (group) {
+            const title = group.querySelector(".nav-group-title");
+            const hint = title ? title.textContent.trim() : "Menu";
+            group.querySelectorAll(".nav-link").forEach(function (a) {
+              const span = a.querySelector("span");
+              const icon = a.querySelector("i");
+              items.push({
+                group: "Navigasi",
+                label: span ? span.textContent.trim() : a.textContent.trim(),
+                hint: hint,
+                icon: icon ? icon.className : "fas fa-circle",
+                href: a.getAttribute("href"),
+                keywords: ""
+              });
+            });
+          });
+
+          const dark = root.classList.contains("dark-mode");
+          const collapsed = root.classList.contains("sidebar-collapsed");
+          const actions = [
+            { label: "Tambah Muzakki", icon: "fas fa-user-plus", href: "/muzakki/create", keywords: "baru input catat bayar zakat" },
+            { label: "Tambah Mustahik", icon: "fas fa-people-group", href: "/mustahik/create", keywords: "baru penerima" },
+            { label: "Tambah RT", icon: "fas fa-house-circle-check", href: "/rt?new=1", keywords: "baru rukun tetangga ketua" },
+            { label: "Tambah RW", icon: "fas fa-building", href: "/rw?new=1", keywords: "baru rukun warga ketua" },
+            { label: "Buat Distribusi Baru", icon: "fas fa-share-nodes", href: "/distribusi/create", keywords: "salurkan bagikan" },
+            { label: "Profil Saya", icon: "fas fa-user", href: "/users/profile", keywords: "akun nomor wa password" },
+            {
+              label: dark ? "Ganti ke Mode Terang" : "Ganti ke Mode Gelap",
+              icon: dark ? "fas fa-sun" : "fas fa-moon",
+              keywords: "tema dark light gelap terang",
+              run: function () { window.toggleTheme(); }
+            }
+          ];
+
+          if (isDesktop()) {
+            actions.push({
+              label: collapsed ? "Tampilkan Sidebar" : "Sembunyikan Sidebar",
+              icon: "fas fa-angles-left",
+              keywords: "menu panel samping ikon",
+              run: toggleCollapse
+            });
+          }
+
+          actions.push({
+            label: "Keluar",
+            icon: "fas fa-right-from-bracket",
+            keywords: "logout sign out",
+            run: function () {
+              const form = document.getElementById("logoutForm");
+              if (form) {
+                form.submit();
+              }
+            }
+          });
+
+          actions.forEach(function (a) {
+            a.group = "Aksi cepat";
+            a.hint = "Aksi cepat";
+            items.push(a);
+          });
+
+          return items;
+        }
+
+        function score(item, q) {
+          const label = item.label.toLowerCase();
+          if (label.indexOf(q) === 0) return 0;
+          if (label.indexOf(" " + q) > -1) return 1;
+          if (label.indexOf(q) > -1) return 2;
+          if ((item.hint + " " + item.keywords).toLowerCase().indexOf(q) > -1) return 3;
+          return -1;
+        }
+
+        function setActive(index, scroll) {
+          const opts = listEl.querySelectorAll(".cmdk-item");
+          if (!opts.length) {
+            input.removeAttribute("aria-activedescendant");
+            return;
+          }
+          active = (index + opts.length) % opts.length;
+          opts.forEach(function (opt, n) {
+            opt.classList.toggle("active", n === active);
+            opt.setAttribute("aria-selected", n === active ? "true" : "false");
+          });
+          input.setAttribute("aria-activedescendant", opts[active].id);
+          if (scroll !== false) {
+            opts[active].scrollIntoView({ block: "nearest" });
+          }
+        }
+
+        function render() {
+          const q = input.value.trim().toLowerCase();
+          let html = "";
+          shown = [];
+
+          ["Navigasi", "Aksi cepat"].forEach(function (groupName) {
+            const rows = all
+              .filter(function (item) { return item.group === groupName; })
+              .map(function (item) { return { item: item, s: q ? score(item, q) : 0 }; })
+              .filter(function (row) { return row.s >= 0; });
+
+            if (q) {
+              rows.sort(function (a, b) { return a.s - b.s; });
+            }
+            if (!rows.length) {
+              return;
+            }
+
+            html += '<div class="cmdk-group" role="presentation">' + esc(groupName) + "</div>";
+            rows.forEach(function (row) {
+              const idx = shown.length;
+              shown.push(row.item);
+              html +=
+                '<div class="cmdk-item" role="option" id="cmdk-opt-' + idx + '" data-index="' + idx + '">' +
+                '<span class="cmdk-item-icon"><i class="' + esc(row.item.icon) + '"></i></span>' +
+                '<span class="cmdk-item-label">' + highlight(row.item.label, q) + "</span>" +
+                '<span class="cmdk-item-hint">' + esc(row.item.hint) + "</span></div>";
+            });
+          });
+
+          listEl.innerHTML = shown.length
+            ? html
+            : '<div class="cmdk-empty">Tidak ada hasil untuk “' + esc(input.value.trim()) + "”</div>";
+          setActive(0, false);
+        }
+
+        function isOpen() {
+          return !!cmdk && cmdk.classList.contains("open");
+        }
+
+        function openPalette() {
+          if (!cmdk || !input || !listEl) {
+            return;
+          }
+          lastFocus = document.activeElement;
+          all = buildItems();
+          input.value = "";
+          cmdk.classList.add("open");
+          cmdk.setAttribute("aria-hidden", "false");
+          document.body.classList.add("cmdk-open");
+          hideTip();
+          render();
+          input.focus();
+        }
+
+        function closePalette() {
+          if (!isOpen()) {
+            return;
+          }
+          cmdk.classList.remove("open");
+          cmdk.setAttribute("aria-hidden", "true");
+          document.body.classList.remove("cmdk-open");
+          if (lastFocus && lastFocus.focus) {
+            try { lastFocus.focus(); } catch (error) { /* ignore */ }
+          }
+        }
+
+        function runItem(item) {
+          if (!item) {
+            return;
+          }
+          closePalette();
+          if (item.run) {
+            item.run();
+          } else if (item.href) {
+            window.location.href = item.href;
+          }
+        }
+
+        if (cmdk && input && listEl) {
+          if (trigger) {
+            trigger.addEventListener("click", openPalette);
+          }
+
+          input.addEventListener("input", render);
+
+          input.addEventListener("keydown", function (e) {
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setActive(active + 1);
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setActive(active - 1);
+            } else if (e.key === "Enter") {
+              e.preventDefault();
+              runItem(shown[active]);
+            } else if (e.key === "Tab") {
+              e.preventDefault();
+            }
+          });
+
+          listEl.addEventListener("mousemove", function (e) {
+            const el = e.target.closest(".cmdk-item");
+            if (el) {
+              const i = Number(el.dataset.index);
+              if (i !== active) {
+                setActive(i, false);
+              }
+            }
+          });
+
+          listEl.addEventListener("click", function (e) {
+            const el = e.target.closest(".cmdk-item");
+            if (el) {
+              runItem(shown[Number(el.dataset.index)]);
+            }
+          });
+
+          cmdk.addEventListener("click", function (e) {
+            if (e.target.hasAttribute("data-cmdk-close")) {
+              closePalette();
+            }
+          });
+        }
+
+        document.addEventListener("keydown", function (e) {
+          const key = (e.key || "").toLowerCase();
+
+          if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && key === "k") {
+            if (!cmdk) {
+              return;
+            }
+            e.preventDefault();
+            if (isOpen()) {
+              closePalette();
+            } else {
+              openPalette();
+            }
+            return;
+          }
+
+          if (key === "escape") {
+            if (isOpen()) {
+              closePalette();
+              return;
+            }
+
+            const sidebar = document.getElementById("sidebar");
+            if (sidebar && sidebar.classList.contains("show")) {
+              toggleSidebar();
+            }
+          }
+        });
+      })();
 
       window.addEventListener("resize", function () {
         if (window.innerWidth > 768) {

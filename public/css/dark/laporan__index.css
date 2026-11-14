@@ -1,0 +1,254 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/laporan/index.ejs */
+html.dark-mode .page-header {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1e40af 100%)
+}
+html.dark-mode .page-header::before {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%)
+}
+html.dark-mode .header-icon-box {
+    background: #0f1729;
+    color: white
+}
+html.dark-mode .header-text-box {
+    color: white
+}
+html.dark-mode .header-title-text {
+    color: white
+}
+html.dark-mode .header-subtitle-text {
+    color: rgba(255, 255, 255, 0.95)
+}
+html.dark-mode .stat-box {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .stat-box-primary .stat-decoration {
+    background: #3b82f6
+}
+html.dark-mode .stat-box-success .stat-decoration {
+    background: #10b981
+}
+html.dark-mode .stat-box-info .stat-decoration {
+    background: #0ea5e9
+}
+html.dark-mode .stat-box-warning .stat-decoration {
+    background: #f59e0b
+}
+html.dark-mode .stat-icon-wrapper {
+    color: white
+}
+html.dark-mode .stat-icon-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)
+}
+html.dark-mode .stat-icon-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%)
+}
+html.dark-mode .stat-icon-info {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)
+}
+html.dark-mode .stat-icon-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%)
+}
+html.dark-mode .stat-value-text {
+    color: #d8dfee
+}
+html.dark-mode .stat-label-text {
+    color: #7e8593
+}
+html.dark-mode .table-section {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .table-header-wrapper {
+    background: linear-gradient(to right, #19222a, #121b31);
+    border-bottom: 1px solid #222b3f
+}
+html.dark-mode .table-header-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #f7f7f7
+}
+html.dark-mode .table-title {
+    color: #d8dfee
+}
+html.dark-mode .table-subtitle {
+    color: #7e8593
+}
+html.dark-mode .table-badge {
+    background: #14273f;
+    color: #728de7
+}
+html.dark-mode .empty-state-icon {
+    background: linear-gradient(135deg, #121b31, #15203a);
+    color: #9ca3af
+}
+html.dark-mode .empty-state-title {
+    color: #d8dfee
+}
+html.dark-mode .empty-state-desc {
+    color: #7e8593
+}
+html.dark-mode .btn-empty-state {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #f7f7f7
+}
+html.dark-mode .data-table thead tr {
+    background: linear-gradient(to right, #19222a, #121b31);
+    border-bottom: 2px solid #222b3f
+}
+html.dark-mode .data-table th {
+    color: #a9b8d1
+}
+html.dark-mode .data-table tbody tr {
+    border-bottom: 1px solid #222b3f
+}
+html.dark-mode .data-table tbody tr:hover {
+    background: linear-gradient(to right, #102137, #14273f)
+}
+html.dark-mode .data-table tfoot tr {
+    background: linear-gradient(135deg, #19222a, #121b31);
+    border-top: 2px solid #222b3f
+}
+html.dark-mode .rt-badge {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #f7f7f7
+}
+html.dark-mode .ketua-name {
+    color: #d8dfee
+}
+html.dark-mode .cell-subtitle {
+    color: #9ca3af
+}
+html.dark-mode .text-gray-400 {
+    color: #9ca3af
+}
+html.dark-mode .badge-stat-primary {
+    background: #14273f;
+    color: #728de7
+}
+html.dark-mode .status-active {
+    background: #1a422d;
+    color: #a0f9e0
+}
+html.dark-mode .status-inactive {
+    background: #121b31;
+    color: #818896
+}
+html.dark-mode .amount-success {
+    color: #059669
+}
+html.dark-mode .amount-info {
+    color: #028bd2
+}
+html.dark-mode .amount-primary {
+    color: #4d80ef
+}
+html.dark-mode .amount-warning {
+    color: #d97706
+}
+html.dark-mode .total-row {
+    background: linear-gradient(135deg, #19222a, #121b31) !important
+}
+html.dark-mode .total-label {
+    color: #d8dfee
+}
+html.dark-mode .total-value {
+    color: #d8dfee
+}
+html.dark-mode .total-success {
+    color: #059669 !important
+}
+html.dark-mode .total-info {
+    color: #028bd2 !important
+}
+html.dark-mode .total-primary {
+    color: #4d80ef !important
+}
+html.dark-mode .total-warning {
+    color: #d97706 !important
+}
+html.dark-mode .info-card {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .info-card-header {
+    border-bottom: 2px solid #222b3f
+}
+html.dark-mode .info-card-blue .info-card-header {
+    background: linear-gradient(to right, #102137, #14273f)
+}
+html.dark-mode .info-card-green .info-card-header {
+    background: linear-gradient(to right, #15331e, #173d24)
+}
+html.dark-mode .info-card-icon {
+    color: white
+}
+html.dark-mode .info-card-blue .info-card-icon {
+    background: linear-gradient(135deg, #3b82f6, #2563eb)
+}
+html.dark-mode .info-card-green .info-card-icon {
+    background: linear-gradient(135deg, #10b981, #059669)
+}
+html.dark-mode .info-card-title {
+    color: #d8dfee
+}
+html.dark-mode .info-item {
+    border-bottom: 1px solid #1d2436
+}
+html.dark-mode .info-item:last-child {
+    border-bottom: none
+}
+html.dark-mode .info-item-highlight {
+    background: linear-gradient(to right, #15331e, transparent);
+    border: none
+}
+html.dark-mode .info-label {
+    color: #7e8593
+}
+html.dark-mode .info-value {
+    color: #d8dfee
+}
+html.dark-mode .info-value-success {
+    color: #059669 !important
+}
+html.dark-mode .calculation-green {
+    background: linear-gradient(135deg, #15331e, #173d24);
+    border: 1px solid #275741
+}
+html.dark-mode .calculation-blue {
+    background: linear-gradient(135deg, #102137, #14273f);
+    border: 1px solid #1c3350
+}
+html.dark-mode .calculation-yellow {
+    background: linear-gradient(135deg, #393513, #493f16);
+    border: 1px solid #655823
+}
+html.dark-mode .calculation-green .calculation-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white
+}
+html.dark-mode .calculation-blue .calculation-icon {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #f7f7f7
+}
+html.dark-mode .calculation-yellow .calculation-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #111827
+}
+html.dark-mode .calculation-green .calculation-title {
+    color: #a0f9e0
+}
+html.dark-mode .calculation-blue .calculation-title {
+    color: #607fe4
+}
+html.dark-mode .calculation-yellow .calculation-title {
+    color: #da6015
+}
+html.dark-mode .calculation-green .calculation-value {
+    color: #059669
+}
+html.dark-mode .calculation-blue .calculation-value {
+    color: #4d80ef
+}
+html.dark-mode .calculation-yellow .calculation-value {
+    color: #d97706
+}

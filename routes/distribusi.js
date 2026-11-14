@@ -1,4 +1,5 @@
 const express = require("express");
+const { safeReturn } = require("../utils/respond");
 const router = express.Router();
 const multer = require("multer");
 const path = require("path");
@@ -384,12 +385,13 @@ router.put("/status/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
+    const back = safeReturn(req.body.return_to, "/distribusi");
 
     // Validation
     const validStatus = ["pending", "disalurkan", "diterima", "batal"];
     if (!validStatus.includes(status)) {
       req.flash("error", "Status tidak valid");
-      return res.redirect("/distribusi");
+      return res.redirect(back);
     }
 
     const db = req.app.locals.db;
@@ -401,11 +403,11 @@ router.put("/status/:id", async (req, res) => {
     ]);
 
     req.flash("success", `Status distribusi berhasil diubah menjadi ${status}`);
-    res.redirect("/distribusi");
+    res.redirect(back);
   } catch (error) {
     console.error("Error updating status:", error);
     req.flash("error", "Gagal mengubah status distribusi");
-    res.redirect("/distribusi");
+    res.redirect(safeReturn(req.body && req.body.return_to, "/distribusi"));
   }
 });
 
@@ -471,10 +473,20 @@ router.get("/detail/:id", async (req, res) => {
       return res.redirect("/distribusi");
     }
 
+    const [riwayat] = await db.execute(
+      `SELECT id, jenis_zakat, jumlah, status, created_at
+       FROM distribusi_zakat
+       WHERE mustahik_id = ? AND id != ?
+       ORDER BY created_at DESC, id DESC
+       LIMIT 5`,
+      [distribusi[0].mustahik_id, id]
+    );
+
     res.render("distribusi/detail", {
       title: `Detail Distribusi - Zakat Fitrah App`,
       user: req.session.user,
       distribusi: distribusi[0],
+      riwayat,
       currentPage: "distribusi",
       success: req.flash("success"),
       error: req.flash("error"),

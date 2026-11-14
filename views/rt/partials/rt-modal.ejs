@@ -1,0 +1,224 @@
+<%# Modal tambah/ubah RT. Dibuka lewat <a data-modal-open="rt-modal" data-mode="create|edit" data-id="" data-rw-id=""> %>
+<div class="am" id="rt-modal" role="dialog" aria-modal="true" aria-labelledby="rt-modal-title" aria-hidden="true">
+  <div class="am-backdrop" data-modal-close></div>
+
+  <div class="am-panel" data-loading="0">
+    <header class="am-head">
+      <span class="am-head-icon"><i class="fas fa-house-circle-check" id="rt-modal-icon"></i></span>
+      <div class="am-head-text">
+        <h2 class="am-title" id="rt-modal-title">Tambah RT</h2>
+        <p class="am-sub" id="rt-modal-sub">Tambahkan data RT baru ke sistem</p>
+      </div>
+      <button type="button" class="am-close" data-modal-close aria-label="Tutup"><i class="fas fa-xmark"></i></button>
+    </header>
+
+    <form class="am-form" id="rt-modal-form" method="POST" action="/rt/create" novalidate>
+      <input type="hidden" name="return_to" id="rt-modal-return">
+
+      <div class="am-body">
+        <div class="am-error" data-am-error role="alert"><i class="fas fa-circle-exclamation"></i><span></span></div>
+
+        <div class="am-field">
+          <label for="rt-modal-rw">Pilih RW <span class="req">*</span></label>
+          <div class="am-control" data-control>
+            <i class="fas fa-building lead"></i>
+            <select id="rt-modal-rw" name="rw_id" required>
+              <option value="">Memuat...</option>
+            </select>
+          </div>
+          <div class="am-hint" id="rt-modal-rw-hint">RW tempat RT ini berada</div>
+        </div>
+
+        <div class="am-row">
+          <div class="am-field">
+            <label for="rt-modal-nomor">Nomor RT <span class="req">*</span></label>
+            <div class="am-control" data-control>
+              <i class="fas fa-house lead"></i>
+              <input type="text" id="rt-modal-nomor" name="nomor_rt" required maxlength="10" placeholder="Contoh: RT 01" autocomplete="off">
+            </div>
+            <div class="am-hint">Ketik angka saja, otomatis jadi "RT 01".</div>
+          </div>
+
+          <div class="am-field">
+            <label for="rt-modal-ketua">Nama Ketua RT <span class="req">*</span></label>
+            <div class="am-control" data-control>
+              <i class="fas fa-user lead"></i>
+              <input type="text" id="rt-modal-ketua" name="ketua_rt" required maxlength="100" placeholder="Nama lengkap ketua RT" autocomplete="off">
+            </div>
+            <div class="am-hint">Dipakai untuk identifikasi di laporan.</div>
+          </div>
+        </div>
+
+        <div class="am-field">
+          <label for="rt-modal-ket">Keterangan <span class="opt">(opsional)</span></label>
+          <div class="am-control is-area">
+            <i class="fas fa-note-sticky lead"></i>
+            <textarea id="rt-modal-ket" name="keterangan" rows="3" maxlength="100" placeholder="Catatan tambahan, mis. wilayah atau nama jalan"></textarea>
+          </div>
+        </div>
+
+        <div class="am-preview" aria-hidden="true">
+          <span class="am-preview-label">Pratinjau</span>
+          <span class="am-preview-badge" id="rt-modal-pv-rt">RT --</span>
+          <div style="min-width: 0">
+            <div class="am-preview-name" id="rt-modal-pv-ketua">Nama ketua RT</div>
+            <div class="am-preview-meta" id="rt-modal-pv-rw">Belum memilih RW</div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="am-foot">
+        <button type="button" class="am-btn am-btn-ghost" data-modal-close>Batal</button>
+        <button type="submit" class="am-btn am-btn-primary" id="rt-modal-submit"><i class="fas fa-floppy-disk"></i><span>Simpan RT</span></button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var modal = document.getElementById("rt-modal");
+    var panel = modal.querySelector(".am-panel");
+    var form = document.getElementById("rt-modal-form");
+    var rwSelect = document.getElementById("rt-modal-rw");
+    var nomor = document.getElementById("rt-modal-nomor");
+    var ketua = document.getElementById("rt-modal-ketua");
+    var ket = document.getElementById("rt-modal-ket");
+    var errorBox = form.querySelector("[data-am-error]");
+
+    function cleanReturnPath() {
+      var url = new URL(window.location.href);
+      ["new", "edit", "rw"].forEach(function (k) { url.searchParams.delete(k); });
+      return url.pathname + url.search;
+    }
+
+    function showError(message) {
+      errorBox.querySelector("span").textContent = message;
+      errorBox.classList.add("is-visible");
+    }
+
+    function clearErrors() {
+      errorBox.classList.remove("is-visible");
+      [].forEach.call(form.querySelectorAll("[data-control]"), function (c) { c.classList.remove("is-invalid"); });
+    }
+
+    function refreshPreview() {
+      document.getElementById("rt-modal-pv-rt").textContent = formatNomor(nomor.value) || "RT --";
+      document.getElementById("rt-modal-pv-ketua").textContent = ketua.value.trim() || "Nama ketua RT";
+      var opt = rwSelect.options[rwSelect.selectedIndex];
+      document.getElementById("rt-modal-pv-rw").textContent = rwSelect.value && opt ? opt.textContent : "Belum memilih RW";
+    }
+
+    function fillRw(list, selectedId) {
+      rwSelect.innerHTML = "";
+      var onlyOne = list.length === 1;
+      if (!onlyOne) { rwSelect.appendChild(new Option("Pilih RW", "")); }
+      list.forEach(function (rw) {
+        var option = new Option(rw.nomor_rw + " - " + rw.ketua_rw, rw.id);
+        rwSelect.appendChild(option);
+      });
+      if (selectedId) { rwSelect.value = String(selectedId); }
+      else if (onlyOne) { rwSelect.selectedIndex = 0; }
+
+      var hint = document.getElementById("rt-modal-rw-hint");
+      hint.innerHTML = list.length
+        ? "RW tempat RT ini berada"
+        : 'Belum ada data RW. <a href="/rw?new=1">Tambah RW terlebih dahulu</a>.';
+    }
+
+    function setMode(mode, id) {
+      var edit = mode === "edit";
+      document.getElementById("rt-modal-title").textContent = edit ? "Edit RT" : "Tambah RT";
+      document.getElementById("rt-modal-sub").textContent = edit ? "Perbarui data RT yang sudah terdaftar" : "Tambahkan data RT baru ke sistem";
+      document.getElementById("rt-modal-icon").className = edit ? "fas fa-pen-to-square" : "fas fa-house-circle-check";
+      document.querySelector("#rt-modal-submit span").textContent = edit ? "Simpan Perubahan" : "Simpan RT";
+      form.setAttribute("action", edit ? "/rt/" + id + "/edit" : "/rt/create");
+    }
+
+    function openWith(mode, id, rwId) {
+      setMode(mode, id);
+      form.reset();
+      clearErrors();
+      document.getElementById("rt-modal-return").value = cleanReturnPath();
+      fillRw([], null);
+      rwSelect.options[0].textContent = "Memuat...";
+      refreshPreview();
+      panel.setAttribute("data-loading", "1");
+
+      var url = "/rt/form-data" + (mode === "edit" && id ? "?id=" + encodeURIComponent(id) : "");
+      fetch(url, { credentials: "same-origin", headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.ok) { throw new Error(data.message || "Gagal memuat data"); }
+          fillRw(data.rwList, mode === "edit" ? data.rt.rw_id : rwId);
+          if (mode === "edit") {
+            nomor.value = data.rt.nomor_rt || "";
+            ketua.value = data.rt.ketua_rt || "";
+            ket.value = data.rt.keterangan || "";
+          }
+          refreshPreview();
+        })
+        .catch(function (error) { showError(error.message || "Gagal memuat data"); })
+        .then(function () {
+          panel.setAttribute("data-loading", "0");
+          window.AppModal.focusFirst(modal);
+        });
+    }
+
+    modal.addEventListener("am:open", function (event) {
+      var t = event.detail.trigger;
+      var edit = t && t.dataset && t.dataset.mode === "edit";
+      openWith(edit ? "edit" : "create", t && t.dataset ? t.dataset.id : null, t && t.dataset ? t.dataset.rwId : null);
+    });
+
+    // "7", "rt 7" atau "RT7" -> "RT 07"; dirapikan saat kolom ditinggalkan agar mengetik "11" tidak jadi "RT 011"
+    function formatNomor(raw) {
+      var v = String(raw || "").trim().toUpperCase();
+      var m = v.match(/^(?:RT\s*)?(\d+)$/);
+      if (m) {
+        var n = parseInt(m[1], 10);
+        return "RT " + (n < 10 ? "0" + n : n);
+      }
+      return v;
+    }
+
+    nomor.addEventListener("input", refreshPreview);
+    nomor.addEventListener("blur", function () {
+      nomor.value = formatNomor(nomor.value);
+      refreshPreview();
+    });
+    ketua.addEventListener("input", refreshPreview);
+    rwSelect.addEventListener("change", refreshPreview);
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      clearErrors();
+      nomor.value = formatNomor(nomor.value);
+
+      var missing = [rwSelect, nomor, ketua].filter(function (el) { return !el.value.trim(); });
+      if (missing.length) {
+        missing.forEach(function (el) { el.closest("[data-control]").classList.add("is-invalid"); });
+        showError("RW, nomor RT, dan nama ketua RT harus diisi.");
+        missing[0].focus();
+        return;
+      }
+
+      window.AppModal.submit(form);
+    });
+
+    // Tautan lama: /rt?new=1&rw=ID  atau  /rt?edit=ID
+    document.addEventListener("DOMContentLoaded", function () {
+      var params = new URLSearchParams(window.location.search);
+      var trigger = null;
+      if (params.has("new")) {
+        trigger = { dataset: { mode: "create", rwId: params.get("rw") || "" } };
+      } else if (params.get("edit")) {
+        trigger = { dataset: { mode: "edit", id: params.get("edit") } };
+      }
+      if (trigger) {
+        window.AppModal.open("rt-modal", trigger);
+        window.history.replaceState(null, "", cleanReturnPath());
+      }
+    });
+  })();
+</script>

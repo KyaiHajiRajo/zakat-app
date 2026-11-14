@@ -1,11 +1,15 @@
 <%- include('../layouts/header', { title: title || 'Detail RT - Zakat Fitrah App',
 bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 
+<%
+  const addParams = new URLSearchParams();
+  if (selectedTanggal) addParams.set('tanggal', selectedTanggal);
+  if (!isAllTanggalView && rt && rt.id) addParams.set('rt_id', rt.id);
+  if (typeof currentUrl !== 'undefined' && currentUrl) addParams.set('return_to', currentUrl);
+  const addMuzakkiHref = '/muzakki/create' + (addParams.toString() ? '?' + addParams.toString() : '');
+%>
+
 <!-- Flatpickr Date Picker -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
 
 <%
   const pageRtLabel = isAllTanggalView ? 'Semua RT' : (rt.nomor_rt || '-');
@@ -43,7 +47,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
         </div>
       </div>
       <div class="header-actions">
-        <a href="/muzakki/create<%= selectedTanggal ? `?tanggal=${selectedTanggal}` : '' %>" class="btn-action btn-action-primary">
+        <a href="<%= addMuzakkiHref %>" class="btn-action btn-action-primary">
           <i class="fas fa-plus mr-2"></i>
           <span>Tambah Muzakki</span>
         </a>
@@ -249,7 +253,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
           </div>
           <h3 class="empty-state-title">Belum ada data muzakki di <%= pageRtLabel %></h3>
           <p class="empty-state-desc"><%= isAllTanggalView ? 'Belum ada data muzakki pada tanggal yang dipilih' : 'Mulai dengan menambahkan data muzakki untuk RT ini' %></p>
-          <a href="/muzakki/create" class="btn-empty-state">
+          <a href="<%= addMuzakkiHref %>" class="btn-empty-state">
             <i class="fas fa-plus mr-2"></i>
             Tambah Muzakki
           </a>

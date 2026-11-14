@@ -11,18 +11,17 @@ const server = app.listen(PORT, () => {
 });
 
 // Graceful shutdown
-process.on("SIGTERM", () => {
-  console.log("📥 SIGTERM received. Shutting down gracefully...");
+function shutdown(signal) {
+  console.log(`📥 ${signal} received. Shutting down gracefully...`);
   server.close(() => {
     console.log("✅ Process terminated");
+    process.exit(0);
   });
-});
+  server.closeIdleConnections();
+  setTimeout(() => process.exit(0), 3000).unref();
+}
 
-process.on("SIGINT", () => {
-  console.log("📥 SIGINT received. Shutting down gracefully...");
-  server.close(() => {
-    console.log("✅ Process terminated");
-  });
-});
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
 
 module.exports = server;

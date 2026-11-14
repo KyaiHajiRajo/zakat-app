@@ -71,11 +71,11 @@
       </div>
     </div>
     <div class="rtd-hero-actions">
-      <a href="/rt/<%= rt.id %>/edit" class="rtd-btn rtd-btn-solid">
+      <a href="/rt?edit=<%= rt.id %>" data-modal-open="rt-modal" data-mode="edit" data-id="<%= rt.id %>" class="rtd-btn rtd-btn-solid">
         <i class="fas fa-pen"></i>
         Edit RT
       </a>
-      <a href="/muzakki/create?rt_id=<%= rt.id %>" class="rtd-btn rtd-btn-soft">
+      <a href="/muzakki/create?rt_id=<%= rt.id %>&return_to=<%= encodeURIComponent('/rt/' + rt.id + '/detail') %>" class="rtd-btn rtd-btn-soft">
         <i class="fas fa-user-plus"></i>
         Tambah Muzakki
       </a>
@@ -213,7 +213,7 @@
           </button>
         </div>
         <a
-          href="/muzakki/create?rt_id=<%= rt.id %>"
+          href="/muzakki/create?rt_id=<%= rt.id %>&return_to=<%= encodeURIComponent('/rt/' + rt.id + '/detail') %>"
           class="rtd-btn rtd-btn-solid rtd-btn-sm rtd-tab-action is-active"
           data-tab-action="rtdTabMuzakki"
         >
@@ -363,7 +363,7 @@
           <i class="fas fa-users"></i>
           <h3>Belum ada data muzakki</h3>
           <p>Silakan tambahkan muzakki pertama untuk RT <%= rt.nomor_rt %>.</p>
-          <a href="/muzakki/create?rt_id=<%= rt.id %>" class="rtd-btn rtd-btn-solid">
+          <a href="/muzakki/create?rt_id=<%= rt.id %>&return_to=<%= encodeURIComponent('/rt/' + rt.id + '/detail') %>" class="rtd-btn rtd-btn-solid">
             <i class="fas fa-plus"></i>
             Tambah Muzakki
           </a>
@@ -1311,5 +1311,7 @@
     });
   });
 </script>
+
+<%- include('partials/rt-modal') %>
 
 <%- include('../layouts/footer') %>

@@ -1,0 +1,293 @@
+<style>
+  /* ==========================================================
+     DATE PICKER — tema Flatpickr yang menyatu dengan aplikasi.
+     Semua <input type="date"> dan [data-datepicker] otomatis dipakai.
+     ========================================================== */
+  .flatpickr-calendar {
+    width: 322px;
+    padding: 0 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--surface);
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(201, 162, 75, 0.2);
+    font-family: var(--font);
+    z-index: 1100;
+    overflow: hidden;
+  }
+
+  .flatpickr-calendar.arrowTop::before,
+  .flatpickr-calendar.arrowTop::after,
+  .flatpickr-calendar.arrowBottom::before,
+  .flatpickr-calendar.arrowBottom::after { display: none; }
+
+  .flatpickr-calendar.open { animation: dp-in 0.18s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  @keyframes dp-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .flatpickr-months {
+    padding: 12px 10px 10px;
+    background:
+      radial-gradient(260px 120px at 90% -30%, rgba(255, 255, 255, 0.22), transparent 70%),
+      linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 55%, var(--forest) 100%);
+    align-items: center;
+  }
+
+  .flatpickr-months .flatpickr-month {
+    height: 38px;
+    color: #fff;
+    fill: #fff;
+  }
+
+  .flatpickr-current-month {
+    padding-top: 4px;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .flatpickr-current-month .flatpickr-monthDropdown-months,
+  .flatpickr-current-month input.cur-year {
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .flatpickr-current-month .flatpickr-monthDropdown-months {
+    background: transparent;
+    border-radius: 8px;
+  }
+
+  .flatpickr-current-month .flatpickr-monthDropdown-months:hover { background: rgba(255, 255, 255, 0.16); }
+
+  .flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month {
+    background: var(--surface);
+    color: var(--ink);
+  }
+
+  .numInputWrapper:hover { background: rgba(255, 255, 255, 0.12); border-radius: 8px; }
+  .numInputWrapper span.arrowUp::after { border-bottom-color: rgba(255, 255, 255, 0.8); }
+  .numInputWrapper span.arrowDown::after { border-top-color: rgba(255, 255, 255, 0.8); }
+  .numInputWrapper span { border-color: rgba(255, 255, 255, 0.25); }
+
+  .flatpickr-months .flatpickr-prev-month,
+  .flatpickr-months .flatpickr-next-month {
+    top: 12px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    color: #fff;
+    fill: #fff;
+    transition: background-color 0.2s ease;
+  }
+
+  .flatpickr-months .flatpickr-prev-month { left: 10px; }
+  .flatpickr-months .flatpickr-next-month { right: 10px; }
+
+  .flatpickr-months .flatpickr-prev-month svg,
+  .flatpickr-months .flatpickr-next-month svg { width: 13px; height: 13px; fill: #fff; }
+
+  .flatpickr-months .flatpickr-prev-month:hover,
+  .flatpickr-months .flatpickr-next-month:hover { background: rgba(255, 255, 255, 0.18); }
+
+  .flatpickr-months .flatpickr-prev-month:hover svg,
+  .flatpickr-months .flatpickr-next-month:hover svg { fill: #fff; }
+
+  .flatpickr-innerContainer { padding: 6px 8px 0; }
+  .flatpickr-rContainer, .flatpickr-days, .dayContainer { width: 100%; min-width: 100%; max-width: 100%; }
+  .dayContainer { padding: 0; }
+
+  span.flatpickr-weekday {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .flatpickr-day {
+    width: 14.2857%;
+    max-width: none;
+    height: 38px;
+    line-height: 38px;
+    margin: 1px 0;
+    border: 0;
+    border-radius: 12px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .flatpickr-day.prevMonthDay,
+  .flatpickr-day.nextMonthDay { color: var(--faint); }
+
+  .flatpickr-day:hover,
+  .flatpickr-day:focus {
+    border: 0;
+    background: rgba(30, 175, 47, 0.12);
+    color: var(--ink);
+  }
+
+  .flatpickr-day.today {
+    border: 0;
+    box-shadow: inset 0 0 0 2px rgba(201, 162, 75, 0.85);
+    color: var(--ink);
+  }
+
+  .flatpickr-day.today:hover { background: rgba(201, 162, 75, 0.18); }
+
+  .flatpickr-day.selected,
+  .flatpickr-day.selected:hover,
+  .flatpickr-day.selected:focus,
+  .flatpickr-day.startRange,
+  .flatpickr-day.endRange {
+    border: 0;
+    background: linear-gradient(135deg, #2bc23c 0%, var(--primary-darker) 100%);
+    box-shadow: 0 8px 14px -6px rgba(30, 175, 47, 0.7);
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .flatpickr-day.inRange { background: rgba(30, 175, 47, 0.12); box-shadow: none; }
+
+  .flatpickr-day.flatpickr-disabled,
+  .flatpickr-day.flatpickr-disabled:hover,
+  .flatpickr-day.notAllowed { background: transparent; color: var(--faint); opacity: 0.45; cursor: not-allowed; }
+
+  .dp-footer {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px 0;
+    margin-top: 6px;
+    border-top: 1px solid var(--line);
+  }
+
+  .dp-footer button {
+    flex: 1;
+    padding: 9px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    background: var(--surface-2);
+    color: var(--ink-2);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .dp-footer button:hover { border-color: rgba(30, 175, 47, 0.5); color: var(--primary-dark); background: rgba(30, 175, 47, 0.08); }
+  .dp-footer button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .dp-footer .dp-clear:hover { border-color: rgba(239, 68, 68, 0.5); color: #dc2626; background: rgba(239, 68, 68, 0.08); }
+
+  input.dp-alt { cursor: pointer; caret-color: transparent; }
+
+  /* aturan input global (mode gelap) tidak boleh mewarnai kolom tahun milik kalender */
+  html.dark-mode .flatpickr-calendar input,
+  .flatpickr-calendar .numInputWrapper input.cur-year {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #fff !important;
+  }
+
+  @media (max-width: 480px) {
+    .flatpickr-calendar { width: min(322px, calc(100vw - 24px)); }
+  }
+</style>
+
+<script>
+  (function () {
+    if (typeof flatpickr === "undefined") {
+      return;
+    }
+
+    function enhance(input) {
+      if (input._flatpickr || input.dataset.dpReady) {
+        return;
+      }
+      input.dataset.dpReady = "1";
+
+      var required = input.required;
+      var min = input.getAttribute("min") || null;
+      var max = input.getAttribute("max") || null;
+
+      // matikan pemilih tanggal bawaan browser; nilai tetap dikirim sebagai YYYY-MM-DD
+      if (input.type === "date") {
+        input.type = "text";
+      }
+
+      flatpickr(input, {
+        locale: flatpickr.l10ns && flatpickr.l10ns.id ? "id" : "default",
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "j F Y",
+        altInputClass: ((input.className || "") + " dp-alt").trim(),
+        allowInput: false,
+        disableMobile: true,
+        minDate: min,
+        maxDate: max,
+        defaultDate: input.value || null,
+        onReady: function (selectedDates, dateStr, instance) {
+          var alt = instance.altInput;
+          if (alt) {
+            alt.placeholder = input.placeholder || "Pilih tanggal";
+            if (input.id) {
+              alt.id = input.id + "_display";
+              var label = document.querySelector('label[for="' + input.id + '"]');
+              if (label) {
+                label.setAttribute("for", alt.id);
+              }
+            }
+          }
+
+          var bar = document.createElement("div");
+          bar.className = "dp-footer";
+
+          var today = document.createElement("button");
+          today.type = "button";
+          today.className = "dp-today";
+          today.textContent = "Hari ini";
+          today.addEventListener("click", function () {
+            instance.setDate(new Date(), true);
+            instance.close();
+          });
+          bar.appendChild(today);
+
+          if (!required) {
+            var clear = document.createElement("button");
+            clear.type = "button";
+            clear.className = "dp-clear";
+            clear.textContent = "Hapus";
+            clear.addEventListener("click", function () {
+              instance.clear();
+              instance.close();
+            });
+            bar.appendChild(clear);
+          }
+
+          instance.calendarContainer.appendChild(bar);
+        },
+        onOpen: function (selectedDates, dateStr, instance) {
+          var now = new Date();
+          var todayBtn = instance.calendarContainer.querySelector(".dp-today");
+          if (todayBtn) {
+            var outside =
+              (instance.config.minDate && now < instance.config.minDate) ||
+              (instance.config.maxDate && now > instance.config.maxDate);
+            todayBtn.disabled = !!outside;
+          }
+        },
+      });
+    }
+
+    function init(root) {
+      (root || document)
+        .querySelectorAll('input[type="date"], input[data-datepicker]')
+        .forEach(enhance);
+    }
+
+    window.AppDatePicker = { init: init };
+    init();
+  })();
+</script>

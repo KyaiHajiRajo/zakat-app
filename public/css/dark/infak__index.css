@@ -1,0 +1,424 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/infak/index.ejs */
+html.dark-mode .page-header {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 50%, #0f8a1f 100%)
+}
+html.dark-mode .page-header::before {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%)
+}
+html.dark-mode .btn-add-infak {
+    background: linear-gradient(135deg, #FEBD2E 0%, #F97316 100%);
+    border: none;
+    color: #1d2632
+}
+html.dark-mode .header-action-hint {
+    color: rgba(255, 255, 255, 0.85)
+}
+html.dark-mode .alert-banner {
+    border: 1px solid transparent
+}
+html.dark-mode .alert-success {
+    background: rgba(16, 185, 129, 0.14);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #89f9d9
+}
+html.dark-mode .alert-error {
+    background: rgba(239, 68, 68, 0.14);
+    border-color: rgba(239, 68, 68, 0.45);
+    color: #e55252
+}
+html.dark-mode .header-icon-box {
+    background: #0f1729;
+    color: white
+}
+html.dark-mode .header-text-box {
+    color: white
+}
+html.dark-mode .header-title-text {
+    color: white
+}
+html.dark-mode .header-subtitle-text {
+    color: rgba(255, 255, 255, 0.95)
+}
+html.dark-mode .stat-box {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .stat-box-primary .stat-decoration {
+    background: #1EAF2F
+}
+html.dark-mode .stat-box-success .stat-decoration {
+    background: #10b981
+}
+html.dark-mode .stat-box-info .stat-decoration {
+    background: #3b82f6
+}
+html.dark-mode .stat-icon-wrapper {
+    color: white
+}
+html.dark-mode .stat-icon-primary {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%)
+}
+html.dark-mode .stat-icon-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%)
+}
+html.dark-mode .stat-icon-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)
+}
+html.dark-mode .stat-value-text {
+    color: #d8dfee
+}
+html.dark-mode .stat-label-text {
+    color: #7e8593
+}
+html.dark-mode .table-section {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .table-header-wrapper {
+    background: linear-gradient(to right, #19222a, #121b31);
+    border-bottom: 1px solid #222b3f
+}
+html.dark-mode .table-header-icon {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white
+}
+html.dark-mode .table-title {
+    color: #d8dfee
+}
+html.dark-mode .table-subtitle {
+    color: #7e8593
+}
+html.dark-mode .table-badge {
+    background: #1a422d;
+    color: #a0f9e0
+}
+html.dark-mode .empty-state-icon {
+    background: linear-gradient(135deg, #121b31, #15203a);
+    color: #9ca3af
+}
+html.dark-mode .empty-state-title {
+    color: #d8dfee
+}
+html.dark-mode .empty-state-desc {
+    color: #7e8593
+}
+html.dark-mode .btn-empty-state {
+    background: linear-gradient(135deg, #1EAF2F 0%, #16a127 100%);
+    color: white
+}
+html.dark-mode .table-responsive-wrapper {
+    background: linear-gradient(180deg, #19222a 0%, #0f1729 100%);
+    border: 1px solid #222b3f
+}
+html.dark-mode .data-table thead tr {
+    background: transparent;
+    border-bottom: 0
+}
+html.dark-mode .data-table th {
+    color: #76869c
+}
+html.dark-mode .data-table tbody td {
+    background: #0f1729;
+    border-top: 1px solid #222b3f;
+    border-bottom: 1px solid #222b3f
+}
+html.dark-mode .data-table tbody td:first-child {
+    border-left: 1px solid #222b3f
+}
+html.dark-mode .data-table tbody td:last-child {
+    border-right: 1px solid #222b3f
+}
+html.dark-mode .data-table tbody tr:hover td {
+    background: #15331e;
+    border-color: #224f32
+}
+html.dark-mode .table-total-summary {
+    background: linear-gradient(180deg, #19222a 0%, #1b252e 100%);
+    border: 1px solid #182b44
+}
+html.dark-mode .table-total-label {
+    color: #d5ddf0
+}
+html.dark-mode .table-total-value {
+    color: #8decb1
+}
+html.dark-mode .date-display {
+    color: #d5ddf0
+}
+html.dark-mode .date-display i {
+    background: #173d24;
+    color: #9ae9b8
+}
+html.dark-mode .time-display {
+    color: #76869c
+}
+html.dark-mode .muzakki-name {
+    color: #d5ddf0
+}
+html.dark-mode .muzakki-id {
+    background: #19222a;
+    color: #7f8da3;
+    border: 1px solid #262e39
+}
+html.dark-mode .text-gray-400 {
+    color: #9ca3af
+}
+html.dark-mode .rt-badge-small {
+    background: #1b252e;
+    color: #a9b9d1;
+    border: 1px solid #182b44
+}
+html.dark-mode .amount-display-large {
+    background: #15331e;
+    border: 1px solid #224f32
+}
+html.dark-mode .amount-primary {
+    color: #9ae9b8
+}
+html.dark-mode .keterangan-text {
+    color: #7386a1
+}
+html.dark-mode .infak-delete-btn {
+    background: linear-gradient(135deg, #3c1313, #481616);
+    border: none;
+    color: #e86565
+}
+html.dark-mode .infak-delete-btn:hover {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #f7f7f7
+}
+html.dark-mode .info-card-section {
+    background: #0f1729;
+    border: 1px solid #222b3f
+}
+html.dark-mode .info-card-header {
+    background: linear-gradient(to right, #19222a, #121b31);
+    border-bottom: 2px solid #222b3f
+}
+html.dark-mode .info-card-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #f7f7f7
+}
+html.dark-mode .info-card-title {
+    color: #d8dfee
+}
+html.dark-mode .info-box-item {
+    background: linear-gradient(135deg, #102736 0%, #132c3d 100%);
+    border: 2px solid #1d3f51
+}
+html.dark-mode .info-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #f7f7f7
+}
+html.dark-mode .info-box-title {
+    color: #607fe4
+}
+html.dark-mode .info-list li {
+    color: #6080dc
+}
+html.dark-mode .info-list li i {
+    color: #10b981
+}
+html.dark-mode .infak-modal-overlay {
+    background: rgba(15, 23, 42, 0.6)
+}
+html.dark-mode .infak-modal-card {
+    background: #0f1729
+}
+html.dark-mode .infak-modal-kicker {
+    color: #34d399
+}
+html.dark-mode .infak-modal-title {
+    color: #d5ddf0
+}
+html.dark-mode .infak-modal-subtitle {
+    color: #7386a1
+}
+html.dark-mode .infak-modal-close {
+    background: rgba(15, 23, 42, 0.07);
+    border: none;
+    color: #d5ddf0
+}
+html.dark-mode .infak-modal-close:hover {
+    background: rgba(15, 23, 42, 0.14)
+}
+html.dark-mode .infak-field-label {
+    color: #7386a1
+}
+html.dark-mode .infak-modal-select, html.dark-mode .infak-modal-input {
+    background: #19222a;
+    border: 1px solid rgba(148, 163, 184, 0.55);
+    color: #d5ddf0
+}
+html.dark-mode .infak-modal-select:focus, html.dark-mode .infak-modal-input:focus {
+    background: #0f1729;
+    outline: none;
+    border-color: #1d4ed8
+}
+html.dark-mode .select2-container.infak-select2-wrapper .select2-selection--single {
+    background: #19222a !important;
+    border: 1px solid rgba(148, 163, 184, 0.55) !important
+}
+html.dark-mode .select2-container.infak-select2-wrapper .select2-selection__rendered {
+    color: #d5ddf0 !important
+}
+html.dark-mode .select2-container.infak-select2-wrapper .select2-selection__placeholder {
+    color: #76869c !important
+}
+html.dark-mode .select2-container--default.infak-select2-wrapper.select2-container--focus .select2-selection--single, html.dark-mode .select2-container--default.infak-select2-wrapper.select2-container--open .select2-selection--single {
+    background: #0f1729 !important;
+    border-color: #1d4ed8 !important
+}
+html.dark-mode .select2-container--default.infak-select2-wrapper.select2-container--disabled .select2-selection--single {
+    background: #121b31 !important
+}
+html.dark-mode .select2-dropdown.infak-select2-dropdown {
+    border: 1px solid rgba(59, 130, 246, 0.35) !important
+}
+html.dark-mode .select2-container--default .select2-search--dropdown {
+    background: #19222a !important;
+    border-bottom: 1px solid #262e39 !important
+}
+html.dark-mode .select2-container--default .select2-search--dropdown .select2-search__field {
+    border: 1px solid #2f3946 !important;
+    outline: none !important
+}
+html.dark-mode .select2-container--default .select2-search--dropdown .select2-search__field:focus {
+    border-color: #1d4ed8 !important
+}
+html.dark-mode .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    background: #102137 !important;
+    color: #6487ea !important
+}
+html.dark-mode .select2-container--default .select2-results__option--selected {
+    background: #143526 !important;
+    color: #89f9d9 !important
+}
+html.dark-mode .select2-container--default .select2-results__option[aria-disabled="true"] {
+    color: #94a3b8 !important
+}
+html.dark-mode .infak-remove-row {
+    background: rgba(239, 68, 68, 0.12);
+    border: none;
+    color: #e55252
+}
+html.dark-mode .infak-remove-row:not(:disabled):hover {
+    background: rgba(239, 68, 68, 0.2)
+}
+html.dark-mode .infak-add-row-btn {
+    background: rgba(37, 99, 235, 0.12);
+    border: none;
+    color: #5a7fe9
+}
+html.dark-mode .infak-add-row-btn:not(:disabled):hover {
+    background: rgba(37, 99, 235, 0.2)
+}
+html.dark-mode .infak-form-hint {
+    color: #7386a1
+}
+html.dark-mode .infak-modal-cancel, html.dark-mode .infak-modal-submit {
+    border: none
+}
+html.dark-mode .infak-modal-cancel {
+    background: rgba(15, 23, 42, 0.08);
+    color: #d5ddf0
+}
+html.dark-mode .infak-modal-submit {
+    background: linear-gradient(135deg, #16a34a, #0f766e);
+    color: #f7f7f7
+}
+html.dark-mode .infak-no-options-text {
+    background: rgba(239, 68, 68, 0.08);
+    color: #e15555;
+    border: 1px solid rgba(239, 68, 68, 0.3)
+}
+html.dark-mode #infakModalOverlay.infak-modal-overlay {
+    background: rgba(15, 23, 42, 0.62)
+}
+html.dark-mode #infakModalOverlay .infak-modal-card {
+    background: #0f1729
+}
+html.dark-mode #infakModalOverlay .infak-modal-header {
+    border-bottom: 1px solid #262e39
+}
+html.dark-mode #infakModalOverlay .infak-modal-kicker {
+    color: #89f0e8
+}
+html.dark-mode #infakModalOverlay .infak-modal-title {
+    color: #d5ddf0
+}
+html.dark-mode #infakModalOverlay .infak-modal-subtitle {
+    color: #76869c
+}
+html.dark-mode #infakModalOverlay .infak-modal-close {
+    background: #19222a;
+    border: 1px solid #262e39;
+    color: #a9b9d1
+}
+html.dark-mode #infakModalOverlay .infak-modal-close:hover {
+    background: #1d2530
+}
+html.dark-mode #infakModalOverlay .infak-modal-meta {
+    background: #0f1e33;
+    border: 1px solid #182b44
+}
+html.dark-mode #infakModalOverlay .infak-meta-pill {
+    color: #5a7fe9
+}
+html.dark-mode #infakModalOverlay .infak-meta-text {
+    color: #76869c
+}
+html.dark-mode #infakModalOverlay .infak-row {
+    background: #0f1729;
+    border: 1px solid #262e39
+}
+html.dark-mode #infakModalOverlay .infak-field-label {
+    color: #7386a1
+}
+html.dark-mode #infakModalOverlay .infak-modal-select, html.dark-mode #infakModalOverlay .infak-modal-input {
+    background: #0f1729;
+    border: 1px solid #2f3946;
+    color: #d5ddf0
+}
+html.dark-mode #infakModalOverlay .infak-modal-select:focus, html.dark-mode #infakModalOverlay .infak-modal-input:focus {
+    outline: none;
+    border-color: #2563eb
+}
+html.dark-mode #infakModalOverlay .infak-remove-row {
+    background: #340f0f;
+    border: 1px solid #4b1a1a;
+    color: #e45959
+}
+html.dark-mode #infakModalOverlay .infak-remove-row:not(:disabled):hover {
+    background: #3c1313
+}
+html.dark-mode #infakModalOverlay .infak-add-row-btn {
+    background: #102137;
+    border: 1px solid #1c3350;
+    color: #6487ea
+}
+html.dark-mode #infakModalOverlay .infak-add-row-btn:not(:disabled):hover {
+    background: #14273f
+}
+html.dark-mode #infakModalOverlay .infak-form-footer {
+    border-top: 1px solid #262e39
+}
+html.dark-mode #infakModalOverlay .infak-form-hint {
+    color: #76869c
+}
+html.dark-mode #infakModalOverlay .infak-modal-cancel {
+    background: #0f1729;
+    border: 1px solid #2f3946;
+    color: #a9b9d1
+}
+html.dark-mode #infakModalOverlay .infak-modal-cancel:hover {
+    background: #19222a
+}
+html.dark-mode #infakModalOverlay .infak-modal-submit {
+    background: #2563eb;
+    border: 1px solid #1d4ed8;
+    color: #ffffff
+}
+html.dark-mode #infakModalOverlay .infak-modal-submit:hover {
+    background: #1d4ed8
+}

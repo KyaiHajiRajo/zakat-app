@@ -4,713 +4,680 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
-    <link href="/css/output.css" rel="stylesheet" />
+    <link rel="shortcut icon" href="/images/logo-dkm.png" type="image/png" />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
       rel="stylesheet"
     />
+    <script>
+      (function () {
+        var theme = null;
+        try {
+          theme = localStorage.getItem("app-theme");
+        } catch (e) {}
+        var prefersDark =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (theme === "dark" || (!theme && prefersDark)) {
+          document.documentElement.classList.add("dark-mode");
+        }
+      })();
+    </script>
     <style>
-      /* Reset dan base styles */
-      * {
+      :root {
+        --brand: #0f7a3d;
+        --brand-dark: #0a5c2e;
+        --brand-soft: #e8f5ee;
+        --ink: #0f172a;
+        --muted: #64748b;
+        --line: #e2e8f0;
+        --surface: #ffffff;
+        --page: #f4f7f5;
+        --field: #f8fafc;
+        --danger: #b91c1c;
+        --danger-bg: #fef2f2;
+        --danger-line: #fecaca;
+        --ok: #166534;
+        --ok-bg: #f0fdf4;
+        --ok-line: #bbf7d0;
+        --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+      }
+
+      html.dark-mode {
+        --ink: #f1f5f9;
+        --muted: #94a3b8;
+        --line: #1f2a3d;
+        --surface: #0f172a;
+        --page: #0b1220;
+        --field: #111c30;
+        --brand-soft: #12301f;
+        --danger: #fca5a5;
+        --danger-bg: #2a1215;
+        --danger-line: #5b2024;
+        --ok: #86efac;
+        --ok-bg: #0f2a1b;
+        --ok-line: #1c4a2f;
+        color-scheme: dark;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
         margin: 0;
         padding: 0;
-        box-sizing: border-box;
       }
-      
+
       body {
-        font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: var(--font);
+        color: var(--ink);
+        background: var(--page);
         min-height: 100vh;
-        background: linear-gradient(135deg, #0a7e3a 0%, #0c9c4a 100%);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      /* ---------- Brand panel ---------- */
+      .brand {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 56px 64px;
+        color: #fff;
+        overflow: hidden;
+        background:
+          radial-gradient(900px 500px at 0% 0%, rgba(255, 255, 255, 0.14), transparent 60%),
+          radial-gradient(700px 500px at 100% 100%, rgba(0, 0, 0, 0.28), transparent 60%),
+          linear-gradient(145deg, #0f7a3d 0%, #0a5c2e 100%);
+      }
+
+      .brand::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='white' stroke-opacity='0.09' stroke-width='1'%3E%3Crect x='20' y='20' width='40' height='40'/%3E%3Crect x='20' y='20' width='40' height='40' transform='rotate(45 40 40)'/%3E%3C/g%3E%3C/svg%3E");
+        pointer-events: none;
+      }
+
+      .brand > * {
+        position: relative;
+      }
+
+      .brand-top {
         display: flex;
         align-items: center;
-        justify-content: center;
-        padding: 20px;
-        position: relative;
-        overflow-x: hidden;
+        gap: 14px;
       }
-      
-      /* Background animation dengan tema hijau */
-      .bg-animation {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        overflow: hidden;
+
+      .brand-logo {
+        width: 56px;
+        height: 56px;
+        padding: 6px;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+        object-fit: contain;
       }
-      
-      .bg-bubble {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.15);
-        animation: float 15s infinite linear;
+
+      .brand-name {
+        font-size: 0.95rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        line-height: 1.3;
       }
-      
-      .bg-bubble:nth-child(1) {
-        width: 80px;
-        height: 80px;
-        top: 10%;
-        left: 10%;
-        animation-duration: 20s;
-      }
-      
-      .bg-bubble:nth-child(2) {
-        width: 120px;
-        height: 120px;
-        top: 60%;
-        left: 80%;
-        animation-duration: 25s;
-        animation-delay: -5s;
-      }
-      
-      .bg-bubble:nth-child(3) {
-        width: 60px;
-        height: 60px;
-        top: 80%;
-        left: 20%;
-        animation-duration: 18s;
-        animation-delay: -10s;
-      }
-      
-      .bg-bubble:nth-child(4) {
-        width: 100px;
-        height: 100px;
-        top: 20%;
-        left: 70%;
-        animation-duration: 22s;
-        animation-delay: -15s;
-      }
-      
-      .islamic-pattern {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: 
-          radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 2px, transparent 2px),
-          radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 2px, transparent 2px);
-        background-size: 50px 50px;
-        z-index: -1;
-        opacity: 0.3;
-      }
-      
-      @keyframes float {
-        0% {
-          transform: translateY(0) rotate(0deg);
-          opacity: 0.7;
-        }
-        50% {
-          transform: translateY(-100px) rotate(180deg);
-          opacity: 0.9;
-        }
-        100% {
-          transform: translateY(0) rotate(360deg);
-          opacity: 0.7;
-        }
-      }
-      
-      /* Login container dengan tema hijau */
-      .login-container {
-        width: 100%;
-        max-width: 440px;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 20px;
-        padding: 40px 35px;
-        box-shadow: 0 20px 40px rgba(10, 126, 58, 0.2);
-        animation: slideUp 0.8s ease-out;
-        position: relative;
-        overflow: hidden;
-        border: 1px solid rgba(16, 185, 129, 0.2);
-      }
-      
-      .login-container::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 6px;
-        background: linear-gradient(90deg, #0a7e3a, #10b981, #0a7e3a);
-        background-size: 200% 100%;
-        animation: shimmer 3s infinite linear;
-      }
-      
-      @keyframes slideUp {
-        from { 
-          opacity: 0; 
-          transform: translateY(40px) scale(0.95); 
-        }
-        to { 
-          opacity: 1; 
-          transform: translateY(0) scale(1); 
-        }
-      }
-      
-      @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-      }
-      
-      /* Header */
-      .header {
-        text-align: center;
-        margin-bottom: 32px;
-      }
-      
-      .logo-container {
-        width: 100px;
-        height: 100px;
-        margin: 0 auto 20px;
-        background: linear-gradient(135deg, #0a7e3a, #10b981);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 10px 25px rgba(10, 126, 58, 0.3);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-        border: 3px solid rgba(255, 255, 255, 0.3);
-      }
-      
-      .logo-container::after {
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, transparent, rgba(255,255,255,0.3), transparent);
-        transform: translateX(-100%);
-        transition: transform 0.6s ease;
-      }
-      
-      .logo-container:hover::after {
-        transform: translateX(100%);
-      }
-      
-      .logo-container:hover {
-        transform: scale(1.05);
-        box-shadow: 0 15px 30px rgba(10, 126, 58, 0.4);
-      }
-      
-      .logo-icon {
-        color: white;
-        font-size: 2.8rem;
-        z-index: 1;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      }
-      
-      .title {
-        font-size: 2.4rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 8px;
-        background: linear-gradient(90deg, #0a7e3a, #10b981);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-      
-      .subtitle {
-        font-size: 1.1rem;
-        color: #4b5563;
-        line-height: 1.5;
-        font-weight: 400;
-      }
-      
-      /* Alert messages dengan tema hijau */
-      .alert {
-        padding: 14px 18px;
-        border-radius: 12px;
-        margin-bottom: 24px;
-        display: flex;
-        align-items: center;
-        animation: slideIn 0.5s ease-out;
-        border-left: 5px solid;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      }
-      
-      .alert-success {
-        background-color: #f0fdf4;
-        color: #166534;
-        border-left-color: #10b981;
-      }
-      
-      .alert-error {
-        background-color: #fef2f2;
-        color: #991b1b;
-        border-left-color: #ef4444;
-      }
-      
-      .alert-icon {
-        margin-right: 12px;
-        font-size: 1.2rem;
-      }
-      
-      @keyframes slideIn {
-        from { 
-          transform: translateX(-20px); 
-          opacity: 0; 
-        }
-        to { 
-          transform: translateX(0); 
-          opacity: 1; 
-        }
-      }
-      
-      /* Form styles dengan tema hijau */
-      .form-group {
-        margin-bottom: 24px;
-        position: relative;
-      }
-      
-      .form-label {
+
+      .brand-name small {
         display: block;
-        font-size: 1rem;
-        font-weight: 500;
-        color: #374151;
-        margin-bottom: 10px;
+        font-weight: 400;
+        font-size: 0.78rem;
+        opacity: 0.75;
+      }
+
+      .brand-body {
+        max-width: 460px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        margin-bottom: 20px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: rgba(255, 255, 255, 0.14);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+      }
+
+      .brand h1 {
+        font-size: 2.6rem;
+        line-height: 1.12;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 16px;
+      }
+
+      .brand-lead {
+        font-size: 1.02rem;
+        line-height: 1.65;
+        opacity: 0.85;
+        margin-bottom: 36px;
+      }
+
+      .features {
+        list-style: none;
+        display: grid;
+        gap: 16px;
+      }
+
+      .features li {
         display: flex;
         align-items: center;
+        gap: 14px;
+        font-size: 0.95rem;
       }
-      
-      .form-label-icon {
-        margin-right: 10px;
-        width: 20px;
-        text-align: center;
-        font-size: 1.1rem;
-      }
-      
-      .form-input {
-        width: 100%;
-        padding: 16px 18px;
-        border: 2px solid #d1d5db;
+
+      .feature-icon {
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
         border-radius: 12px;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        background-color: #f9fafb;
-        font-family: 'Poppins', sans-serif;
+        font-size: 0.95rem;
+        background: rgba(255, 255, 255, 0.14);
+        border: 1px solid rgba(255, 255, 255, 0.2);
       }
-      
-      .form-input:focus {
-        outline: none;
-        border-color: #10b981;
-        background-color: white;
-        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-        transform: translateY(-2px);
+
+      .brand-foot {
+        font-size: 0.8rem;
+        opacity: 0.65;
       }
-      
-      .form-input:valid {
-        border-color: #10b981;
+
+      /* ---------- Form side ---------- */
+      .panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 32px;
+        background: var(--surface);
       }
-      
-      .form-input:invalid:not(:focus):not(:placeholder-shown) {
-        border-color: #ef4444;
-      }
-      
-      /* Button styles dengan tema hijau */
-      .btn {
+
+      .panel-inner {
         width: 100%;
-        padding: 16px;
-        border: none;
+        max-width: 400px;
+      }
+
+      .panel-head {
+        margin-bottom: 28px;
+      }
+
+      .panel-head h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        margin-bottom: 8px;
+      }
+
+      .panel-head p {
+        font-size: 0.95rem;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 14px;
+        margin-bottom: 18px;
         border-radius: 12px;
-        font-size: 1.1rem;
+        font-size: 0.88rem;
+        line-height: 1.45;
+        border: 1px solid;
+        transition: opacity 0.3s ease;
+      }
+
+      .alert i {
+        margin-top: 2px;
+      }
+
+      .alert-error {
+        color: var(--danger);
+        background: var(--danger-bg);
+        border-color: var(--danger-line);
+      }
+
+      .alert-success {
+        color: var(--ok);
+        background: var(--ok-bg);
+        border-color: var(--ok-line);
+      }
+
+      .field {
+        margin-bottom: 18px;
+      }
+
+      .field label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
         font-weight: 600;
+      }
+
+      .control {
+        position: relative;
+      }
+
+      .control > i.lead {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.95rem;
+        color: var(--muted);
+        pointer-events: none;
+        transition: color 0.2s ease;
+      }
+
+      .control input {
+        width: 100%;
+        height: 50px;
+        padding: 0 16px 0 46px;
+        font: inherit;
+        font-size: 0.95rem;
+        color: var(--ink);
+        background: var(--field);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      .control input::placeholder {
+        color: var(--muted);
+        opacity: 0.7;
+      }
+
+      .control input:hover {
+        border-color: #cbd5e1;
+      }
+
+      html.dark-mode .control input:hover {
+        border-color: #2c3b57;
+      }
+
+      .control input:focus {
+        background: var(--surface);
+        border-color: var(--brand);
+        box-shadow: 0 0 0 4px rgba(15, 122, 61, 0.14);
+      }
+
+      .control:focus-within > i.lead {
+        color: var(--brand);
+      }
+
+      .control.has-action input {
+        padding-right: 48px;
+      }
+
+      .reveal {
+        position: absolute;
+        right: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 0.95rem;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: color 0.2s ease, background 0.2s ease;
+      }
+
+      .reveal:hover {
+        color: var(--brand);
+        background: var(--brand-soft);
+      }
+
+      .reveal:focus-visible {
+        outline: 2px solid var(--brand);
+        outline-offset: 1px;
+      }
+
+      .submit {
+        position: relative;
+        width: 100%;
+        height: 52px;
+        margin-top: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        position: relative;
-        overflow: hidden;
-        font-family: 'Poppins', sans-serif;
-        letter-spacing: 0.5px;
-      }
-      
-      .btn-primary {
-        background: linear-gradient(135deg, #0a7e3a, #10b981);
-        color: white;
-        box-shadow: 0 4px 15px rgba(10, 126, 58, 0.3);
-      }
-      
-      .btn-primary:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(10, 126, 58, 0.4);
-        background: linear-gradient(135deg, #0a7e3a, #0c9c4a);
-      }
-      
-      .btn-primary:active {
-        transform: translateY(0);
-      }
-      
-      .btn-icon {
-        margin-right: 10px;
-        font-size: 1.2rem;
-      }
-      
-      .btn-loading {
-        display: none;
-        width: 20px;
-        height: 20px;
-        border: 2px solid transparent;
-        border-top: 2px solid white;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin-right: 10px;
-      }
-      
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      
-      /* Register link dengan tema hijau */
-      .register-link {
-        text-align: center;
-        margin-top: 24px;
-        padding-top: 20px;
-        border-top: 1px solid #e5e7eb;
-      }
-      
-      .register-text {
-        font-size: 1rem;
-        color: #6b7280;
-      }
-      
-      .register-link a {
-        color: #0a7e3a;
-        text-decoration: none;
+        gap: 10px;
+        border: 0;
+        border-radius: 12px;
+        font: inherit;
+        font-size: 0.98rem;
         font-weight: 600;
-        transition: all 0.2s ease;
+        color: #fff;
+        cursor: pointer;
+        background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+        box-shadow: 0 10px 22px rgba(15, 122, 61, 0.28);
+        transition: filter 0.2s ease, box-shadow 0.2s ease;
       }
-      
-      .register-link a:hover {
-        color: #10b981;
+
+      .submit:hover {
+        filter: brightness(1.07);
+        box-shadow: 0 12px 26px rgba(15, 122, 61, 0.34);
+      }
+
+      .submit:focus-visible {
+        outline: 3px solid rgba(15, 122, 61, 0.35);
+        outline-offset: 2px;
+      }
+
+      .submit:disabled {
+        cursor: progress;
+        filter: saturate(0.7) brightness(0.95);
+        box-shadow: none;
+      }
+
+      .spinner {
+        display: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+
+      .submit.loading .spinner {
+        display: block;
+      }
+
+      .submit.loading .arrow {
+        display: none;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .register {
+        margin-top: 22px;
+        text-align: center;
+        font-size: 0.88rem;
+        color: var(--muted);
+      }
+
+      .register a {
+        color: var(--brand);
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .register a:hover {
         text-decoration: underline;
       }
-      
-      /* Footer */
-      .footer {
+
+      html.dark-mode .register a {
+        color: #4ade80;
+      }
+
+      .panel-foot {
+        margin-top: 40px;
+        font-size: 0.78rem;
+        color: var(--muted);
         text-align: center;
-        margin-top: 32px;
-        padding-top: 24px;
-        border-top: 1px solid #e5e7eb;
       }
-      
-      .footer-text {
-        font-size: 0.9rem;
-        color: #6b7280;
-        line-height: 1.5;
+
+      /* ---------- Responsive ---------- */
+      @media (max-width: 960px) {
+        .shell {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto 1fr;
+        }
+
+        .brand {
+          padding: 28px 24px 32px;
+        }
+
+        .brand-body,
+        .brand-foot {
+          display: none;
+        }
+
+        .panel {
+          justify-content: flex-start;
+          padding: 32px 24px 40px;
+        }
       }
-      
-      .footer-heart {
-        color: #ef4444;
-        display: inline-block;
-        animation: heartbeat 1.5s infinite;
-      }
-      
-      @keyframes heartbeat {
-        0% { transform: scale(1); }
-        5% { transform: scale(1.1); }
-        10% { transform: scale(1); }
-        15% { transform: scale(1.1); }
-        20% { transform: scale(1); }
-        100% { transform: scale(1); }
-      }
-      
-      /* Responsive improvements */
+
       @media (max-width: 480px) {
-        .login-container {
-          padding: 30px 25px;
-          border-radius: 16px;
-        }
-        
-        .title {
-          font-size: 2rem;
-        }
-        
-        .logo-container {
-          width: 85px;
-          height: 85px;
-        }
-        
-        .logo-icon {
-          font-size: 2.3rem;
-        }
-        
-        .form-input {
-          padding: 14px 16px;
-        }
-        
-        .btn {
-          padding: 14px;
-          font-size: 1rem;
-        }
-        
-        .subtitle {
-          font-size: 1rem;
+        .panel-head h2 {
+          font-size: 1.5rem;
         }
       }
-      
-      @media (max-width: 360px) {
-        .login-container {
-          padding: 25px 20px;
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation-duration: 0.01ms !important;
         }
-        
-        .title {
-          font-size: 1.8rem;
-        }
-        
-        .subtitle {
-          font-size: 0.95rem;
-        }
-        
-        .logo-container {
-          width: 75px;
-          height: 75px;
-        }
-        
-        .logo-icon {
-          font-size: 2rem;
-        }
-      }
-      
-      /* Dark mode support dengan tema hijau */
-      @media (prefers-color-scheme: dark) {
-        body {
-          background: linear-gradient(135deg, #064e24 0%, #075e2d 100%);
-        }
-        
-        .login-container {
-          background: rgba(17, 24, 39, 0.95);
-          color: #f9fafb;
-          border-color: rgba(16, 185, 129, 0.3);
-        }
-        
-        .title {
-          background: linear-gradient(90deg, #10b981, #34d399);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        
-        .subtitle {
-          color: #d1d5db;
-        }
-        
-        .form-label {
-          color: #e5e7eb;
-        }
-        
-        .form-input {
-          background-color: #111827;
-          border-color: #374151;
-          color: #f9fafb;
-        }
-        
-        .form-input:focus {
-          background-color: #1f2937;
-        }
-        
-        .register-text {
-          color: #9ca3af;
-        }
-        
-        .footer-text {
-          color: #6b7280;
-        }
-        
-        .islamic-pattern {
-          opacity: 0.2;
-        }
-      }
-      
-      /* Animasi tambahan untuk elemen form */
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      
-      /* Efek untuk input yang aktif */
-      .form-group.focused .form-label {
-        color: #0a7e3a;
-        transform: translateY(-2px);
       }
     </style>
   </head>
   <body>
-    <!-- Background animation -->
-    <div class="bg-animation">
-      <div class="bg-bubble"></div>
-      <div class="bg-bubble"></div>
-      <div class="bg-bubble"></div>
-      <div class="bg-bubble"></div>
-    </div>
-    
-    <!-- Islamic pattern overlay -->
-    <div class="islamic-pattern"></div>
-    
-    <!-- Login container -->
-    <div class="login-container">
-      <!-- Header -->
-      <div class="header">
-        <div class="logo-container">
-          <i class="fas fa-mosque logo-icon"></i>
-        </div>
-        <h1 class="title">Zakat Fitrah</h1>
-        <p class="subtitle">Silakan login untuk mengakses sistem</p>
-      </div>
-
-      <!-- Flash Messages -->
-      <% if (success_msg && success_msg.length > 0) { %>
-      <div class="alert alert-success">
-        <i class="fas fa-check-circle alert-icon"></i><%= success_msg %>
-      </div>
-      <% } %> 
-      <% if (error_msg && error_msg.length > 0) { %>
-      <div class="alert alert-error">
-        <i class="fas fa-exclamation-circle alert-icon"></i><%= error_msg %>
-      </div>
-      <% } %> 
-      <% if (error && error.length > 0) { %>
-      <div class="alert alert-error">
-        <i class="fas fa-exclamation-circle alert-icon"></i><%= error %>
-      </div>
-      <% } %>
-
-      <!-- Login Form -->
-      <form class="login-form" action="/auth/login" method="POST">
-        <div class="form-group">
-          <label for="nomor_wa" class="form-label">
-            <i class="fab fa-whatsapp form-label-icon" style="color: #25D366;"></i>
-            Nomor WhatsApp
-          </label>
-          <input
-            id="nomor_wa"
-            name="nomor_wa"
-            type="text"
-            required
-            class="form-input"
-            placeholder="Contoh: 08123456789"
-            pattern="[0-9]{10,15}"
-            title="Masukkan nomor WhatsApp yang valid (10-15 digit)"
+    <div class="shell">
+      <!-- Brand panel -->
+      <aside class="brand">
+        <div class="brand-top">
+          <img
+            class="brand-logo"
+            src="/images/logo-dkm.png"
+            alt="Logo Musholla Nurul Fitrah"
           />
+          <div class="brand-name">
+            Musholla Nurul Fitrah
+            <small>Sistem Pendataan Zakat</small>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="password" class="form-label">
-            <i class="fas fa-lock form-label-icon" style="color: #6b7280;"></i>
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            class="form-input"
-            placeholder="Masukkan password Anda"
-          />
+        <div class="brand-body">
+          <span class="eyebrow"><i class="fas fa-mosque"></i> Zakat Fitrah</span>
+          <h1>Kelola zakat dengan rapi, amanah, dan transparan.</h1>
+          <p class="brand-lead">
+            Catat muzakki, salurkan kepada mustahik, dan pantau laporan
+            pengumpulan zakat dalam satu tempat.
+          </p>
+          <ul class="features">
+            <li>
+              <span class="feature-icon"><i class="fas fa-users"></i></span>
+              Pencatatan muzakki dan mustahik per RT
+            </li>
+            <li>
+              <span class="feature-icon"><i class="fas fa-chart-line"></i></span>
+              Laporan pengumpulan dan distribusi real-time
+            </li>
+            <li>
+              <span class="feature-icon"><i class="fas fa-shield-halved"></i></span>
+              Akses khusus panitia dengan data yang terjaga
+            </li>
+          </ul>
         </div>
 
-        <button type="submit" class="btn btn-primary" id="login-btn">
-          <i class="fas fa-sign-in-alt btn-icon"></i>
-          <span>Login</span>
-          <div class="btn-loading"></div>
-        </button>
+        <div class="brand-foot">
+          © <%= new Date().getFullYear() %> Musholla Nurul Fitrah
+        </div>
+      </aside>
 
-        <!-- Development Only: Register Link -->
-        <% if (process.env.NODE_ENV === 'development') { %>
-        <div class="register-link">
-          <p class="register-text">
-            Belum punya akun?
-            <a href="/auth/register">Daftar di sini</a>
+      <!-- Form -->
+      <main class="panel">
+        <div class="panel-inner">
+          <div class="panel-head">
+            <h2>Selamat datang</h2>
+            <p>Masuk dengan nomor WhatsApp dan password panitia Anda.</p>
+          </div>
+
+          <div aria-live="polite">
+            <% if (success_msg && success_msg.length > 0) { %>
+            <div class="alert alert-success">
+              <i class="fas fa-circle-check"></i><span><%= success_msg %></span>
+            </div>
+            <% } %>
+            <% if (error_msg && error_msg.length > 0) { %>
+            <div class="alert alert-error">
+              <i class="fas fa-circle-exclamation"></i><span><%= error_msg %></span>
+            </div>
+            <% } %>
+            <% if (error && error.length > 0) { %>
+            <div class="alert alert-error">
+              <i class="fas fa-circle-exclamation"></i><span><%= error %></span>
+            </div>
+            <% } %>
+          </div>
+
+          <form action="/auth/login" method="POST" id="login-form" novalidate>
+            <div class="field">
+              <label for="nomor_wa">Nomor WhatsApp</label>
+              <div class="control">
+                <i class="fab fa-whatsapp lead"></i>
+                <input
+                  id="nomor_wa"
+                  name="nomor_wa"
+                  type="tel"
+                  inputmode="numeric"
+                  autocomplete="username"
+                  placeholder="08123456789"
+                  pattern="[0-9]{10,15}"
+                  title="Masukkan nomor WhatsApp yang valid (10-15 digit)"
+                  required
+                  autofocus
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="password">Password</label>
+              <div class="control has-action">
+                <i class="fas fa-lock lead"></i>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="Masukkan password"
+                  required
+                />
+                <button
+                  type="button"
+                  class="reveal"
+                  id="reveal"
+                  aria-label="Tampilkan password"
+                  aria-pressed="false"
+                >
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="submit" id="login-btn">
+              <span class="label">Masuk</span>
+              <i class="fas fa-arrow-right arrow"></i>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+
+            <% if (process.env.NODE_ENV === 'development') { %>
+            <p class="register">
+              Belum punya akun? <a href="/auth/register">Daftar di sini</a>
+            </p>
+            <% } %>
+          </form>
+
+          <p class="panel-foot">
+            Aplikasi Zakat Fitrah &middot; Musholla Nurul Fitrah
           </p>
         </div>
-        <% } %>
-      </form>
-
-      <!-- Footer -->
-      <div class="footer">
-        <p class="footer-text">
-          © <%= new Date().getFullYear() %> Aplikasi Zakat Fitrah<br />
-          Dibuat dengan <span class="footer-heart">❤️</span> untuk kemudahan pengelolaan zakat
-        </p>
-      </div>
+      </main>
     </div>
 
     <script>
-      // Auto hide flash messages after 5 seconds
-      setTimeout(function () {
-        const alerts = document.querySelectorAll(".alert");
-        alerts.forEach(function (alert) {
-          alert.style.opacity = "0";
-          setTimeout(function () {
-            alert.remove();
-          }, 300);
+      (function () {
+        var form = document.getElementById("login-form");
+        var phone = document.getElementById("nomor_wa");
+        var pass = document.getElementById("password");
+        var reveal = document.getElementById("reveal");
+        var btn = document.getElementById("login-btn");
+        var label = btn.querySelector(".label");
+
+        // Hanya angka; tambahkan 0 di depan jika belum ada
+        phone.addEventListener("input", function (e) {
+          var v = e.target.value.replace(/[^\d]/g, "");
+          if (v.length > 0 && !v.startsWith("0") && !v.startsWith("62")) {
+            v = "0" + v;
+          }
+          e.target.value = v;
         });
-      }, 5000);
 
-      // Format phone number input
-      document.getElementById("nomor_wa").addEventListener("input", function (e) {
-        let value = e.target.value.replace(/[^\d]/g, "");
+        reveal.addEventListener("click", function () {
+          var show = pass.type === "password";
+          pass.type = show ? "text" : "password";
+          reveal.setAttribute("aria-pressed", show ? "true" : "false");
+          reveal.setAttribute(
+            "aria-label",
+            show ? "Sembunyikan password" : "Tampilkan password"
+          );
+          reveal.firstElementChild.className = show ? "fas fa-eye-slash" : "fas fa-eye";
+          pass.focus();
+        });
 
-        // Add leading zero if not present and not starting with +62
-        if (
-          value.length > 0 &&
-          !value.startsWith("0") &&
-          !value.startsWith("62")
-        ) {
-          value = "0" + value;
+        function resetButton() {
+          btn.disabled = false;
+          btn.classList.remove("loading");
+          label.textContent = "Masuk";
         }
 
-        e.target.value = value;
-      });
-      
-      // Form submission loading state
-      document.querySelector('form').addEventListener('submit', function() {
-        const btn = document.getElementById('login-btn');
-        const btnText = btn.querySelector('span');
-        const btnIcon = btn.querySelector('.btn-icon');
-        const btnLoading = btn.querySelector('.btn-loading');
-        
-        btnText.textContent = 'Memproses...';
-        btnIcon.style.display = 'none';
-        btnLoading.style.display = 'block';
-        btn.disabled = true;
-      });
-      
-      // Add input animation on focus
-      const inputs = document.querySelectorAll('.form-input');
-      inputs.forEach(input => {
-        input.addEventListener('focus', function() {
-          this.parentElement.classList.add('focused');
-        });
-        
-        input.addEventListener('blur', function() {
-          if (this.value === '') {
-            this.parentElement.classList.remove('focused');
+        form.addEventListener("submit", function (e) {
+          if (!form.checkValidity()) {
+            e.preventDefault();
+            form.reportValidity();
+            return;
           }
+          btn.disabled = true;
+          btn.classList.add("loading");
+          label.textContent = "Memproses...";
         });
-      });
-      
-      // Add subtle animation to form elements on page load
-      document.addEventListener('DOMContentLoaded', function() {
-        const formElements = document.querySelectorAll('.form-group, .btn');
-        formElements.forEach((el, index) => {
-          el.style.animationDelay = `${index * 0.1}s`;
-          el.style.animation = 'fadeInUp 0.6s ease-out forwards';
-          el.style.opacity = '0';
-        });
-      });
+
+        window.addEventListener("pageshow", resetButton);
+
+        // Pesan otomatis hilang setelah 6 detik
+        setTimeout(function () {
+          document.querySelectorAll(".alert").forEach(function (el) {
+            el.style.opacity = "0";
+            setTimeout(function () {
+              el.remove();
+            }, 300);
+          });
+        }, 6000);
+      })();
     </script>
-  </head>
+  </body>
 </html>

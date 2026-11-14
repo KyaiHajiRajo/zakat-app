@@ -1,0 +1,230 @@
+/* Dibuat otomatis oleh scripts/build-dark-css.js dari views/distribusi/laporan.ejs */
+html.dark-mode .page-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%)
+}
+html.dark-mode .header-icon-box {
+    background: rgba(255, 255, 255, 0.2);
+    color: white
+}
+html.dark-mode .header-title-text {
+    color: white
+}
+html.dark-mode .header-subtitle-text {
+    color: rgba(255, 255, 255, 0.9)
+}
+html.dark-mode .btn-action {
+    border: none
+}
+html.dark-mode .btn-action-success {
+    background: #0f1729;
+    color: #10b981
+}
+html.dark-mode .btn-action-primary {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid #191f2e
+}
+html.dark-mode .btn-action-primary:hover {
+    background: #0f1729;
+    color: #10b981
+}
+html.dark-mode .filters-section {
+    background: #0f1729
+}
+html.dark-mode .filters-header {
+    border-bottom: 2px solid #1d2436
+}
+html.dark-mode .filters-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white
+}
+html.dark-mode .filters-title {
+    color: #c7d2e1
+}
+html.dark-mode .filter-label {
+    color: #a9b8d1
+}
+html.dark-mode .label-icon {
+    color: #10b981
+}
+html.dark-mode .input-icon {
+    color: #9ca3af
+}
+html.dark-mode .filter-select, html.dark-mode .filter-input {
+    background: #0f1729;
+    border: 2px solid #222b3f
+}
+html.dark-mode .filter-select:focus, html.dark-mode .filter-input:focus {
+    outline: none;
+    border-color: #10b981
+}
+html.dark-mode .btn-primary, html.dark-mode .btn-secondary {
+    border: none
+}
+html.dark-mode .btn-primary {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white
+}
+html.dark-mode .btn-secondary {
+    background: #121b31;
+    color: #818896
+}
+html.dark-mode .btn-secondary:hover {
+    background: #15203a
+}
+html.dark-mode .stat-box {
+    background: #0f1729
+}
+html.dark-mode .stat-icon-box {
+    color: white
+}
+html.dark-mode .stat-icon-box.blue {
+    background: linear-gradient(135deg, #3b82f6, #2563eb)
+}
+html.dark-mode .stat-icon-box.green {
+    background: linear-gradient(135deg, #10b981, #059669)
+}
+html.dark-mode .stat-icon-box.yellow {
+    background: linear-gradient(135deg, #f59e0b, #d97706)
+}
+html.dark-mode .stat-icon-box.purple {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed)
+}
+html.dark-mode .stat-label {
+    color: #7e8593
+}
+html.dark-mode .stat-value {
+    color: #c7d2e1
+}
+html.dark-mode .chart-box {
+    background: #0f1729
+}
+html.dark-mode .chart-header {
+    border-bottom: 2px solid #1d2436
+}
+html.dark-mode .chart-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white
+}
+html.dark-mode .chart-title {
+    color: #c7d2e1
+}
+html.dark-mode .table-section {
+    background: #0f1729
+}
+html.dark-mode .table-header {
+    border-bottom: 2px solid #1d2436
+}
+html.dark-mode .table-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white
+}
+html.dark-mode .table-title {
+    color: #c7d2e1
+}
+html.dark-mode .table-count {
+    color: #7e8593
+}
+html.dark-mode .modern-table thead {
+    background: linear-gradient(135deg, #19222a, #121b31)
+}
+html.dark-mode .modern-table th {
+    color: #7e8593
+}
+html.dark-mode .modern-table tbody tr {
+    border-bottom: 1px solid #1d2436
+}
+html.dark-mode .modern-table tbody tr:hover {
+    background: #19222a
+}
+html.dark-mode .modern-table td {
+    color: #a9b8d1
+}
+html.dark-mode .ranking-icon.gold {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #111827
+}
+html.dark-mode .ranking-icon.silver {
+    background: linear-gradient(135deg, #15203a, #1a2747);
+    color: #89909d
+}
+html.dark-mode .ranking-icon.bronze {
+    background: linear-gradient(135deg, #fb923c, #f97316);
+    color: #111827
+}
+html.dark-mode .ranking-icon.default {
+    background: #121b31;
+    color: #818896
+}
+html.dark-mode .user-avatar {
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    color: white
+}
+html.dark-mode .user-name {
+    color: #c7d2e1
+}
+html.dark-mode .category-fakir {
+    background: #331212;
+    color: #e45a5a
+}
+html.dark-mode .category-miskin {
+    background: #382610;
+    color: #f46b24
+}
+html.dark-mode .category-amil {
+    background: #15331e;
+    color: #18af50
+}
+html.dark-mode .category-mualaf {
+    background: #102137;
+    color: #5988f0
+}
+html.dark-mode .category-fisabilillah {
+    background: #220f34;
+    color: #9b69f1
+}
+html.dark-mode .category-default {
+    background: #121b31;
+    color: #818896
+}
+html.dark-mode .status-diterima {
+    background: #173d24;
+    color: #8decb1
+}
+html.dark-mode .status-disalurkan {
+    background: #14273f;
+    color: #728de7
+}
+html.dark-mode .status-pending {
+    background: #493f16;
+    color: #f59c1a
+}
+html.dark-mode .status-batal {
+    background: #3c1313;
+    color: #e75f5f
+}
+html.dark-mode .amount-icon.beras {
+    background: #173d24;
+    color: #19bb55
+}
+html.dark-mode .amount-icon.uang {
+    background: #493f16;
+    color: #eba105
+}
+html.dark-mode .empty-icon {
+    color: #d1d5db
+}
+html.dark-mode .empty-title {
+    color: #c7d2e1
+}
+html.dark-mode .empty-description {
+    color: #7e8593
+}
+@media print {
+    html.dark-mode .table-section, html.dark-mode .stat-box, html.dark-mode .chart-box {
+        border: 1px solid #222b3f
+    }
+}
+html.dark-mode [style="color: #9ca3af; margin-right: 0.5rem;"] {
+    color: #9ca3af !important
+}
