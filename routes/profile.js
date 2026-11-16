@@ -84,8 +84,8 @@ router.post("/password", async (req, res) => {
       return res.redirect(BACK);
     }
 
-    if (new_password.length < 6) {
-      req.flash("error_msg", "Password baru minimal 6 karakter");
+    if (new_password.length < 8) {
+      req.flash("error_msg", "Password baru minimal 8 karakter");
       return res.redirect(BACK);
     }
 

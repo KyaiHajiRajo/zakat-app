@@ -1,0 +1,9 @@
+<script>
+  /* Tombol berbagi: <a data-wa-text="teks"> membuka WhatsApp dengan pesan siap kirim (tanpa API, cukup wa.me). */
+  document.addEventListener("click", function (event) {
+    var trigger = event.target.closest && event.target.closest("[data-wa-text]");
+    if (!trigger) { return; }
+    event.preventDefault();
+    window.open("https://wa.me/?text=" + encodeURIComponent(trigger.getAttribute("data-wa-text")), "_blank", "noopener");
+  });
+</script>

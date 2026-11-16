@@ -6,7 +6,7 @@
     <title><%= title || 'Zakat Fitrah' %></title>
     <link href="/css/output.css" rel="stylesheet" />
     <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      href="/vendor/fontawesome/css/all.min.css"
       rel="stylesheet"
     />
   </head>
@@ -68,6 +68,7 @@
               </div>
               <a
                 href="/auth/logout"
+                onclick="return confirm('Keluar dari aplikasi?')"
                 class="ml-4 bg-primary-700 hover:bg-primary-800 text-white px-3 py-2 rounded-md text-sm font-medium"
               >
                 <i class="fas fa-sign-out-alt mr-1"></i>Logout

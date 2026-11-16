@@ -19,7 +19,8 @@ const ROOT = path.join(__dirname, "..");
 const VIEWS = path.join(ROOT, "views");
 const OUT = path.join(ROOT, "public", "css", "dark");
 
-const SKIP_DIRS = ["layouts", "auth"];
+// Modul masjid (kas, agenda, inventaris, info, ramadan) sudah berbasis variabel tema sehingga mode gelap otomatis.
+const SKIP_DIRS = ["layouts", "auth", "kas", "agenda", "inventaris", "info", "ramadan", "masjid", "donasi", "transparansi"];
 const SKIP_FILES = ["home.ejs", "error.ejs"];
 
 /* ---------- warna ---------- */

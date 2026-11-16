@@ -1,5 +1,12 @@
 <%- include('../layouts/header', { title: 'Data Infak - Zakat Fitrah App',
 bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
+<%
+  // formatter dibuat sekali (membuat Intl di setiap baris sangat lambat untuk ribuan data)
+  const fmtDate = new Intl.DateTimeFormat('id-ID', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+  const fmtTime = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit' });
+  const fmtNum = new Intl.NumberFormat('id-ID');
+%>
+<style>html:not(.pg-ready) .table-responsive-wrapper tbody tr:nth-child(n+26){display:none}</style>
 
 <%
   const availableMuzakkiList = Array.isArray(availableMuzakki) ? availableMuzakki : [];
@@ -144,20 +151,16 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
             </thead>
             <tbody>
               <% infak.forEach(function(item, index) { %>
-              <tr class="table-row-animated" style="animation-delay: <%= index * 0.05 %>s;">
+              <tr class="table-row-animated" style="animation-delay: <%= Math.min(index, 12) * 0.04 %>s;">
                 <td>
                   <div class="cell-content-primary">
                     <div class="date-display">
                       <i class="fas fa-calendar-alt mr-2"></i>
-                      <%= new Date(item.created_at).toLocaleDateString('id-ID', {
-                        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
-                      }) %>
+                      <%= fmtDate.format(new Date(item.created_at)) %>
                     </div>
                     <div class="time-display">
                       <i class="fas fa-clock mr-1"></i>
-                      <%= new Date(item.created_at).toLocaleTimeString('id-ID', {
-                        hour: '2-digit', minute: '2-digit'
-                      }) %>
+                      <%= fmtTime.format(new Date(item.created_at)) %>
                     </div>
                   </div>
                 </td>
@@ -184,7 +187,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
                 <td class="text-center">
                   <div class="amount-display-large amount-primary">
                     <i class="fas fa-coins mr-1"></i>
-                    Rp <%= Math.floor(item.jumlah).toLocaleString('id-ID') %>
+                    Rp <%= fmtNum.format(Math.floor(item.jumlah)) %>
                   </div>
                 </td>
                 <td>
@@ -198,7 +201,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
                     action="/infak/<%= item.id %>?_method=DELETE"
                     class="infak-delete-form"
                     data-muzakki-name="<%= item.muzakki_name || ('Muzakki #' + item.muzakki_id) %>"
-                    data-jumlah="<%= Math.floor(item.jumlah).toLocaleString('id-ID') %>"
+                    data-jumlah="<%= fmtNum.format(Math.floor(item.jumlah)) %>"
                   >
                     <button type="submit" class="infak-delete-btn" aria-label="Hapus data infak">
                       <i class="fas fa-trash-alt"></i>
@@ -1880,4 +1883,5 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'infak' }) %>
     })();
   </script>
 
+<script>(window.AppPagerQueue = window.AppPagerQueue || []).push({ groups: [".table-responsive-wrapper tbody tr"], after: ".table-responsive-wrapper", scrollTo: ".table-section" });</script>
 <%- include('../layouts/footer') %>

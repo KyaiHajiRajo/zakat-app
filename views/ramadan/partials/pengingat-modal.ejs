@@ -1,0 +1,165 @@
+<%# Pengingat petugas lewat WhatsApp. Dibuka lewat <button data-modal-open="rm-ingat-modal" data-tanggal="YYYY-MM-DD"> %>
+<style>
+  .ig-nav { display: flex; gap: 8px; align-items: center; }
+  .ig-nav button { width: 42px; height: 46px; flex: none; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--ink-2); cursor: pointer; }
+  .ig-nav button:hover:not(:disabled) { border-color: var(--primary-color); color: var(--primary-dark); }
+  .ig-nav button:disabled { opacity: .4; cursor: default; }
+  .ig-nav .am-control { flex: 1; }
+  .ig-quick { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .ig-quick button { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-2); font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; }
+  .ig-quick button:hover { border-color: var(--primary-color); color: var(--primary-dark); }
+  .ig-list { display: grid; gap: 10px; margin-top: 14px; }
+  .ig-item { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface-2); }
+  .ig-item.is-sent { border-color: rgba(30,175,47,.4); background: rgba(30,175,47,.07); }
+  .ig-who { display: flex; gap: 10px; align-items: center; min-width: 0; }
+  .ig-ic { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; flex: none; background: rgba(30,175,47,.14); color: var(--primary-dark); }
+  .ig-who b { display: block; color: var(--ink); font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ig-who small { color: var(--muted); font-size: .76rem; }
+  .ig-sent { margin-left: auto; font-size: .74rem; font-weight: 800; color: var(--primary-dark); white-space: nowrap; }
+  .ig-row { display: flex; gap: 8px; }
+  .ig-row input { flex: 1; min-width: 0; height: 42px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); font: inherit; font-size: .9rem; }
+  .ig-row input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(30,175,47,.18); }
+  .ig-row input.is-bad { border-color: #dc2626; background: rgba(220,38,38,.08); }
+  .ig-send { flex: none; height: 42px; padding: 0 14px; border-radius: 12px; border: 0; font: inherit; font-weight: 800; font-size: .85rem; color: #fff; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; background: linear-gradient(135deg, #25d366, #128c7e); box-shadow: 0 8px 16px -10px rgba(18,140,126,.95); }
+  .ig-send:disabled { background: var(--line-strong); box-shadow: none; color: var(--muted); cursor: pointer; }
+  .ig-empty { text-align: center; padding: 28px 12px; color: var(--muted); }
+  .ig-empty i { font-size: 1.8rem; color: var(--faint); display: block; margin-bottom: 8px; }
+  .ig-foot-note { font-size: .78rem; color: var(--muted); margin-top: 12px; display: flex; gap: 8px; }
+  .rm-bell { margin-left: 8px; width: 28px; height: 28px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); font-size: .72rem; cursor: pointer; vertical-align: middle; }
+  .rm-bell:hover { border-color: #25d366; color: #128c7e; background: rgba(37,211,102,.1); }
+  @media print { .rm-bell { display: none !important; } }
+</style>
+<div class="am" id="rm-ingat-modal" role="dialog" aria-modal="true" aria-labelledby="ig-title" aria-hidden="true">
+  <div class="am-backdrop" data-modal-close></div>
+  <div class="am-panel" style="--am-w: 560px">
+    <header class="am-head">
+      <span class="am-head-icon" style="background:rgba(37,211,102,.14);color:#128c7e"><i class="fab fa-whatsapp"></i></span>
+      <div class="am-head-text"><h2 class="am-title" id="ig-title">Pengingat Petugas</h2><p class="am-sub">Kirim pengingat lewat WhatsApp dengan satu ketukan</p></div>
+      <button type="button" class="am-close" data-modal-close aria-label="Tutup"><i class="fas fa-xmark"></i></button>
+    </header>
+    <div class="am-body">
+      <div class="am-error" id="ig-error" data-am-error role="alert"><i class="fas fa-circle-exclamation"></i><span></span></div>
+      <div class="ig-nav">
+        <button type="button" id="ig-prev" aria-label="Hari sebelumnya"><i class="fas fa-chevron-left"></i></button>
+        <div class="am-control" data-control><i class="fas fa-calendar-day lead"></i>
+          <select id="ig-day" aria-label="Pilih hari">
+            <% days.forEach(function (d) { %><option value="<%= d.tanggal %>">Hari ke-<%= d.no %> · <%= d.hari %>, <%= d.label %></option><% }) %>
+          </select></div>
+        <button type="button" id="ig-next" aria-label="Hari berikutnya"><i class="fas fa-chevron-right"></i></button>
+      </div>
+      <div class="ig-quick"><button type="button" data-ig-go="today">Hari ini</button><button type="button" data-ig-go="tomorrow">Besok</button></div>
+      <div class="ig-list" id="ig-list" aria-live="polite"></div>
+      <div class="ig-foot-note"><i class="fas fa-lock"></i><span>Nomor WA petugas hanya terlihat oleh pengurus yang login dan tersimpan sekali untuk semua jadwal.</span></div>
+    </div>
+    <footer class="am-foot">
+      <button type="button" class="am-btn am-btn-ghost" data-modal-close>Tutup</button>
+      <button type="button" class="am-btn am-btn-primary" id="ig-group" style="background:linear-gradient(135deg,#25d366,#128c7e)"><i class="fab fa-whatsapp"></i><span>Kirim Jadwal ke Grup</span></button>
+    </footer>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var modal = document.getElementById("rm-ingat-modal");
+    var sel = document.getElementById("ig-day");
+    var list = document.getElementById("ig-list");
+    var errBox = document.getElementById("ig-error");
+    var group = document.getElementById("ig-group");
+    var TODAY = <%- JSON.stringify(today) %>;
+    var data = null;
+    var seq = 0;
+
+    function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+    function sentKey(id) { return "rm-ingat:" + sel.value + ":" + id; }
+    function wasSent(id) { try { return localStorage.getItem(sentKey(id)) === "1"; } catch (e) { return false; } }
+    function markSent(id) { try { localStorage.setItem(sentKey(id), "1"); } catch (e) { /* abaikan */ } }
+    function showError(m) { errBox.querySelector("span").textContent = m; errBox.classList.add("is-visible"); }
+    function post(url, body) {
+      return fetch(url, { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json", Accept: "application/json", "X-Requested-With": "fetch" }, body: JSON.stringify(body) })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok && d.ok !== false, d: d }; }); });
+    }
+    function waUrl(nomor, text) { return "https://wa.me/" + nomor + "?text=" + encodeURIComponent(text); }
+
+    function render() {
+      if (!data.items.length) {
+        list.innerHTML = '<div class="ig-empty"><i class="fas fa-user-clock"></i><b>Belum ada petugas di hari ini</b><br><small>Isi nama petugas di tabel jadwal terlebih dahulu.</small></div>';
+        group.disabled = true; return;
+      }
+      group.disabled = false;
+      list.innerHTML = data.items.map(function (it, i) {
+        var sent = wasSent(it.id);
+        return '<div class="ig-item' + (sent ? ' is-sent' : '') + '" data-i="' + i + '">' +
+          '<div class="ig-who"><span class="ig-ic"><i class="fas ' + esc(it.icon) + '"></i></span><div style="min-width:0"><b>' + esc(it.petugas) + '</b><small>' + esc(it.peran) + '</small></div>' +
+          (sent ? '<span class="ig-sent"><i class="fas fa-check"></i> Terkirim</span>' : '') + '</div>' +
+          '<div class="ig-row"><input type="tel" inputmode="tel" placeholder="No. WhatsApp, contoh 0812 3456 7890" value="' + esc(it.tampil) + '" maxlength="20" aria-label="Nomor WhatsApp ' + esc(it.petugas) + '">' +
+          '<button type="button" class="ig-send"' + (it.nomor ? '' : ' disabled') + '><i class="fab fa-whatsapp"></i>' + (sent ? 'Kirim lagi' : 'Kirim') + '</button></div></div>';
+      }).join("");
+    }
+
+    function load() {
+      var my = ++seq;
+      errBox.classList.remove("is-visible");
+      list.innerHTML = '<div class="ig-empty"><i class="fas fa-spinner fa-spin"></i>Memuat…</div>';
+      fetch("/ramadan/pengingat?tanggal=" + encodeURIComponent(sel.value), { credentials: "same-origin", headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { if (my !== seq) { return; } if (!d.ok) { throw new Error(d.message); } data = d; render(); })
+        .catch(function (e) { if (my === seq) { list.innerHTML = ""; showError(e.message || "Gagal memuat daftar petugas"); } });
+    }
+
+    function go(delta) {
+      var i = sel.selectedIndex + delta;
+      if (i >= 0 && i < sel.options.length) { sel.selectedIndex = i; load(); }
+    }
+    function goDate(iso) {
+      for (var i = 0; i < sel.options.length; i++) { if (sel.options[i].value === iso) { sel.selectedIndex = i; return true; } }
+      return false;
+    }
+    function addDay(iso, n) { var d = new Date(iso + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+
+    document.getElementById("ig-prev").addEventListener("click", function () { go(-1); });
+    document.getElementById("ig-next").addEventListener("click", function () { go(1); });
+    sel.addEventListener("change", load);
+    modal.addEventListener("click", function (e) {
+      var q = e.target.closest("[data-ig-go]");
+      if (!q) { return; }
+      var iso = q.dataset.igGo === "today" ? TODAY : addDay(TODAY, 1);
+      if (goDate(iso)) { load(); } else { showError("Tanggal itu di luar jadwal Ramadan."); }
+    });
+
+    modal.addEventListener("am:open", function (e) {
+      var t = e.detail && e.detail.trigger;
+      var want = t && t.dataset.tanggal;
+      if (!want) { want = addDay(TODAY, 1); if (!goDate(want)) { want = goDate(TODAY) ? TODAY : sel.options[0].value; } }
+      goDate(want); load();
+    });
+
+    // ketik / simpan nomor -> tombol kirim aktif
+    list.addEventListener("change", function (e) {
+      var input = e.target.closest(".ig-row input");
+      if (!input) { return; }
+      var item = input.closest(".ig-item"), it = data.items[item.dataset.i];
+      input.classList.remove("is-bad");
+      post("/ramadan/kontak", { nama: it.petugas, nomor: input.value }).then(function (res) {
+        if (!res.ok) { input.classList.add("is-bad"); showError(res.d.message || "Nomor tidak valid"); return; }
+        errBox.classList.remove("is-visible");
+        // nomor berlaku untuk semua baris dengan nama yang sama
+        data.items.forEach(function (x) { if (x.petugas.toLowerCase() === it.petugas.toLowerCase()) { x.nomor = res.d.nomor; x.tampil = res.d.tampil; } });
+        input.value = res.d.tampil;
+        item.querySelector(".ig-send").disabled = !res.d.nomor;
+      }).catch(function () { showError("Tidak dapat terhubung ke server."); });
+    });
+
+    list.addEventListener("click", function (e) {
+      var btn = e.target.closest(".ig-send");
+      if (!btn) { return; }
+      var item = btn.closest(".ig-item"), it = data.items[item.dataset.i];
+      if (!it.nomor) { item.querySelector("input").focus(); return; }
+      window.open(waUrl(it.nomor, it.pesan), "_blank", "noopener");
+      markSent(it.id); render();
+    });
+
+    group.addEventListener("click", function () {
+      if (data) { window.open("https://wa.me/?text=" + encodeURIComponent(data.grup), "_blank", "noopener"); }
+    });
+  })();
+</script>

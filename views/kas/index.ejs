@@ -1,0 +1,191 @@
+<%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'kas' }) %>
+<%- include('../masjid/partials/ui') %>
+<%
+  const rp = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(Number(n) || 0));
+  const qs = (extra) => {
+    const p = new URLSearchParams();
+    if (f.bulan) p.set('bulan', f.bulan);
+    if (f.tipe) p.set('tipe', f.tipe);
+    if (f.kategori) p.set('kategori', f.kategori);
+    if (f.q) p.set('q', f.q);
+    Object.keys(extra || {}).forEach((k) => { if (extra[k] === '' || extra[k] === null) p.delete(k); else p.set(k, extra[k]); });
+    const s = p.toString();
+    return s ? '?' + s : '';
+  };
+  const masukBreak = breakdown.filter((b) => b.tipe === 'masuk');
+  const keluarBreak = breakdown.filter((b) => b.tipe === 'keluar');
+  const maxMasuk = Math.max(1, ...masukBreak.map((b) => b.total));
+  const maxKeluar = Math.max(1, ...keluarBreak.map((b) => b.total));
+  const selisih = masuk - keluar;
+  const allKategori = Object.assign({}, KATEGORI.masuk, KATEGORI.keluar);
+%>
+<style>
+  .kas-two { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; }
+  .kas-chart { padding: 16px 18px 18px; }
+  .kas-chart h3, .kas-break h3 { margin: 0 0 12px; font-size: 1rem; font-weight: 700; color: var(--ink); }
+  .kas-chart canvas { width: 100% !important; height: 240px !important; }
+  .kas-break { padding: 16px 18px 18px; }
+  .kas-bar { margin-bottom: 10px; }
+  .kas-bar-top { display: flex; justify-content: space-between; gap: 8px; font-size: .84rem; color: var(--ink-2); margin-bottom: 4px; }
+  .kas-bar-top b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .kas-track { height: 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
+  .kas-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #2bc23c, var(--primary-darker)); }
+  .kas-fill.is-out { background: linear-gradient(90deg, #f87171, #b91c1c); }
+  .kas-sub { margin: 12px 0 8px; font-size: .74rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .kas-note { font-size: .8rem; color: var(--muted); padding: 0 18px 14px; margin: 0; }
+  .kas-cat { display: inline-flex; align-items: center; gap: 8px; }
+  .kas-cat i { width: 30px; height: 30px; border-radius: 10px; display: inline-grid; place-items: center; background: var(--surface-2); border: 1px solid var(--line); color: var(--primary-dark); font-size: .8rem; }
+  @media (max-width: 900px) { .kas-two { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<section class="mj-page" style="--mj-glyph:'\f555'">
+
+  <header class="mj-hero">
+    <div>
+      <div class="mj-kicker">Kas <%= settings.masjid_nama %></div>
+      <div class="mj-sub" style="margin-top:6px">Saldo kas saat ini</div>
+      <div class="mj-big"><%= rp(saldo) %></div>
+      <p class="mj-sub" style="margin-top:6px">Dana kas operasional musholla. Dana zakat (fitrah) dikelola terpisah di menu Muzakki &amp; Distribusi.</p>
+    </div>
+    <div class="mj-actions mj-noprint">
+      <a href="#" class="mj-btn is-solid" data-modal-open="kas-modal" data-mode="create" data-tipe="masuk"><i class="fas fa-arrow-down"></i>Catat Pemasukan</a>
+      <a href="#" class="mj-btn" data-modal-open="kas-modal" data-mode="create" data-tipe="keluar"><i class="fas fa-arrow-up"></i>Catat Pengeluaran</a>
+      <a href="/kas/laporan<%= f.range ? '?bulan=' + f.bulan : '' %>" class="mj-btn"><i class="fas fa-file-lines"></i>Laporan Bulanan</a>
+      <a href="/kas/export<%= qs() %>" class="mj-btn"><i class="fas fa-file-excel"></i>Excel</a>
+    </div>
+  </header>
+
+  <div class="mj-stats">
+    <article class="mj-card mj-stat"><span class="mj-stat-icon"><i class="fas fa-arrow-trend-up"></i></span>
+      <div><small>Pemasukan · <%= periodeLabel %></small><b class="mj-in"><%= rp(masuk) %></b><span><%= masukBreak.reduce((a, b) => a + b.n, 0) %> transaksi</span></div></article>
+    <article class="mj-card mj-stat"><span class="mj-stat-icon is-out"><i class="fas fa-arrow-trend-down"></i></span>
+      <div><small>Pengeluaran · <%= periodeLabel %></small><b class="mj-out"><%= rp(keluar) %></b><span><%= keluarBreak.reduce((a, b) => a + b.n, 0) %> transaksi</span></div></article>
+    <article class="mj-card mj-stat"><span class="mj-stat-icon is-gold"><i class="fas fa-scale-balanced"></i></span>
+      <div><small>Selisih periode</small><b class="<%= selisih >= 0 ? 'mj-in' : 'mj-out' %>"><%= (selisih >= 0 ? '+' : '−') + rp(Math.abs(selisih)).slice(0) %></b><span><%= f.range ? 'Saldo awal ' + rp(saldoAwal) : 'Seluruh riwayat' %></span></div></article>
+  </div>
+
+  <div class="kas-two">
+    <section class="mj-card kas-chart">
+      <h3>Pemasukan vs Pengeluaran · 6 bulan</h3>
+      <canvas id="kas-chart" aria-label="Grafik kas 6 bulan" role="img"></canvas>
+    </section>
+    <section class="mj-card kas-break">
+      <h3>Rincian per kategori</h3>
+      <% if (!breakdown.length) { %>
+        <p style="color:var(--muted);font-size:.9rem;margin:0">Belum ada transaksi pada periode ini.</p>
+      <% } %>
+      <% if (masukBreak.length) { %><div class="kas-sub">Pemasukan</div>
+        <% masukBreak.forEach(function (b) { %>
+          <div class="kas-bar"><div class="kas-bar-top"><span><i class="fas <%= b.icon %>"></i> <%= b.label %></span><b><%= rp(b.total) %></b></div>
+            <div class="kas-track"><div class="kas-fill" style="width:<%= Math.max(3, Math.round(b.total / maxMasuk * 100)) %>%"></div></div></div>
+        <% }) %><% } %>
+      <% if (keluarBreak.length) { %><div class="kas-sub">Pengeluaran</div>
+        <% keluarBreak.forEach(function (b) { %>
+          <div class="kas-bar"><div class="kas-bar-top"><span><i class="fas <%= b.icon %>"></i> <%= b.label %></span><b><%= rp(b.total) %></b></div>
+            <div class="kas-track"><div class="kas-fill is-out" style="width:<%= Math.max(3, Math.round(b.total / maxKeluar * 100)) %>%"></div></div></div>
+        <% }) %><% } %>
+    </section>
+  </div>
+
+  <section class="mj-card">
+    <div class="mj-head">
+      <div><h2>Riwayat Transaksi</h2><p><%= total %> transaksi · <%= periodeLabel %></p></div>
+    </div>
+
+    <form class="mj-filter mj-noprint" method="GET" action="/kas" id="kas-filter">
+      <select name="bulan" class="mj-select" aria-label="Periode">
+        <option value="semua" <%= f.bulan === 'semua' ? 'selected' : '' %>>Semua periode</option>
+        <% bulanList.forEach(function (b) { %><option value="<%= b.ym %>" <%= f.bulan === b.ym ? 'selected' : '' %>><%= b.label %></option><% }) %>
+      </select>
+      <div class="mj-seg" role="group" aria-label="Jenis">
+        <a href="/kas<%= qs({ tipe: '', page: '' }) %>" class="<%= !f.tipe ? 'is-active' : '' %>">Semua</a>
+        <a href="/kas<%= qs({ tipe: 'masuk', page: '' }) %>" class="<%= f.tipe === 'masuk' ? 'is-active' : '' %>">Masuk</a>
+        <a href="/kas<%= qs({ tipe: 'keluar', page: '' }) %>" class="<%= f.tipe === 'keluar' ? 'is-active' : '' %>">Keluar</a>
+      </div>
+      <input type="hidden" name="tipe" value="<%= f.tipe %>">
+      <select name="kategori" class="mj-select" aria-label="Kategori">
+        <option value="">Semua kategori</option>
+        <% Object.keys(KATEGORI).forEach(function (t) { %>
+          <optgroup label="<%= t === 'masuk' ? 'Pemasukan' : 'Pengeluaran' %>">
+            <% Object.keys(KATEGORI[t]).forEach(function (k) { %><option value="<%= k %>" <%= f.kategori === k ? 'selected' : '' %>><%= KATEGORI[t][k].label %></option><% }) %>
+          </optgroup>
+        <% }) %>
+      </select>
+      <input type="search" name="q" value="<%= f.q %>" class="mj-input mj-grow" placeholder="Cari donatur / keterangan…" aria-label="Cari">
+      <button type="submit" class="mj-btn is-solid"><i class="fas fa-magnifying-glass"></i>Terapkan</button>
+    </form>
+
+    <% if (!rows.length) { %>
+      <div class="mj-empty"><i class="fas fa-wallet"></i><h3>Belum ada transaksi</h3><p>Catat pemasukan pertama atau ubah filter di atas.</p>
+        <a href="#" class="mj-btn is-solid" data-modal-open="kas-modal" data-mode="create" data-tipe="masuk"><i class="fas fa-plus"></i>Catat Pemasukan</a></div>
+    <% } else { %>
+      <div class="mj-scroll">
+        <table class="mj-table">
+          <thead><tr><th>Tanggal</th><th>Kategori</th><th>Pihak / Keterangan</th><th style="text-align:right">Jumlah</th><th>Dicatat oleh</th><th style="text-align:right">Aksi</th></tr></thead>
+          <tbody>
+            <% rows.forEach(function (r) { %>
+              <tr>
+                <td data-label="Tanggal"><b><%= labelTanggal(r.tanggal) %></b></td>
+                <td data-label="Kategori"><span class="kas-cat"><i class="fas <%= r.icon %>"></i><%= r.kategoriLabel %></span></td>
+                <td data-label="Pihak / Keterangan"><%= r.pihak || '—' %><% if (r.keterangan) { %><small><%= r.keterangan %></small><% } %></td>
+                <td data-label="Jumlah" class="is-num <%= r.tipe === 'masuk' ? 'mj-in' : 'mj-out' %>"><%= (r.tipe === 'masuk' ? '+ ' : '− ') + rp(r.jumlah) %></td>
+                <td data-label="Dicatat oleh"><%= r.oleh || '—' %></td>
+                <td class="is-act"><a href="#" class="mj-icon-btn" title="Ubah" aria-label="Ubah transaksi" data-modal-open="kas-modal" data-mode="edit" data-id="<%= r.id %>"><i class="fas fa-pen"></i></a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <div class="mj-pager mj-noprint">
+        <span>Menampilkan <b><%= (page - 1) * perPage + 1 %>–<%= Math.min(page * perPage, total) %></b> dari <b><%= total %></b></span>
+        <% if (totalPages > 1) { %>
+        <nav aria-label="Halaman">
+          <% if (page > 1) { %><a href="/kas<%= qs({ page: page - 1 }) %>" aria-label="Sebelumnya">‹</a><% } else { %><span class="pg is-off">‹</span><% } %>
+          <% for (let p = Math.max(1, page - 2); p <= Math.min(totalPages, page + 2); p++) { %>
+            <% if (p === page) { %><span class="pg is-current"><%= p %></span><% } else { %><a href="/kas<%= qs({ page: p }) %>"><%= p %></a><% } %>
+          <% } %>
+          <% if (page < totalPages) { %><a href="/kas<%= qs({ page: page + 1 }) %>" aria-label="Berikutnya">›</a><% } else { %><span class="pg is-off">›</span><% } %>
+        </nav>
+        <% } %>
+      </div>
+    <% } %>
+  </section>
+</section>
+
+<%- include('partials/kas-modal') %>
+
+<script>[].forEach.call(document.querySelectorAll('#kas-filter select'), function (s) { s.addEventListener('change', function () { s.form.submit(); }); });</script>
+<script src="/vendor/chartjs/chart.umd.min.js"></script>
+<script>
+  (function () {
+    var data = <%- JSON.stringify(chart).replace(/</g, '\\u003c') %>;
+    var canvas = document.getElementById("kas-chart");
+    if (!window.Chart || !canvas) { return; }
+    var css = getComputedStyle(document.documentElement);
+    var ink = css.getPropertyValue("--muted").trim() || "#66766b";
+    var line = css.getPropertyValue("--line").trim() || "#e5ebe7";
+    var fmt = new Intl.NumberFormat("id-ID");
+    new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: data.map(function (d) { return d.label; }),
+        datasets: [
+          { label: "Pemasukan", data: data.map(function (d) { return d.masuk; }), backgroundColor: "#1eaf2f", borderRadius: 8, maxBarThickness: 28 },
+          { label: "Pengeluaran", data: data.map(function (d) { return d.keluar; }), backgroundColor: "#ef4444", borderRadius: 8, maxBarThickness: 28 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom", labels: { color: ink, usePointStyle: true, boxWidth: 8 } },
+          tooltip: { callbacks: { label: function (c) { return c.dataset.label + ": Rp " + fmt.format(c.parsed.y); } } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: ink } },
+          y: { beginAtZero: true, grid: { color: line }, ticks: { color: ink, callback: function (v) { return v >= 1000000 ? (v / 1000000) + " jt" : v >= 1000 ? (v / 1000) + " rb" : v; } } }
+        }
+      }
+    });
+  })();
+</script>
+<%- include('../layouts/footer') %>

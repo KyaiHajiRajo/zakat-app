@@ -3,6 +3,20 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 
 // GET - List all users
+const crypto = require("crypto");
+
+const ROLES = ["admin", "panitia"];
+
+// Password sementara acak (tanpa karakter mirip: 0/O, 1/l/I)
+function generateTempPassword(length = 10) {
+  const alphabet = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  let result = "";
+  for (const byte of crypto.randomBytes(length)) {
+    result += alphabet[byte % alphabet.length];
+  }
+  return result;
+}
+
 router.get("/", async (req, res) => {
   try {
     const db = req.app.locals.db;
@@ -41,7 +55,12 @@ router.post("/", async (req, res) => {
       return res.redirect("/users");
     }
 
-    if (password.length < 6) {
+    if (!ROLES.includes(role)) {
+      req.flash("error_msg", "Role tidak valid");
+      return res.redirect("/users");
+    }
+
+    if (password.length < 8) {
       req.flash("error_msg", "Password minimal 6 karakter");
       return res.redirect("/users");
     }
@@ -70,7 +89,7 @@ router.post("/", async (req, res) => {
     res.redirect("/users");
   } catch (error) {
     console.error("Error creating user:", error);
-    req.flash("error_msg", "Gagal menambahkan user: " + error.message);
+    req.flash("error_msg", "Gagal menambahkan user");
     res.redirect("/users");
   }
 });
@@ -88,6 +107,25 @@ router.put("/:id", async (req, res) => {
       return res.redirect("/users");
     }
 
+    if (!ROLES.includes(role)) {
+      req.flash("error_msg", "Role tidak valid");
+      return res.redirect("/users");
+    }
+
+    // Admin terakhir tidak boleh diturunkan menjadi panitia
+    if (role !== "admin") {
+      const [[target]] = await db.execute("SELECT role FROM users WHERE id = ?", [id]);
+      if (target && target.role === "admin") {
+        const [[{ admins }]] = await db.execute(
+          "SELECT COUNT(*) AS admins FROM users WHERE role = 'admin'"
+        );
+        if (admins <= 1) {
+          req.flash("error_msg", "Tidak bisa mengubah role: ini satu-satunya admin");
+          return res.redirect("/users");
+        }
+      }
+    }
+
     // Check if nomor_wa already exists for other users
     const [existing] = await db.execute(
       "SELECT id FROM users WHERE nomor_wa = ? AND id != ?",
@@ -100,7 +138,7 @@ router.put("/:id", async (req, res) => {
     }
 
     // Update user
-    if (password && password.length >= 6) {
+    if (password && password.length >= 8) {
       // Update with new password
       const hashedPassword = await bcrypt.hash(password, 10);
       await db.execute(
@@ -119,7 +157,7 @@ router.put("/:id", async (req, res) => {
     res.redirect("/users");
   } catch (error) {
     console.error("Error updating user:", error);
-    req.flash("error_msg", "Gagal mengupdate user: " + error.message);
+    req.flash("error_msg", "Gagal mengupdate user");
     res.redirect("/users");
   }
 });
@@ -137,11 +175,21 @@ router.delete("/:id", async (req, res) => {
     }
 
     // Check if user exists
-    const [user] = await db.execute("SELECT id FROM users WHERE id = ?", [id]);
+    const [user] = await db.execute("SELECT id, role FROM users WHERE id = ?", [id]);
     
     if (user.length === 0) {
       req.flash("error_msg", "User tidak ditemukan");
       return res.redirect("/users");
+    }
+
+    if (user[0].role === "admin") {
+      const [[{ admins }]] = await db.execute(
+        "SELECT COUNT(*) AS admins FROM users WHERE role = 'admin'"
+      );
+      if (admins <= 1) {
+        req.flash("error_msg", "Tidak bisa menghapus satu-satunya admin");
+        return res.redirect("/users");
+      }
     }
 
     // Delete user
@@ -151,7 +199,7 @@ router.delete("/:id", async (req, res) => {
     res.redirect("/users");
   } catch (error) {
     console.error("Error deleting user:", error);
-    req.flash("error_msg", "Gagal menghapus user: " + error.message);
+    req.flash("error_msg", "Gagal menghapus user");
     res.redirect("/users");
   }
 });
@@ -162,24 +210,28 @@ router.post("/:id/reset-password", async (req, res) => {
     const db = req.app.locals.db;
     const { id } = req.params;
 
-    // Default password
-    const defaultPassword = "123456";
-    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+    // Password sementara acak, hanya ditampilkan sekali kepada admin
+    const tempPassword = generateTempPassword();
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
-    await db.execute(
+    const [result] = await db.execute(
       "UPDATE users SET password = ? WHERE id = ?",
       [hashedPassword, id]
     );
 
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "User tidak ditemukan" });
+    }
+
     res.json({
       success: true,
-      message: "Password berhasil direset ke default (123456)"
+      message: `Password sementara: ${tempPassword} — catat sekarang, tidak akan ditampilkan lagi. Minta pengguna menggantinya lewat menu Profil.`
     });
   } catch (error) {
     console.error("Error resetting password:", error);
     res.status(500).json({
       success: false,
-      message: "Gagal reset password: " + error.message
+      message: "Gagal reset password"
     });
   }
 });

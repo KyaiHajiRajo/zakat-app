@@ -1,0 +1,105 @@
+<%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen' }) %>
+<%- include('../masjid/partials/ui') %>
+<% if (!user) { %><%- include('../masjid/partials/public-nav', { settings: settings, active: 'donasi' }) %><% } %>
+<%- include('partials/donasi-css') %>
+<style>
+  .ds-wrap { max-width: 640px; margin: 0 auto; padding: 18px 8px 40px; display: grid; gap: 16px; }
+  .ds-card { padding: 28px 24px; text-align: center; display: grid; gap: 10px; justify-items: center; }
+  .ds-badge { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; font-size: 2rem; color: #fff; }
+  .ds-badge.is-wait { background: linear-gradient(135deg, #e0b84f, #b88a22); animation: ds-pulse 2s ease-in-out infinite; }
+  .ds-badge.is-ok { background: linear-gradient(135deg, #2bc23c, var(--primary-darker)); animation: ds-pop .5s cubic-bezier(.2,1.4,.4,1); }
+  .ds-badge.is-no { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+  @keyframes ds-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(201,162,75,.5); } 50% { box-shadow: 0 0 0 16px rgba(201,162,75,0); } }
+  @keyframes ds-pop { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .ds-card h1 { margin: 6px 0 0; font-size: 1.45rem; font-weight: 800; color: var(--ink); }
+  .ds-card p { margin: 0; color: var(--muted); max-width: 440px; }
+  .ds-amt { font-size: 2.2rem; font-weight: 800; color: var(--primary-dark); font-variant-numeric: tabular-nums; }
+  html.dark-mode .ds-amt { color: #6ee37e; }
+  .ds-kode { display: inline-flex; gap: 10px; align-items: center; padding: 8px 8px 8px 16px; border-radius: 14px; background: var(--surface-2); border: 1px dashed var(--line-strong); font-weight: 800; letter-spacing: .08em; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .ds-kode button { border: 0; padding: 7px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line-strong); cursor: pointer; font: inherit; font-weight: 700; font-size: .8rem; color: var(--ink-2); }
+  .ds-rows { width: 100%; text-align: left; border-top: 1px solid var(--line); margin-top: 8px; }
+  .ds-rows div { display: flex; justify-content: space-between; gap: 14px; padding: 10px 2px; border-bottom: 1px solid var(--line); font-size: .9rem; }
+  .ds-rows span { color: var(--muted); }
+  .ds-rows b { color: var(--ink); text-align: right; }
+  .ds-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; margin: 6px 0 4px; }
+  .ds-steps li { list-style: none; display: grid; justify-items: center; gap: 6px; font-size: .76rem; font-weight: 700; color: var(--faint); position: relative; }
+  .ds-steps li::before { content: ""; position: absolute; top: 15px; left: -50%; right: 50%; height: 3px; background: var(--line-strong); }
+  .ds-steps li:first-child::before { display: none; }
+  .ds-steps i { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); border: 2px solid var(--line-strong); font-size: .8rem; position: relative; z-index: 1; }
+  .ds-steps li.is-done { color: var(--primary-dark); }
+  .ds-steps li.is-done i { background: var(--primary-color); border-color: var(--primary-color); color: #fff; }
+  .ds-steps li.is-done::before { background: var(--primary-color); }
+  .ds-steps li.is-bad { color: #dc2626; }
+  .ds-steps li.is-bad i { background: #dc2626; border-color: #dc2626; color: #fff; }
+  .ds-steps li.is-bad::before { background: #dc2626; }
+  .ds-steps li.is-now i { border-color: var(--gold); color: var(--gold-ink); background: var(--gold-soft); }
+  .ds-acts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 10px; }
+  .ds-reason { width: 100%; text-align: left; padding: 12px 14px; border-radius: 12px; background: rgba(220,38,38,.08); border: 1px solid rgba(220,38,38,.25); color: #dc2626; font-size: .9rem; }
+</style>
+<%
+  const tampil = d ? (d.anonim ? 'Hamba Allah' : d.nama) : '';
+  const kodeTampil = d ? d.kode : '';
+  const waLink = (d && waPengurus)
+    ? 'https://wa.me/' + waPengurus + '?text=' + encodeURIComponent('Assalamu\'alaikum, saya ' + d.nama + ' telah berdonasi ' + rupiah(d.jumlah) + ' untuk ' + d.tujuanLabel + ' di ' + settings.masjid_nama + '. Kode donasi: ' + d.kode + '. Mohon dikonfirmasi, jazakumullahu khairan.')
+    : '';
+%>
+<div class="ds-wrap">
+  <% if (!d) { %>
+    <section class="mj-card ds-card">
+      <div class="ds-badge is-no"><i class="fas fa-question"></i></div>
+      <h1>Kode tidak ditemukan</h1>
+      <p>Periksa kembali kode donasi Anda (contoh: DN-AB12CD34).</p>
+      <div class="ds-acts"><a class="mj-btn is-solid" href="/donasi"><i class="fas fa-arrow-left"></i>Kembali ke Donasi</a></div>
+    </section>
+  <% } else { %>
+    <section class="mj-card ds-card">
+      <% if (d.status === 'menunggu') { %>
+        <div class="ds-badge is-wait"><i class="fas fa-hourglass-half"></i></div>
+        <h1><%= baru ? 'Terima kasih, ' + tampil.split(' ')[0] + '! 🤲' : 'Menunggu verifikasi' %></h1>
+        <p><%= baru ? 'Konfirmasi Anda sudah kami terima. Pengurus akan memeriksa bukti transfer dan mencatatnya ke kas.' : 'Pengurus sedang memeriksa bukti transfer Anda.' %></p>
+      <% } else if (d.status === 'diterima') { %>
+        <div class="ds-badge is-ok"><i class="fas fa-check"></i></div>
+        <h1>Donasi diterima. Alhamdulillah!</h1>
+        <p>Donasi Anda sudah dicatat pengurus ke kas dan tampil di laporan terbuka. Jazakumullahu khairan katsiran.</p>
+      <% } else { %>
+        <div class="ds-badge is-no"><i class="fas fa-xmark"></i></div>
+        <h1>Donasi belum dapat diverifikasi</h1>
+        <p>Mohon maaf, pengurus belum dapat memverifikasi donasi ini.</p>
+        <% if (d.alasan_tolak) { %><div class="ds-reason"><b>Alasan:</b> <%= d.alasan_tolak %></div><% } %>
+      <% } %>
+
+      <div class="ds-amt"><%= rupiah(d.jumlah) %></div>
+      <div class="ds-kode" id="ds-kode"><span><%= kodeTampil %></span><button type="button" data-copy="<%= kodeTampil %>"><i class="fas fa-copy"></i> Salin</button></div>
+
+      <ol class="ds-steps" style="padding:0;margin:6px 0 0">
+        <li class="is-done"><i class="fas fa-paper-plane"></i>Terkirim</li>
+        <li class="<%= d.status === 'menunggu' ? 'is-now' : 'is-done' %>"><i class="fas fa-magnifying-glass"></i>Diperiksa</li>
+        <li class="<%= d.status === 'diterima' ? 'is-done' : (d.status === 'ditolak' ? 'is-bad' : '') %>"><i class="fas <%= d.status === 'ditolak' ? 'fa-xmark' : 'fa-check' %>"></i><%= d.status === 'ditolak' ? 'Ditolak' : 'Diterima' %></li>
+      </ol>
+
+      <div class="ds-rows">
+        <div><span>Atas nama</span><b><%= tampil %></b></div>
+        <div><span>Tujuan</span><b><%= d.tujuanLabel %></b></div>
+        <div><span>Dikirim</span><b><%= waktuLalu(d.created_at) %></b></div>
+        <% if (d.pesan) { %><div><span>Pesan</span><b><%= d.pesan %></b></div><% } %>
+      </div>
+
+      <% if (baru && d.status === 'menunggu') { %><p style="font-size:.82rem"><i class="fas fa-bookmark"></i> Simpan kode di atas. Anda bisa mengecek status kapan saja di halaman Donasi.</p><% } %>
+      <div class="ds-acts">
+        <% if (waLink && d.status !== 'diterima') { %><a class="mj-btn is-solid" href="<%= waLink %>" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i>Konfirmasi via WhatsApp</a><% } %>
+        <a class="mj-btn" href="/donasi"><i class="fas fa-hand-holding-heart"></i><%= d.status === 'diterima' ? 'Donasi lagi' : 'Kembali' %></a>
+        <a class="mj-btn" href="/transparansi"><i class="fas fa-chart-pie"></i>Laporan kas</a>
+      </div>
+    </section>
+  <% } %>
+</div>
+<script>
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-copy]");
+    if (!b) { return; }
+    var text = b.getAttribute("data-copy");
+    var done = function () { var old = b.innerHTML; b.innerHTML = '<i class="fas fa-check"></i> Tersalin'; setTimeout(function () { b.innerHTML = old; }, 1600); };
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done); }
+  });
+</script>
+<%- include('../layouts/footer') %>

@@ -1,0 +1,17 @@
+<%# params: p (pengumuman), settings, readonly %>
+<%
+  const wa = ['📣 *' + p.judul + '*', '', p.isi, '', '_' + settings.masjid_nama + '_'].join('\n');
+%>
+<article class="pg-card <%= p.penting ? 'is-important' : '' %>">
+  <div class="pg-top">
+    <% if (p.penting) { %><span class="mj-badge is-gold"><i class="fas fa-bullhorn"></i>Penting</span><% } %>
+    <% if (p.berlaku_sampai) { %><span class="mj-badge"><i class="fas fa-hourglass-half"></i>s.d. <%= labelTanggal(p.berlaku_sampai) %></span><% } %>
+    <% if (!readonly && !p.tampil_publik) { %><span class="mj-badge"><i class="fas fa-eye-slash"></i>Internal</span><% } %>
+    <span class="pg-act mj-noprint">
+      <a href="#" class="mj-icon-btn is-wa" title="Bagikan ke WhatsApp" aria-label="Bagikan ke WhatsApp" data-wa-text="<%= wa %>"><i class="fab fa-whatsapp"></i></a>
+      <% if (!readonly) { %><a href="#" class="mj-icon-btn" title="Ubah" aria-label="Ubah pengumuman" data-modal-open="pengumuman-modal" data-mode="edit" data-id="<%= p.id %>"><i class="fas fa-pen"></i></a><% } %>
+    </span>
+  </div>
+  <h3 class="pg-title"><%= p.judul %></h3>
+  <p class="pg-text"><%= p.isi %></p>
+</article>

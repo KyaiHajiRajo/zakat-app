@@ -1,0 +1,265 @@
+<style>
+  /* Pagination sisi-klien untuk daftar panjang. Baris yang disembunyikan pager memakai kelas .pg-hidden
+     (bukan style.display) sehingga tidak bentrok dengan filter pencarian bawaan tiap halaman. */
+  .pg-hidden { display: none !important; }
+
+  .app-pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    margin: 16px 0 4px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 0.85rem;
+  }
+
+  .app-pager[hidden] { display: none; }
+  .app-pager__info b { color: var(--ink); font-weight: 700; }
+  .app-pager__nav { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+
+  .app-pager__btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    background: var(--surface-2);
+    color: var(--ink-2);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .app-pager__btn:hover:not(:disabled):not(.is-current) {
+    border-color: rgba(30, 175, 47, 0.5);
+    background: rgba(30, 175, 47, 0.08);
+    color: var(--primary-dark);
+  }
+
+  .app-pager__btn.is-current {
+    border-color: transparent;
+    background: linear-gradient(135deg, #2bc23c 0%, var(--primary-darker) 100%);
+    color: #fff;
+    cursor: default;
+  }
+
+  .app-pager__btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .app-pager__gap { padding: 0 4px; color: var(--muted); }
+
+  .app-pager__size { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
+  .app-pager__size select {
+    height: 36px;
+    padding: 0 28px 0 10px;
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    background-color: var(--surface-2);
+    color: var(--ink);
+    font: inherit;
+  }
+
+  @media (max-width: 640px) {
+    .app-pager { justify-content: center; text-align: center; }
+    .app-pager__info { width: 100%; }
+  }
+</style>
+
+<script>
+  /*
+   * Daftar panjang -> halaman per 25/50/100 baris tanpa mengubah DOM (hanya menyembunyikan baris).
+   * Halaman mendaftar dengan:
+   *   (window.AppPagerQueue = window.AppPagerQueue || []).push({
+   *     groups: ["#tabel tbody tr", ".mobile-card"],   // daftar selector yang berisi item sejajar
+   *     after: ".mobile-view",                         // pager diletakkan setelah elemen ini
+   *     scrollTo: ".table-section"                     // (opsional) di-scroll saat ganti halaman
+   *   });
+   */
+  (function () {
+    var SIZES = [25, 50, 100];
+    var STORE_KEY = "app-pager-size";
+
+    function storedSize() {
+      try {
+        var value = Number(localStorage.getItem(STORE_KEY));
+        return SIZES.indexOf(value) >= 0 ? value : SIZES[0];
+      } catch (error) {
+        return SIZES[0];
+      }
+    }
+
+    function el(tag, className, text) {
+      var node = document.createElement(tag);
+      if (className) { node.className = className; }
+      if (text !== undefined) { node.textContent = text; }
+      return node;
+    }
+
+    function attach(config) {
+      var anchor = document.querySelector(config.after);
+      if (!anchor || anchor.dataset.pagerReady) { return null; }
+      anchor.dataset.pagerReady = "1";
+
+      var size = storedSize();
+      var page = 1;
+      var lastKey = "";
+      var frame = 0;
+
+      var root = el("nav", "app-pager");
+      root.setAttribute("aria-label", "Halaman data");
+      var info = el("div", "app-pager__info");
+      var nav = el("div", "app-pager__nav");
+      var sizeLabel = el("label", "app-pager__size", "Per halaman");
+      var select = el("select");
+      SIZES.forEach(function (value) {
+        var option = el("option", "", String(value));
+        option.value = String(value);
+        select.appendChild(option);
+      });
+      select.value = String(size);
+      sizeLabel.appendChild(select);
+      root.appendChild(info);
+      root.appendChild(nav);
+      root.appendChild(sizeLabel);
+      anchor.insertAdjacentElement("afterend", root);
+
+      function collect() {
+        return config.groups.map(function (selector) {
+          return Array.prototype.slice.call(document.querySelectorAll(selector));
+        });
+      }
+
+      function button(label, target, options) {
+        options = options || {};
+        var node = el("button", "app-pager__btn" + (options.current ? " is-current" : ""), label);
+        node.type = "button";
+        if (options.aria) { node.setAttribute("aria-label", options.aria); }
+        if (options.current) { node.setAttribute("aria-current", "page"); }
+        node.disabled = !!options.disabled;
+        if (!options.current && !options.disabled) {
+          node.addEventListener("click", function () { go(target); });
+        }
+        return node;
+      }
+
+      function renderNav(pages) {
+        nav.textContent = "";
+        nav.appendChild(button("‹", page - 1, { disabled: page === 1, aria: "Halaman sebelumnya" }));
+        var shown = [];
+        for (var i = 1; i <= pages; i++) {
+          if (i === 1 || i === pages || Math.abs(i - page) <= 1) { shown.push(i); }
+        }
+        var previous = 0;
+        shown.forEach(function (number) {
+          if (previous && number - previous > 1) { nav.appendChild(el("span", "app-pager__gap", "…")); }
+          nav.appendChild(button(String(number), number, { current: number === page, aria: "Halaman " + number }));
+          previous = number;
+        });
+        nav.appendChild(button("›", page + 1, { disabled: page === pages, aria: "Halaman berikutnya" }));
+      }
+
+      function render() {
+        frame = 0;
+        var groups = collect();
+        var counts = [];
+        var key = [];
+
+        // 1) berapa item yang lolos filter bawaan halaman (style.display !== "none")
+        groups.forEach(function (items) {
+          var visible = 0, first = -1, last = -1;
+          for (var i = 0; i < items.length; i++) {
+            if (items[i].style.display !== "none") {
+              if (first < 0) { first = i; }
+              last = i;
+              visible++;
+            }
+          }
+          counts.push(visible);
+          key.push(visible + ":" + first + ":" + last);
+        });
+
+        var total = Math.max.apply(null, counts.concat([0]));
+        var signature = key.join("|");
+        if (signature !== lastKey) { page = 1; lastKey = signature; }
+
+        var pages = Math.max(1, Math.ceil(total / size));
+        if (page > pages) { page = pages; }
+        var start = (page - 1) * size;
+        var end = start + size;
+
+        // 2) tampilkan hanya potongan halaman ini
+        groups.forEach(function (items) {
+          var position = 0;
+          for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            if (item.style.display === "none") {
+              item.classList.remove("pg-hidden");
+              continue;
+            }
+            item.classList.toggle("pg-hidden", position < start || position >= end);
+            position++;
+          }
+        });
+
+        root.hidden = total <= SIZES[0];
+        if (root.hidden) { return; }
+
+        var from = total ? start + 1 : 0;
+        var to = Math.min(end, total);
+        info.textContent = "";
+        info.appendChild(document.createTextNode("Menampilkan "));
+        info.appendChild(el("b", "", from + "–" + to));
+        info.appendChild(document.createTextNode(" dari "));
+        info.appendChild(el("b", "", String(total)));
+        info.appendChild(document.createTextNode(" data"));
+        renderNav(pages);
+      }
+
+      function schedule() {
+        if (!frame) { frame = requestAnimationFrame(render); }
+      }
+
+      function go(target) {
+        page = target;
+        render();
+        var scrollTarget = config.scrollTo && document.querySelector(config.scrollTo);
+        if (scrollTarget) {
+          scrollTarget.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+
+      select.addEventListener("change", function () {
+        size = Number(select.value);
+        try { localStorage.setItem(STORE_KEY, String(size)); } catch (error) { /* abaikan */ }
+        page = 1;
+        render();
+      });
+
+      // filter pencarian bawaan halaman mengubah style baris -> hitung ulang halaman
+      var observer = new MutationObserver(schedule);
+      collect().forEach(function (items) {
+        var parent = items[0] && items[0].parentElement;
+        if (parent && !parent.__pagerObserved) {
+          parent.__pagerObserved = true;
+          observer.observe(parent, { attributes: true, attributeFilter: ["style"], subtree: true });
+        }
+      });
+
+      render();
+      return { refresh: schedule };
+    }
+
+    window.AppPager = { attach: attach };
+    try {
+      (window.AppPagerQueue || []).forEach(attach);
+      window.AppPagerQueue = { push: attach };
+    } finally {
+      // halaman menyembunyikan baris ke-26 dst. lewat CSS sejak awal; setelah pager siap, kendali diserahkan ke pager
+      document.documentElement.classList.add("pg-ready");
+    }
+  })();
+</script>

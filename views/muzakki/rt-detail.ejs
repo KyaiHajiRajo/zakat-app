@@ -1,5 +1,6 @@
 <%- include('../layouts/header', { title: title || 'Detail RT - Zakat Fitrah App',
 bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
+<style>html:not(.pg-ready) .desktop-view tbody tr:nth-child(n+26){display:none}html:not(.pg-ready) .mobile-view .mobile-card:nth-child(n+26){display:none}</style>
 
 <%
   const addParams = new URLSearchParams();
@@ -285,7 +286,7 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
               </thead>
               <tbody>
                 <% displayMuzakki.forEach(function(item, index) { %>
-                  <tr class="table-row-animated" style="animation-delay: <%= index * 0.05 %>s;">
+                  <tr class="table-row-animated" style="animation-delay: <%= Math.min(index, 12) * 0.04 %>s;">
                     <td class="text-center">
                       <span class="number-badge"><%= index + 1 %></span>
                     </td>
@@ -2328,4 +2329,5 @@ bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'muzakki' }) %>
 <!-- Include Modal Tambah Infak -->
 <%- include('partials/modal-tambah-infak') %>
 
+<script>(window.AppPagerQueue = window.AppPagerQueue || []).push({ groups: [".desktop-view tbody tr", ".mobile-view .mobile-card"], after: ".mobile-view", scrollTo: ".desktop-view" });</script>
 <%- include('../layouts/footer') %>

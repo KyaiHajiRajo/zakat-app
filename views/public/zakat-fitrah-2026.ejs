@@ -1,4 +1,5 @@
 <%- include('../layouts/header', { title: title, bodyClass: 'bg-slate-50 min-h-screen' }) %>
+<style>html:not(.pg-ready) #tabMuzakki tbody tr:nth-child(n+26){display:none}html:not(.pg-ready) #tabMustahik tbody tr:nth-child(n+26){display:none}</style>
 
 <%
   const rowsData = Array.isArray(reportRows) ? reportRows : [];
@@ -30,15 +31,12 @@
   ).sort((a, b) =>
     a.localeCompare(b, "id", { numeric: true, sensitivity: "base" })
   );
+  const dateLabelFormatter = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric" });
   const formatDateLabel = (value) => {
     if (!value) return "-";
     const parsed = new Date(`${value}T00:00:00`);
     if (Number.isNaN(parsed.getTime())) return "-";
-    return parsed.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    return dateLabelFormatter.format(parsed);
   };
   const periodLabel =
     safeStats.periode_awal && safeStats.periode_akhir
@@ -292,7 +290,7 @@
 </div>
 
 <style>
-  @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+  @import url("/vendor/fonts/fonts.css");
 
   .public-report-page {
     font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
@@ -1233,4 +1231,6 @@
   });
 </script>
 
+<script>(window.AppPagerQueue = window.AppPagerQueue || []).push({ groups: ["#tabMuzakki tbody .filterable-row"], after: "#tabMuzakki .table-wrap", scrollTo: "#tabMuzakki" });</script>
+<script>(window.AppPagerQueue = window.AppPagerQueue || []).push({ groups: ["#tabMustahik tbody .filterable-row"], after: "#tabMustahik .table-wrap", scrollTo: "#tabMustahik" });</script>
 <%- include('../layouts/footer') %>

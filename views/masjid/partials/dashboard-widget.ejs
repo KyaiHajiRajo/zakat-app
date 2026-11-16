@@ -1,0 +1,102 @@
+<%# Widget ringkas modul Masjid & Ramadan di dashboard. Butuh variabel `masjid` (utils/masjid-summary). %>
+<% if (typeof masjid !== 'undefined' && masjid) {
+  const rpw = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(Number(n) || 0));
+  const hm = (m) => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+  const r = masjid.ramadan;
+  const BLN = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
+%>
+<style>
+  .mw { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 14px; margin: 0 0 18px; }
+  .mw-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .mw-card.is-green { color: #fff; border: 0; background: radial-gradient(300px 160px at 90% -20%, rgba(201,162,75,.35), transparent 70%), linear-gradient(135deg, var(--primary-dark), var(--primary-darker) 60%, var(--forest)); box-shadow: var(--shadow-md); }
+  .mw-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--muted); }
+  .is-green .mw-top { color: #f1dca6; }
+  .mw-top a { color: inherit; text-decoration: none; font-size: .78rem; letter-spacing: 0; text-transform: none; }
+  .mw-top a:hover { text-decoration: underline; }
+  .mw-big { font-size: 1.7rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ink); line-height: 1.1; }
+  .is-green .mw-big { color: #fff; font-size: 2rem; }
+  .mw-sub { font-size: .84rem; color: var(--muted); }
+  .is-green .mw-sub { color: rgba(255,255,255,.85); }
+  .mw-row { display: flex; justify-content: space-between; gap: 8px; font-size: .86rem; color: var(--ink-2); }
+  .mw-row b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .mw-in { color: var(--primary-dark); } .mw-out { color: #dc2626; }
+  html.dark-mode .mw-in { color: #6ee37e; } html.dark-mode .mw-out { color: #fca5a5; }
+  .mw-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .mw-list li { display: flex; gap: 10px; align-items: center; min-width: 0; }
+  .mw-d { flex: none; width: 40px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--primary-dark), var(--forest)); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
+  .mw-d b { font-size: 1.05rem; } .mw-d span { font-size: .6rem; letter-spacing: .1em; color: #f1dca6; margin-top: 3px; }
+  .mw-list .t { min-width: 0; font-size: .88rem; color: var(--ink); font-weight: 600; }
+  .mw-list .t small { display: block; font-weight: 500; color: var(--muted); font-size: .76rem; }
+  .mw-list .t span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mw-warn { display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: .78rem; font-weight: 700; background: var(--gold-soft); color: var(--gold-ink); }
+  .mw-empty { font-size: .86rem; color: var(--muted); }
+</style>
+<section class="mw" aria-label="Ringkasan masjid">
+  <article class="mw-card is-green" id="mw-ramadan" data-tz="<%= masjid.lok.tz %>" data-times='<%- JSON.stringify(masjid.times) %>' data-in="<%= r.dayNo ? 1 : 0 %>">
+    <div class="mw-top"><span><%= r.dayNo ? 'Ramadan ' + r.tahunH + ' H' : 'Waktu Sholat' %></span><a href="/ramadan">Jadwal <i class="fas fa-arrow-right"></i></a></div>
+    <div class="mw-sub" id="mw-label">Menghitung…</div>
+    <div class="mw-big" id="mw-clock">--:--:--</div>
+    <div class="mw-sub">
+      <% if (r.dayNo) { %>Hari ke-<%= r.dayNo %> dari <%= r.total %> · Imsak <%= hm(masjid.times.imsak) %> · Berbuka <%= hm(masjid.times.maghrib) %>
+      <% } else if (r.selisihMulai > 0) { %>Ramadan dimulai <%= r.selisihMulai %> hari lagi (<%= r.mulaiLabel %>)
+      <% } else { %><%= masjid.todayLabel %><% } %>
+    </div>
+    <% if (r.petugas.length) { %><div class="mw-sub">Hari ini: <%= r.petugas.map(function (p) { return p.petugas; }).join(' · ') %></div><% } %>
+  </article>
+
+  <article class="mw-card">
+    <div class="mw-top"><span>Kas <%= masjid.kas.bulanLabel %></span><a href="/kas">Kas <i class="fas fa-arrow-right"></i></a></div>
+    <div class="mw-sub">Saldo kas</div>
+    <div class="mw-big"><%= rpw(masjid.kas.saldo) %></div>
+    <div class="mw-row"><span>Pemasukan</span><b class="mw-in">+ <%= rpw(masjid.kas.masuk) %></b></div>
+    <div class="mw-row"><span>Pengeluaran</span><b class="mw-out">− <%= rpw(masjid.kas.keluar) %></b></div>
+    <% if (masjid.donasiMenunggu > 0) { %><a href="/donasi-masuk" class="mw-warn" style="text-decoration:none;align-self:flex-start"><i class="fas fa-hand-holding-dollar"></i><%= masjid.donasiMenunggu %> donasi menunggu verifikasi</a><% } %>
+  </article>
+
+  <article class="mw-card">
+    <div class="mw-top"><span>Agenda terdekat</span><a href="/agenda">Semua <i class="fas fa-arrow-right"></i></a></div>
+    <% if (!masjid.agenda.length) { %><div class="mw-empty">Belum ada agenda. <a href="/agenda" style="color:var(--primary-dark);font-weight:600">Tambah agenda</a></div>
+    <% } else { %><ul class="mw-list"><% masjid.agenda.forEach(function (a) { const d = new Date(a.tanggal + 'T00:00:00Z'); %>
+      <li><div class="mw-d"><b><%= d.getUTCDate() %></b><span><%= BLN[d.getUTCMonth()] %></span></div>
+        <div class="t"><span><%= a.judul %></span><small><%= a.jam_mulai ? a.jam_mulai + ' · ' : '' %><%= a.lokasi || a.label %></small></div></li>
+    <% }) %></ul><% } %>
+  </article>
+
+  <article class="mw-card">
+    <div class="mw-top"><span>Pengumuman &amp; Inventaris</span><a href="/inventaris">Inventaris <i class="fas fa-arrow-right"></i></a></div>
+    <% if (!masjid.pengumuman.length) { %><div class="mw-empty">Tidak ada pengumuman aktif.</div>
+    <% } else { %><ul class="mw-list"><% masjid.pengumuman.forEach(function (p) { %>
+      <li><i class="fas fa-bullhorn" style="color:<%= p.penting ? 'var(--gold-ink)' : 'var(--muted)' %>"></i><div class="t"><span><%= p.judul %></span></div></li>
+    <% }) %></ul><% } %>
+    <% if (masjid.invBermasalah > 0) { %><div><span class="mw-warn"><i class="fas fa-screwdriver-wrench"></i><%= masjid.invBermasalah %> barang perlu perhatian</span></div><% } %>
+  </article>
+</section>
+<script>
+  (function () {
+    var card = document.getElementById("mw-ramadan");
+    if (!card) { return; }
+    var tz = Number(card.dataset.tz), times = JSON.parse(card.dataset.times), inRamadan = card.dataset.in === "1";
+    var ORDER = ["imsak", "subuh", "terbit", "dzuhur", "ashar", "maghrib", "isya"];
+    var NAMES = { imsak: "Imsak", subuh: "Subuh", terbit: "Terbit", dzuhur: "Dzuhur", ashar: "Ashar", maghrib: "Maghrib", isya: "Isya" };
+    var label = document.getElementById("mw-label"), clock = document.getElementById("mw-clock");
+    function pad(n) { return (n < 10 ? "0" : "") + n; }
+    function tick() {
+      var now = new Date(Date.now() + tz * 3600e3);
+      var sec = now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+      var key = null, target = 0, i;
+      if (inRamadan) {
+        var im = times.imsak * 60, mg = times.maghrib * 60;
+        if (sec >= im && sec < mg) { key = "maghrib"; target = mg; label.textContent = "Menuju waktu berbuka"; }
+        else { key = "imsak"; target = sec < im ? im : im + 86400; label.textContent = "Menuju imsak"; }
+      } else {
+        for (i = 0; i < ORDER.length; i++) { if (times[ORDER[i]] * 60 > sec) { key = ORDER[i]; target = times[key] * 60; break; } }
+        if (!key) { key = "imsak"; target = times.imsak * 60 + 86400; }
+        label.textContent = "Menuju " + NAMES[key] + " · " + pad(Math.floor(times[key] / 60) % 24) + ":" + pad(times[key] % 60);
+      }
+      var d = Math.max(0, target - sec);
+      clock.textContent = pad(Math.floor(d / 3600)) + ":" + pad(Math.floor(d % 3600 / 60)) + ":" + pad(d % 60);
+    }
+    tick(); setInterval(tick, 1000);
+  })();
+</script>
+<% } %>

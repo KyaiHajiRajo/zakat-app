@@ -1,0 +1,172 @@
+<%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen' }) %>
+<%- include('../masjid/partials/ui') %>
+<% if (!user) { %><%- include('../masjid/partials/public-nav', { settings: settings, active: 'transparansi' }) %><% } %>
+<style>
+  .tp-hero-grid { display: grid; gap: 4px; }
+  .tp-saldo-label { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; color: #f1dca6; }
+  .tp-month { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: thin; }
+  .tp-month a { flex: none; padding: 9px 16px; border-radius: 999px; border: 1.5px solid var(--line-strong); background: var(--surface); color: var(--ink-2); font-weight: 700; font-size: .86rem; text-decoration: none; white-space: nowrap; transition: all .15s ease; }
+  .tp-month a:hover { border-color: var(--primary-color); color: var(--primary-dark); }
+  .tp-month a.is-active { background: linear-gradient(135deg, #2bc23c 0%, var(--primary-darker) 100%); border-color: transparent; color: #fff; box-shadow: 0 8px 16px -10px rgba(30,175,47,.9); }
+  .tp-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .tp-cols > * { min-width: 0; }
+  .tp-chart { padding: 18px 18px 14px; }
+  .tp-bars { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; align-items: end; height: 190px; margin-top: 10px; }
+  .tp-col { display: grid; grid-template-rows: 1fr auto; height: 100%; gap: 8px; text-decoration: none; }
+  .tp-pair { display: flex; gap: 4px; align-items: flex-end; justify-content: center; border-bottom: 1px solid var(--line); }
+  .tp-pair i { display: block; width: min(22px, 38%); border-radius: 7px 7px 0 0; min-height: 3px; transition: height .6s cubic-bezier(.2,.9,.3,1); }
+  .tp-pair .in { background: linear-gradient(180deg, #2bc23c, var(--primary-darker)); }
+  .tp-pair .out { background: linear-gradient(180deg, #f87171, #dc2626); }
+  .tp-col span { text-align: center; font-size: .74rem; font-weight: 700; color: var(--muted); }
+  .tp-col.is-active span { color: var(--primary-dark); }
+  .tp-col.is-active .tp-pair { background: rgba(30,175,47,.07); border-radius: 10px 10px 0 0; }
+  .tp-legend { display: flex; gap: 16px; margin-top: 10px; font-size: .8rem; color: var(--muted); }
+  .tp-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; }
+  .tp-split { padding: 0 18px 18px; display: grid; gap: 14px; }
+  .tp-row { display: grid; gap: 6px; }
+  .tp-row-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; font-size: .88rem; }
+  .tp-row-top span { display: inline-flex; gap: 8px; align-items: center; color: var(--ink); font-weight: 600; min-width: 0; }
+  .tp-row-top span i { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; font-size: .78rem; background: rgba(30,175,47,.14); color: var(--primary-dark); flex: none; }
+  .tp-cols .is-out-col .tp-row-top span i { background: rgba(220,38,38,.12); color: #dc2626; }
+  .tp-row-top b { font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+  .tp-bar { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--line); }
+  .tp-bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #2bc23c, var(--primary-darker)); }
+  .is-out-col .tp-bar i { background: linear-gradient(90deg, #f87171, #dc2626); }
+  .tp-feed { list-style: none; margin: 0; padding: 6px 10px 12px; }
+  .tp-item { display: flex; gap: 12px; align-items: center; padding: 11px 8px; border-bottom: 1px solid var(--line); }
+  .tp-item:last-child { border-bottom: 0; }
+  .tp-ic { width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; flex: none; background: rgba(30,175,47,.14); color: var(--primary-dark); }
+  .tp-item.is-out .tp-ic { background: rgba(220,38,38,.12); color: #dc2626; }
+  .tp-item > div { flex: 1; min-width: 0; }
+  .tp-item b { display: block; font-size: .92rem; color: var(--ink); }
+  .tp-item small { display: block; font-size: .78rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tp-item em { font-style: normal; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--primary-dark); }
+  .tp-item.is-out em { color: #dc2626; }
+  html.dark-mode .tp-item em { color: #6ee37e; }
+  html.dark-mode .tp-item.is-out em { color: #fca5a5; }
+  html.dark-mode .tp-item.is-out .tp-ic, html.dark-mode .is-out-col .tp-row-top span i { color: #fca5a5; }
+  .tp-zakat { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; padding: 16px 18px 18px; }
+  .tp-z { padding: 14px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--line); }
+  .tp-z small { display: block; font-size: .74rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  .tp-z b { display: block; margin-top: 4px; font-size: 1.15rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .tp-z span { font-size: .78rem; color: var(--muted); }
+  .tp-cta { padding: 22px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; background: linear-gradient(135deg, rgba(30,175,47,.10), rgba(201,162,75,.12)); }
+  .tp-cta h2 { margin: 0; font-size: 1.1rem; font-weight: 800; color: var(--ink); }
+  .tp-cta p { margin: 2px 0 0; font-size: .88rem; color: var(--muted); }
+  .tp-foot { text-align: center; color: var(--muted); font-size: .8rem; padding: 4px 0 8px; }
+  @media (max-width: 860px) { .tp-cols { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 560px) { .tp-bars { height: 150px; gap: 6px; } }
+  @media print { .tp-month, .tp-cta, .mj-actions { display: none !important; } }
+</style>
+<%
+  const waText = '📊 *Laporan Kas ' + settings.masjid_nama + '*\n' + (tutup ? '' : 'Saldo saat ini: ' + rupiah(saldo) + '\nPemasukan & pengeluaran dilaporkan terbuka untuk jamaah.\n\n');
+%>
+<section class="mj-page" style="--mj-glyph:'\f200'">
+  <header class="mj-hero">
+    <div class="tp-hero-grid">
+      <div class="mj-kicker">Laporan Terbuka</div>
+      <h1 class="mj-title"><%= settings.masjid_nama %></h1>
+      <% if (!tutup) { %>
+        <div class="tp-saldo-label">Saldo kas saat ini</div>
+        <div class="mj-big"><%= rupiah(saldo) %></div>
+      <% } else { %><p class="mj-sub">Laporan kas belum dibuka untuk umum oleh pengurus.</p><% } %>
+    </div>
+    <div class="mj-actions mj-noprint">
+      <% if (!tutup) { %><a href="#" class="mj-btn is-solid" data-wa-text="<%= waText %>" data-wa-link="/transparansi"><i class="fab fa-whatsapp"></i>Bagikan</a>
+      <button type="button" class="mj-btn" onclick="window.print()"><i class="fas fa-print"></i>Cetak</button><% } %>
+      <a href="/donasi" class="mj-btn"><i class="fas fa-hand-holding-heart"></i>Donasi</a>
+    </div>
+  </header>
+
+  <% if (tutup) { %>
+    <section class="mj-card"><div class="mj-empty"><i class="fas fa-lock"></i><h3>Laporan belum dibuka</h3><p>Hubungi pengurus untuk informasi keuangan.</p>
+      <% if (user && user.role === 'admin') { %><a href="/donasi-masuk" class="mj-btn is-solid"><i class="fas fa-gear"></i>Buka di pengaturan</a><% } %></div></section>
+  <% } else { %>
+
+  <nav class="tp-month mj-noprint" aria-label="Pilih bulan">
+    <% bulanList.forEach(function (m) { %><a href="/transparansi?bulan=<%= m.ym %>" class="<%= bulan === m.ym ? 'is-active' : '' %>"><%= m.label %></a><% }) %>
+    <a href="/transparansi?bulan=semua" class="<%= bulan === 'semua' ? 'is-active' : '' %>">Semua</a>
+  </nav>
+
+  <div class="mj-stats">
+    <div class="mj-card mj-stat"><span class="mj-stat-icon"><i class="fas fa-arrow-down"></i></span><div><small>Pemasukan</small><b class="mj-in"><%= rupiah(masuk) %></b><span><%= periodeLabel %></span></div></div>
+    <div class="mj-card mj-stat"><span class="mj-stat-icon is-out"><i class="fas fa-arrow-up"></i></span><div><small>Pengeluaran</small><b class="mj-out"><%= rupiah(keluar) %></b><span><%= periodeLabel %></span></div></div>
+    <div class="mj-card mj-stat"><span class="mj-stat-icon is-gold"><i class="fas fa-scale-balanced"></i></span><div><small>Selisih</small><b><%= (selisih < 0 ? '− ' : '') + rupiah(Math.abs(selisih)) %></b><span><%= jumlahTransaksi %> transaksi</span></div></div>
+  </div>
+
+  <section class="mj-card tp-chart">
+    <div class="mj-head" style="padding:0 0 4px;border:0"><div><h2>Tren 6 bulan</h2><p>Pemasukan dan pengeluaran per bulan</p></div></div>
+    <div class="tp-bars">
+      <% chart.forEach(function (c) { %>
+        <a class="tp-col <%= c.aktif ? 'is-active' : '' %>" href="/transparansi?bulan=<%= c.ym %>" title="<%= c.label %>: masuk <%= rupiah(c.masuk) %> · keluar <%= rupiah(c.keluar) %>">
+          <div class="tp-pair"><i class="in" style="height:<%= Math.round(c.masuk / chartMax * 100) %>%"></i><i class="out" style="height:<%= Math.round(c.keluar / chartMax * 100) %>%"></i></div>
+          <span><%= c.label %></span>
+        </a>
+      <% }) %>
+    </div>
+    <div class="tp-legend"><span><i style="background:var(--primary-color)"></i>Pemasukan</span><span><i style="background:#dc2626"></i>Pengeluaran</span></div>
+  </section>
+
+  <div class="tp-cols">
+    <section class="mj-card">
+      <div class="mj-head"><div><h2>Dana masuk dari</h2><p><%= periodeLabel %> · <%= rupiah(grupMasuk.sum) %></p></div></div>
+      <div class="tp-split" style="padding-top:16px">
+        <% if (!grupMasuk.items.length) { %><div class="mj-empty" style="padding:20px"><p style="margin:0">Belum ada pemasukan.</p></div><% } %>
+        <% grupMasuk.items.forEach(function (g) { %>
+          <div class="tp-row"><div class="tp-row-top"><span><i class="fas <%= g.icon %>"></i><%= g.label %></span><b><%= rupiah(g.total) %> <small style="color:var(--muted);font-weight:600">· <%= g.persen %>%</small></b></div><div class="tp-bar"><i style="width:<%= g.persen %>%"></i></div></div>
+        <% }) %>
+      </div>
+    </section>
+    <section class="mj-card is-out-col">
+      <div class="mj-head"><div><h2>Dana dipakai untuk</h2><p><%= periodeLabel %> · <%= rupiah(grupKeluar.sum) %></p></div></div>
+      <div class="tp-split" style="padding-top:16px">
+        <% if (!grupKeluar.items.length) { %><div class="mj-empty" style="padding:20px"><p style="margin:0">Belum ada pengeluaran.</p></div><% } %>
+        <% grupKeluar.items.forEach(function (g) { %>
+          <div class="tp-row"><div class="tp-row-top"><span><i class="fas <%= g.icon %>"></i><%= g.label %></span><b><%= rupiah(g.total) %> <small style="color:var(--muted);font-weight:600">· <%= g.persen %>%</small></b></div><div class="tp-bar"><i style="width:<%= g.persen %>%"></i></div></div>
+        <% }) %>
+      </div>
+    </section>
+  </div>
+
+  <section class="mj-card">
+    <div class="mj-head"><div><h2>Rincian transaksi</h2><p><%= periodeLabel %></p></div></div>
+    <% if (!rows.length) { %>
+      <div class="mj-empty"><i class="fas fa-receipt"></i><h3>Belum ada transaksi</h3><p>Pilih bulan lain untuk melihat rincian.</p></div>
+    <% } else { %>
+      <ul class="tp-feed">
+        <% rows.forEach(function (r) { %>
+          <li class="tp-item <%= r.tipe === 'keluar' ? 'is-out' : '' %>">
+            <span class="tp-ic"><i class="fas <%= r.icon %>"></i></span>
+            <div><b><%= r.kategoriLabel %><% if (r.pihak) { %> · <%= r.pihak %><% } %></b><small><%= labelTanggal(r.tanggal) %><% if (r.keterangan) { %> · <%= r.keterangan %><% } %></small></div>
+            <em><%= r.tipe === 'keluar' ? '− ' : '+ ' %><%= rupiah(r.jumlah) %></em>
+          </li>
+        <% }) %>
+      </ul>
+      <% if (terpotong) { %><p class="tp-foot">Menampilkan <%= maxRows %> transaksi terbaru. Pilih bulan tertentu untuk rincian lain.</p><% } %>
+    <% } %>
+  </section>
+
+  <% if (zakat) { %>
+  <section class="mj-card">
+    <div class="mj-head"><div><h2>Zakat Fitrah <%= zakat.tahun %></h2><p>Ringkasan penerimaan dan penyaluran</p></div>
+      <% if (zakat.tahun === 2026) { %><a href="/zakat-fitrah-2026" class="mj-btn is-small"><i class="fas fa-list"></i>Rincian lengkap</a><% } %></div>
+    <div class="tp-zakat">
+      <div class="tp-z"><small>Muzakki</small><b><%= zakat.muzakki %> keluarga</b><span><%= zakat.jiwa %> jiwa</span></div>
+      <div class="tp-z"><small>Zakat uang</small><b><%= rupiah(zakat.uang) %></b><span>terkumpul</span></div>
+      <div class="tp-z"><small>Zakat beras</small><b><%= new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(zakat.beras) %> kg</b><span>terkumpul</span></div>
+      <div class="tp-z"><small>Telah disalurkan</small><b><%= zakat.penerima %> penerima</b><span><%= rupiah(zakat.uangSalur) %> · <%= new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(zakat.berasSalur) %> kg</span></div>
+    </div>
+  </section>
+  <% } %>
+
+  <section class="mj-card tp-cta mj-noprint">
+    <div><h2>Ikut berkontribusi</h2><p>Setiap donasi tercatat dan tampil di laporan ini.</p></div>
+    <a class="mj-btn is-solid" href="/donasi"><i class="fas fa-hand-holding-heart"></i>Berdonasi sekarang</a>
+  </section>
+  <p class="tp-foot">Diperbarui <%= hariIni %> · Dikelola pengurus <%= settings.masjid_nama %></p>
+  <% } %>
+</section>
+<script>
+  document.querySelectorAll('[data-wa-link="/transparansi"]').forEach(function (a) { a.setAttribute("data-wa-text", a.getAttribute("data-wa-text") + location.origin + "/transparansi"); });
+</script>
+<%- include('../layouts/footer') %>

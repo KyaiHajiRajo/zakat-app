@@ -1,0 +1,128 @@
+<%# Modal barang inventaris. <a data-modal-open="inv-modal" data-mode="create|edit" data-id> %>
+<div class="am" id="inv-modal" role="dialog" aria-modal="true" aria-labelledby="inv-m-title" aria-hidden="true">
+  <div class="am-backdrop" data-modal-close></div>
+  <div class="am-panel" data-loading="0" style="--am-w: 640px">
+    <header class="am-head">
+      <span class="am-head-icon"><i class="fas fa-box" id="inv-m-icon"></i></span>
+      <div class="am-head-text">
+        <h2 class="am-title" id="inv-m-title">Tambah Barang</h2>
+        <p class="am-sub">Catat perlengkapan musholla beserta kondisinya</p>
+      </div>
+      <button type="button" class="am-close" data-modal-close aria-label="Tutup"><i class="fas fa-xmark"></i></button>
+    </header>
+    <form class="am-form" id="inv-m-form" method="POST" action="/inventaris" novalidate>
+      <input type="hidden" name="return_to" id="inv-m-return">
+      <div class="am-body">
+        <div class="am-error" data-am-error role="alert"><i class="fas fa-circle-exclamation"></i><span></span></div>
+        <div class="am-field">
+          <label for="inv-m-nama">Nama Barang <span class="req">*</span></label>
+          <div class="am-control" data-control><i class="fas fa-box lead"></i>
+            <input type="text" id="inv-m-nama" name="nama" required maxlength="120" placeholder="Mis. Sajadah, Speaker, Karpet" autocomplete="off"></div>
+        </div>
+        <div class="am-row">
+          <div class="am-field">
+            <label for="inv-m-kategori">Kategori</label>
+            <div class="am-control" data-control><i class="fas fa-tags lead"></i>
+              <select id="inv-m-kategori" name="kategori"><% Object.keys(KATEGORI).forEach(function (k) { %><option value="<%= k %>"><%= KATEGORI[k].label %></option><% }) %></select></div>
+          </div>
+          <div class="am-field">
+            <label for="inv-m-kondisi">Kondisi</label>
+            <div class="am-control" data-control><i class="fas fa-heart-pulse lead"></i>
+              <select id="inv-m-kondisi" name="kondisi"><% Object.keys(KONDISI).forEach(function (k) { %><option value="<%= k %>"><%= KONDISI[k].label %></option><% }) %></select></div>
+          </div>
+        </div>
+        <div class="am-row">
+          <div class="am-field">
+            <label for="inv-m-jumlah">Jumlah <span class="req">*</span></label>
+            <div class="am-control" data-control><i class="fas fa-hashtag lead"></i>
+              <input type="number" id="inv-m-jumlah" name="jumlah" min="0" step="1" value="1" required inputmode="numeric"></div>
+          </div>
+          <div class="am-field">
+            <label for="inv-m-satuan">Satuan</label>
+            <div class="am-control" data-control><i class="fas fa-ruler lead"></i>
+              <input type="text" id="inv-m-satuan" name="satuan" maxlength="20" value="unit" placeholder="unit, buah, lembar" autocomplete="off"></div>
+          </div>
+        </div>
+        <div class="am-row">
+          <div class="am-field">
+            <label for="inv-m-lokasi">Lokasi simpan <span class="opt">(opsional)</span></label>
+            <div class="am-control" data-control><i class="fas fa-location-dot lead"></i>
+              <input type="text" id="inv-m-lokasi" name="lokasi" maxlength="100" placeholder="Mis. Lemari belakang" autocomplete="off"></div>
+          </div>
+          <div class="am-field">
+            <label for="inv-m-perolehan">Tanggal perolehan <span class="opt">(opsional)</span></label>
+            <div class="am-control" data-control><i class="fas fa-calendar-day lead"></i>
+              <input type="date" id="inv-m-perolehan" name="tanggal_perolehan"></div>
+          </div>
+        </div>
+        <div class="am-row">
+          <div class="am-field">
+            <label for="inv-m-sumber">Sumber <span class="opt">(opsional)</span></label>
+            <div class="am-control" data-control><i class="fas fa-gift lead"></i>
+              <input type="text" id="inv-m-sumber" name="sumber" maxlength="100" placeholder="Mis. Wakaf Bpk. Ahmad / Beli kas" autocomplete="off"></div>
+          </div>
+          <div class="am-field">
+            <label for="inv-m-catatan">Catatan <span class="opt">(opsional)</span></label>
+            <div class="am-control" data-control><i class="fas fa-note-sticky lead"></i>
+              <input type="text" id="inv-m-catatan" name="catatan" maxlength="255" placeholder="Merek, ukuran, dll." autocomplete="off"></div>
+          </div>
+        </div>
+      </div>
+      <footer class="am-foot">
+        <button type="button" class="am-btn am-btn-danger-ghost" id="inv-m-delete" hidden style="margin-right:auto"><i class="fas fa-trash-can"></i><span>Hapus</span></button>
+        <button type="button" class="am-btn am-btn-ghost" data-modal-close>Batal</button>
+        <button type="submit" class="am-btn am-btn-primary" id="inv-m-submit"><i class="fas fa-floppy-disk"></i><span>Simpan Barang</span></button>
+      </footer>
+    </form>
+  </div>
+</div>
+<script>
+  (function () {
+    var modal = document.getElementById("inv-modal");
+    var panel = modal.querySelector(".am-panel");
+    var form = document.getElementById("inv-m-form");
+    function gid(id) { return document.getElementById(id); }
+    var f = { nama: gid("inv-m-nama"), kategori: gid("inv-m-kategori"), kondisi: gid("inv-m-kondisi"), jumlah: gid("inv-m-jumlah"), satuan: gid("inv-m-satuan"), lokasi: gid("inv-m-lokasi"), perolehan: gid("inv-m-perolehan"), sumber: gid("inv-m-sumber"), catatan: gid("inv-m-catatan") };
+    var errorBox = form.querySelector("[data-am-error]");
+    var delBtn = gid("inv-m-delete");
+    var currentId = null;
+    function showError(m) { errorBox.querySelector("span").textContent = m; errorBox.classList.add("is-visible"); }
+    function clearErrors() { errorBox.classList.remove("is-visible"); [].forEach.call(form.querySelectorAll("[data-control]"), function (c) { c.classList.remove("is-invalid"); }); }
+    function setDate(v) { var fp = f.perolehan._flatpickr; if (fp) { fp.setDate(v || null, false); } else { f.perolehan.value = v || ""; } }
+    function focusFirst() { setTimeout(function () { f.nama.focus(); }, 80); }
+    function fill(d) {
+      f.nama.value = d.nama || ""; f.kategori.value = d.kategori || "perlengkapan_ibadah"; f.kondisi.value = d.kondisi || "baik";
+      f.jumlah.value = d.jumlah === undefined ? 1 : d.jumlah; f.satuan.value = d.satuan || "unit";
+      f.lokasi.value = d.lokasi || ""; setDate(d.tanggal_perolehan || ""); f.sumber.value = d.sumber || ""; f.catatan.value = d.catatan || "";
+    }
+    function openWith(t) {
+      var d = (t && t.dataset) || {}, edit = d.mode === "edit";
+      currentId = edit ? d.id : null; clearErrors();
+      gid("inv-m-return").value = window.location.pathname + window.location.search;
+      gid("inv-m-title").textContent = edit ? "Ubah Barang" : "Tambah Barang";
+      document.querySelector("#inv-m-submit span").textContent = edit ? "Simpan Perubahan" : "Simpan Barang";
+      form.setAttribute("action", edit ? "/inventaris/" + d.id + "/edit" : "/inventaris");
+      delBtn.hidden = !edit;
+      if (!edit) { fill({}); focusFirst(); return; }
+      panel.setAttribute("data-loading", "1");
+      fetch("/inventaris/form-data?id=" + encodeURIComponent(d.id), { credentials: "same-origin", headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (data) { if (!data.ok) { throw new Error(data.message || "Gagal memuat data"); } fill(data.barang); })
+        .catch(function (e) { showError(e.message || "Gagal memuat data"); })
+        .then(function () { panel.setAttribute("data-loading", "0"); focusFirst(); });
+    }
+    modal.addEventListener("am:open", function (e) { openWith(e.detail.trigger); });
+    form.addEventListener("submit", function (event) {
+      event.preventDefault(); clearErrors();
+      if (!f.nama.value.trim()) { f.nama.closest("[data-control]").classList.add("is-invalid"); showError("Nama barang wajib diisi."); return; }
+      if (f.jumlah.value === "" || Number(f.jumlah.value) < 0 || !Number.isInteger(Number(f.jumlah.value))) { f.jumlah.closest("[data-control]").classList.add("is-invalid"); showError("Jumlah harus angka bulat 0 atau lebih."); return; }
+      window.AppModal.submit(form);
+    });
+    delBtn.addEventListener("click", function () {
+      if (!currentId) { return; }
+      var run = function () { var d = document.createElement("form"); d.method = "POST"; d.action = "/inventaris/" + currentId + "/delete"; var b = document.createElement("input"); b.type = "hidden"; b.name = "return_to"; b.value = window.location.pathname + window.location.search; d.appendChild(b); document.body.appendChild(d); d.submit(); };
+      if (window.Swal) { Swal.fire({ title: "Hapus barang ini?", text: "Tindakan ini tidak dapat dibatalkan.", icon: "warning", showCancelButton: true, confirmButtonText: "Ya, hapus", cancelButtonText: "Batal", confirmButtonColor: "#dc2626", reverseButtons: true }).then(function (r) { if (r.isConfirmed) { run(); } }); }
+      else if (confirm("Hapus barang ini?")) { run(); }
+    });
+  })();
+</script>

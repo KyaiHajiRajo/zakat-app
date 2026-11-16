@@ -1,0 +1,145 @@
+<%# Modal pengaturan profil masjid/musholla, lokasi waktu sholat, dan tanggal Ramadan (khusus admin) %>
+<div class="am" id="rm-setting-modal" role="dialog" aria-modal="true" aria-labelledby="rm-s-title" aria-hidden="true">
+  <div class="am-backdrop" data-modal-close></div>
+  <div class="am-panel" style="--am-w: 640px">
+    <header class="am-head">
+      <span class="am-head-icon"><i class="fas fa-sliders"></i></span>
+      <div class="am-head-text">
+        <h2 class="am-title" id="rm-s-title">Pengaturan Masjid &amp; Ramadan</h2>
+        <p class="am-sub">Profil, lokasi untuk waktu sholat, dan tanggal 1 Ramadan</p>
+      </div>
+      <button type="button" class="am-close" data-modal-close aria-label="Tutup"><i class="fas fa-xmark"></i></button>
+    </header>
+
+    <form class="am-form" id="rm-s-form" method="POST" action="/ramadan/pengaturan" novalidate>
+      <div class="am-body">
+        <div class="am-error" data-am-error role="alert"><i class="fas fa-circle-exclamation"></i><span></span></div>
+
+        <div class="am-row">
+          <div class="am-field">
+            <label for="rm-s-nama">Nama <span class="req">*</span></label>
+            <div class="am-control" data-control>
+              <i class="fas fa-mosque lead"></i>
+              <input type="text" id="rm-s-nama" name="masjid_nama" required maxlength="100" value="<%= settings.masjid_nama %>" autocomplete="off">
+            </div>
+          </div>
+          <div class="am-field">
+            <label for="rm-s-tipe">Jenis</label>
+            <div class="am-control" data-control>
+              <i class="fas fa-building-columns lead"></i>
+              <select id="rm-s-tipe" name="masjid_tipe">
+                <option value="musholla" <%= settings.masjid_tipe === 'musholla' ? 'selected' : '' %>>Musholla</option>
+                <option value="masjid" <%= settings.masjid_tipe === 'masjid' ? 'selected' : '' %>>Masjid</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="am-field">
+          <label for="rm-s-alamat">Alamat <span class="opt">(opsional)</span></label>
+          <div class="am-control" data-control>
+            <i class="fas fa-location-dot lead"></i>
+            <input type="text" id="rm-s-alamat" name="masjid_alamat" maxlength="255" value="<%= settings.masjid_alamat %>" placeholder="Alamat lengkap" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="am-row">
+          <div class="am-field">
+            <label for="rm-s-kota">Kota (waktu sholat) <span class="req">*</span></label>
+            <div class="am-control" data-control>
+              <i class="fas fa-city lead"></i>
+              <select id="rm-s-kota" name="lokasi_kota">
+                <% kota.forEach(function (k) { %>
+                  <option value="<%= k.key %>" <%= settings.lokasi_kota === k.key ? 'selected' : '' %>><%= k.nama %></option>
+                <% }) %>
+                <option value="kustom" <%= settings.lokasi_kota === 'kustom' ? 'selected' : '' %>>Lainnya (isi koordinat)…</option>
+              </select>
+            </div>
+            <div class="am-hint">Waktu sholat dihitung offline sesuai koordinat kota.</div>
+          </div>
+          <div class="am-field">
+            <label for="rm-s-ihtiyati">Ihtiyati (menit)</label>
+            <div class="am-control" data-control>
+              <i class="fas fa-clock lead"></i>
+              <input type="number" id="rm-s-ihtiyati" name="ihtiyati_menit" min="0" max="5" step="1" value="<%= settings.ihtiyati_menit %>">
+            </div>
+            <div class="am-hint">Kemenag memakai 2 menit.</div>
+          </div>
+        </div>
+
+        <div class="am-row rm-custom" id="rm-s-custom" <%- settings.lokasi_kota === 'kustom' ? '' : 'hidden' %>>
+          <div class="am-field">
+            <label for="rm-s-lat">Lintang</label>
+            <div class="am-control" data-control><i class="fas fa-arrows-up-down lead"></i>
+              <input type="text" id="rm-s-lat" name="lokasi_lat" inputmode="decimal" value="<%= settings.lokasi_lat %>" placeholder="-6.2088"></div>
+          </div>
+          <div class="am-field">
+            <label for="rm-s-lng">Bujur</label>
+            <div class="am-control" data-control><i class="fas fa-arrows-left-right lead"></i>
+              <input type="text" id="rm-s-lng" name="lokasi_lng" inputmode="decimal" value="<%= settings.lokasi_lng %>" placeholder="106.8456"></div>
+          </div>
+          <div class="am-field">
+            <label for="rm-s-zona">Zona waktu</label>
+            <div class="am-control" data-control><i class="fas fa-globe lead"></i>
+              <select id="rm-s-zona" name="lokasi_zona">
+                <option value="7" <%= settings.lokasi_zona === '7' ? 'selected' : '' %>>WIB (UTC+7)</option>
+                <option value="8" <%= settings.lokasi_zona === '8' ? 'selected' : '' %>>WITA (UTC+8)</option>
+                <option value="9" <%= settings.lokasi_zona === '9' ? 'selected' : '' %>>WIT (UTC+9)</option>
+              </select></div>
+          </div>
+        </div>
+
+        <div class="am-row">
+          <div class="am-field">
+            <label for="rm-s-tahun">Tahun Hijriah</label>
+            <div class="am-control" data-control><i class="fas fa-moon lead"></i>
+              <input type="number" id="rm-s-tahun" name="ramadan_tahun_h" min="1400" max="1600" value="<%= settings.ramadan_tahun_h %>"></div>
+          </div>
+          <div class="am-field">
+            <label for="rm-s-mulai">1 Ramadan <span class="req">*</span></label>
+            <div class="am-control" data-control><i class="fas fa-calendar-day lead"></i>
+              <input type="date" id="rm-s-mulai" name="ramadan_mulai" required value="<%= settings.ramadan_mulai %>"></div>
+            <div class="am-hint">Sesuaikan setelah sidang isbat Kemenag.</div>
+          </div>
+          <div class="am-field">
+            <label for="rm-s-hari">Jumlah hari</label>
+            <div class="am-control" data-control><i class="fas fa-hashtag lead"></i>
+              <select id="rm-s-hari" name="ramadan_hari">
+                <option value="29" <%= settings.ramadan_hari === '29' ? 'selected' : '' %>>29 hari</option>
+                <option value="30" <%= settings.ramadan_hari !== '29' ? 'selected' : '' %>>30 hari</option>
+              </select></div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="am-foot">
+        <button type="button" class="am-btn am-btn-ghost" data-modal-close>Batal</button>
+        <button type="submit" class="am-btn am-btn-primary"><i class="fas fa-floppy-disk"></i><span>Simpan Pengaturan</span></button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var form = document.getElementById("rm-s-form");
+    var kota = document.getElementById("rm-s-kota");
+    var custom = document.getElementById("rm-s-custom");
+    var errorBox = form.querySelector("[data-am-error]");
+
+    kota.addEventListener("change", function () { custom.hidden = kota.value !== "kustom"; });
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      errorBox.classList.remove("is-visible");
+      var nama = document.getElementById("rm-s-nama");
+      var mulai = document.getElementById("rm-s-mulai");
+      if (!nama.value.trim() || !mulai.value) {
+        errorBox.querySelector("span").textContent = "Nama dan tanggal 1 Ramadan wajib diisi.";
+        errorBox.classList.add("is-visible");
+        return;
+      }
+      window.AppModal.submit(form);
+    });
+  })();
+</script>

@@ -4,6 +4,9 @@ const router = express.Router();
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
+
+const IMAGE_TYPES = { "image/jpeg": ".jpg", "image/png": ".png", "image/gif": ".gif" };
 
 // Configure multer untuk upload bukti foto
 const storage = multer.diskStorage({
@@ -17,19 +20,18 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     // Generate unique filename: distribusi-{timestamp}-{random}.{ext}
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, "distribusi-" + uniqueSuffix + ext);
+    const uniqueSuffix = Date.now() + "-" + crypto.randomBytes(8).toString("hex");
+    // ekstensi ditentukan dari jenis file, bukan dari nama yang dikirim pengguna
+    cb(null, "distribusi-" + uniqueSuffix + IMAGE_TYPES[file.mimetype]);
   },
 });
 
 // File filter untuk hanya accept gambar
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif/;
-  const extname = allowedTypes.test(
+  const extname = [".jpg", ".jpeg", ".png", ".gif"].includes(
     path.extname(file.originalname).toLowerCase()
   );
-  const mimetype = allowedTypes.test(file.mimetype);
+  const mimetype = Object.prototype.hasOwnProperty.call(IMAGE_TYPES, file.mimetype);
 
   if (mimetype && extname) {
     return cb(null, true);

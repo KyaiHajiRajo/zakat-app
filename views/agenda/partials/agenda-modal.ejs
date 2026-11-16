@@ -1,0 +1,133 @@
+<%# Modal agenda kegiatan. <a data-modal-open="agenda-modal" data-mode="create|edit" data-id> %>
+<div class="am" id="agenda-modal" role="dialog" aria-modal="true" aria-labelledby="ag-m-title" aria-hidden="true">
+  <div class="am-backdrop" data-modal-close></div>
+  <div class="am-panel" data-loading="0" style="--am-w: 640px">
+    <header class="am-head">
+      <span class="am-head-icon"><i class="fas fa-calendar-plus" id="ag-m-icon"></i></span>
+      <div class="am-head-text">
+        <h2 class="am-title" id="ag-m-title">Tambah Agenda</h2>
+        <p class="am-sub">Jadwalkan pengajian, kerja bakti, atau kegiatan lainnya</p>
+      </div>
+      <button type="button" class="am-close" data-modal-close aria-label="Tutup"><i class="fas fa-xmark"></i></button>
+    </header>
+    <form class="am-form" id="ag-m-form" method="POST" action="/agenda/agenda" novalidate>
+      <input type="hidden" name="return_to" id="ag-m-return">
+      <div class="am-body">
+        <div class="am-error" data-am-error role="alert"><i class="fas fa-circle-exclamation"></i><span></span></div>
+
+        <div class="am-field">
+          <label for="ag-m-judul">Judul Kegiatan <span class="req">*</span></label>
+          <div class="am-control" data-control><i class="fas fa-heading lead"></i>
+            <input type="text" id="ag-m-judul" name="judul" required maxlength="150" placeholder="Mis. Pengajian Rutin Malam Jumat" autocomplete="off"></div>
+        </div>
+
+        <div class="am-row">
+          <div class="am-field">
+            <label for="ag-m-jenis">Jenis</label>
+            <div class="am-control" data-control><i class="fas fa-list lead"></i>
+              <select id="ag-m-jenis" name="jenis">
+                <% Object.keys(JENIS).forEach(function (k) { %><option value="<%= k %>"><%= JENIS[k].label %></option><% }) %>
+              </select></div>
+          </div>
+          <div class="am-field">
+            <label for="ag-m-tanggal">Tanggal <span class="req">*</span></label>
+            <div class="am-control" data-control><i class="fas fa-calendar-day lead"></i>
+              <input type="date" id="ag-m-tanggal" name="tanggal" required></div>
+          </div>
+        </div>
+
+        <div class="am-row">
+          <div class="am-field">
+            <label for="ag-m-mulai">Jam Mulai <span class="opt">(opsional)</span></label>
+            <div class="am-control" data-control><i class="fas fa-clock lead"></i>
+              <input type="time" id="ag-m-mulai" name="jam_mulai"></div>
+          </div>
+          <div class="am-field">
+            <label for="ag-m-selesai">Jam Selesai <span class="opt">(opsional)</span></label>
+            <div class="am-control" data-control><i class="fas fa-clock lead"></i>
+              <input type="time" id="ag-m-selesai" name="jam_selesai"></div>
+          </div>
+        </div>
+
+        <div class="am-row">
+          <div class="am-field">
+            <label for="ag-m-lokasi">Lokasi <span class="opt">(opsional)</span></label>
+            <div class="am-control" data-control><i class="fas fa-location-dot lead"></i>
+              <input type="text" id="ag-m-lokasi" name="lokasi" maxlength="150" placeholder="Mis. Musholla / rumah warga" autocomplete="off"></div>
+          </div>
+          <div class="am-field">
+            <label for="ag-m-pemateri">Pemateri / PJ <span class="opt">(opsional)</span></label>
+            <div class="am-control" data-control><i class="fas fa-microphone-lines lead"></i>
+              <input type="text" id="ag-m-pemateri" name="pemateri" maxlength="120" placeholder="Nama ustadz / penanggung jawab" autocomplete="off"></div>
+          </div>
+        </div>
+
+        <div class="am-field">
+          <label for="ag-m-desk">Deskripsi <span class="opt">(opsional)</span></label>
+          <div class="am-control is-area" data-control><i class="fas fa-align-left lead"></i>
+            <textarea id="ag-m-desk" name="deskripsi" rows="3" maxlength="2000" placeholder="Tema, bawaan, catatan untuk jamaah"></textarea></div>
+        </div>
+
+        <label class="ag-check"><input type="checkbox" name="tampil_publik" value="1" id="ag-m-publik" checked> Tampilkan di halaman publik (info jamaah)</label>
+      </div>
+      <footer class="am-foot">
+        <button type="button" class="am-btn am-btn-danger-ghost" id="ag-m-delete" hidden style="margin-right:auto"><i class="fas fa-trash-can"></i><span>Hapus</span></button>
+        <button type="button" class="am-btn am-btn-ghost" data-modal-close>Batal</button>
+        <button type="submit" class="am-btn am-btn-primary" id="ag-m-submit"><i class="fas fa-floppy-disk"></i><span>Simpan Agenda</span></button>
+      </footer>
+    </form>
+  </div>
+</div>
+<script>
+  (function () {
+    var modal = document.getElementById("agenda-modal");
+    var panel = modal.querySelector(".am-panel");
+    var form = document.getElementById("ag-m-form");
+    var f = { judul: gid("ag-m-judul"), jenis: gid("ag-m-jenis"), tanggal: gid("ag-m-tanggal"), mulai: gid("ag-m-mulai"), selesai: gid("ag-m-selesai"), lokasi: gid("ag-m-lokasi"), pemateri: gid("ag-m-pemateri"), desk: gid("ag-m-desk"), publik: gid("ag-m-publik") };
+    var errorBox = form.querySelector("[data-am-error]");
+    var delBtn = gid("ag-m-delete");
+    var currentId = null;
+    function gid(id) { return document.getElementById(id); }
+    function showError(m) { errorBox.querySelector("span").textContent = m; errorBox.classList.add("is-visible"); }
+    function clearErrors() { errorBox.classList.remove("is-visible"); [].forEach.call(form.querySelectorAll("[data-control]"), function (c) { c.classList.remove("is-invalid"); }); }
+    function setDate(v) { var fp = f.tanggal._flatpickr; if (fp) { fp.setDate(v || null, false); } else { f.tanggal.value = v || ""; } }
+    function focusFirst() { var fp = f.tanggal._flatpickr; if (fp) { fp.close(); } setTimeout(function () { f.judul.focus(); }, 80); }
+    function fill(d) {
+      f.judul.value = d.judul || ""; f.jenis.value = d.jenis || "pengajian"; setDate(d.tanggal || "");
+      f.mulai.value = d.jam_mulai || ""; f.selesai.value = d.jam_selesai || "";
+      f.lokasi.value = d.lokasi || ""; f.pemateri.value = d.pemateri || ""; f.desk.value = d.deskripsi || "";
+      f.publik.checked = d.tampil_publik === undefined ? true : !!Number(d.tampil_publik);
+    }
+    function openWith(t) {
+      var d = (t && t.dataset) || {}, edit = d.mode === "edit";
+      currentId = edit ? d.id : null; clearErrors();
+      gid("ag-m-return").value = "/agenda";
+      gid("ag-m-title").textContent = edit ? "Ubah Agenda" : "Tambah Agenda";
+      gid("ag-m-icon").className = edit ? "fas fa-pen-to-square" : "fas fa-calendar-plus";
+      document.querySelector("#ag-m-submit span").textContent = edit ? "Simpan Perubahan" : "Simpan Agenda";
+      form.setAttribute("action", edit ? "/agenda/agenda/" + d.id + "/edit" : "/agenda/agenda");
+      delBtn.hidden = !edit;
+      if (!edit) { fill({}); focusFirst(); return; }
+      panel.setAttribute("data-loading", "1");
+      fetch("/agenda/agenda/form-data?id=" + encodeURIComponent(d.id), { credentials: "same-origin", headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (data) { if (!data.ok) { throw new Error(data.message || "Gagal memuat data"); } fill(data.agenda); })
+        .catch(function (e) { showError(e.message || "Gagal memuat data"); })
+        .then(function () { panel.setAttribute("data-loading", "0"); focusFirst(); });
+    }
+    modal.addEventListener("am:open", function (e) { openWith(e.detail.trigger); });
+    form.addEventListener("submit", function (event) {
+      event.preventDefault(); clearErrors();
+      var missing = [f.judul, f.tanggal].filter(function (el) { return !el.value.trim(); });
+      if (missing.length) { missing.forEach(function (el) { el.closest("[data-control]").classList.add("is-invalid"); }); showError("Judul dan tanggal wajib diisi."); return; }
+      if (f.mulai.value && f.selesai.value && f.selesai.value < f.mulai.value) { showError("Jam selesai tidak boleh sebelum jam mulai."); return; }
+      window.AppModal.submit(form);
+    });
+    delBtn.addEventListener("click", function () {
+      if (!currentId) { return; }
+      var run = function () { var d = document.createElement("form"); d.method = "POST"; d.action = "/agenda/agenda/" + currentId + "/delete"; var b = document.createElement("input"); b.type = "hidden"; b.name = "return_to"; b.value = "/agenda"; d.appendChild(b); document.body.appendChild(d); d.submit(); };
+      if (window.Swal) { Swal.fire({ title: "Hapus agenda ini?", text: "Tindakan ini tidak dapat dibatalkan.", icon: "warning", showCancelButton: true, confirmButtonText: "Ya, hapus", cancelButtonText: "Batal", confirmButtonColor: "#dc2626", reverseButtons: true }).then(function (r) { if (r.isConfirmed) { run(); } }); }
+      else if (confirm("Hapus agenda ini?")) { run(); }
+    });
+  })();
+</script>

@@ -1,0 +1,274 @@
+<%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen' }) %>
+<%- include('../masjid/partials/ui') %>
+<% if (!user) { %><%- include('../masjid/partials/public-nav', { settings: settings, active: 'donasi' }) %><% } %>
+<%- include('partials/donasi-css') %>
+
+<%
+  const adaQris = !!settings.donasi_qris;
+  const adaBank = !!(settings.donasi_bank_nama && settings.donasi_bank_norek);
+  const tipe = settings.masjid_tipe === 'masjid' ? 'masjid' : 'musholla';
+%>
+<section class="mj-page" style="--mj-glyph:'\f4be'">
+  <header class="mj-hero">
+    <div>
+      <div class="mj-kicker">Infaq &amp; Donasi</div>
+      <h1 class="mj-title">Salurkan kebaikan untuk <%= settings.masjid_nama %></h1>
+      <p class="mj-sub">Donasi Anda dikelola pengurus dan dilaporkan terbuka di halaman laporan kas. Tidak perlu daftar, cukup 3 langkah.</p>
+    </div>
+    <div class="mj-actions">
+      <a href="/transparansi" class="mj-btn"><i class="fas fa-chart-pie"></i>Lihat laporan kas</a>
+      <a href="#dn-cek" class="mj-btn"><i class="fas fa-magnifying-glass"></i>Cek status donasi</a>
+    </div>
+  </header>
+
+  <% if (success && success.length) { %><div class="mj-alert ok"><%= success %></div><% } %>
+  <% if (error && error.length) { %><div class="mj-alert err"><%= error %></div><% } %>
+
+  <% if (!aktif) { %>
+    <section class="mj-card">
+      <div class="mj-empty">
+        <i class="fas fa-lock"></i>
+        <h3>Donasi online belum dibuka</h3>
+        <p>Pengurus belum mengaktifkan donasi online. Silakan hubungi pengurus <%= tipe %> atau lihat <a href="/info-masjid" style="color:var(--primary-dark);font-weight:700">info &amp; agenda</a>.</p>
+        <% if (user && user.role === 'admin') { %><a href="/donasi-masuk" class="mj-btn is-solid"><i class="fas fa-gear"></i>Atur donasi online</a><% } %>
+      </div>
+    </section>
+  <% } else { %>
+  <div class="dn-grid">
+    <form id="dn-form" class="dn-steps" enctype="multipart/form-data" novalidate autocomplete="on">
+      <input type="text" name="website" tabindex="-1" autocomplete="off" class="dn-hp" aria-hidden="true">
+
+      <!-- Langkah 1 -->
+      <section class="mj-card dn-step">
+        <div class="dn-step-head"><span class="dn-no">1</span><div><h2>Pilih tujuan &amp; nominal</h2><p>Berapa pun nilainya, sangat berarti.</p></div></div>
+        <div class="dn-tujuan" role="radiogroup" aria-label="Tujuan donasi">
+          <% Object.keys(tujuan).forEach(function (k, i) { %>
+            <label class="dn-opt">
+              <input type="radio" name="tujuan" value="<%= k %>" <%= i === 0 ? 'checked' : '' %>>
+              <span><i class="fas <%= tujuan[k].icon %>"></i><b><%= tujuan[k].label %></b><small><%= tujuan[k].desc %></small></span>
+            </label>
+          <% }) %>
+        </div>
+        <div class="dn-chips" role="group" aria-label="Pilihan nominal">
+          <% nominalCepat.forEach(function (n) { %>
+            <button type="button" class="dn-chip" data-nominal="<%= n %>"><%= n >= 1000000 ? (n / 1000000) + ' jt' : (n / 1000) + ' rb' %></button>
+          <% }) %>
+        </div>
+        <div class="dn-field">
+          <label for="dn-jumlah">Nominal lain (Rp)</label>
+          <div class="dn-money"><span>Rp</span><input type="text" inputmode="numeric" id="dn-jumlah" name="jumlah" data-amount-input placeholder="0" required></div>
+          <small>Minimal <%= rupiah(min) %>.</small>
+        </div>
+      </section>
+
+      <!-- Langkah 2 -->
+      <section class="mj-card dn-step" id="dn-bayar">
+        <div class="dn-step-head"><span class="dn-no">2</span><div><h2>Transfer</h2><p>Transfer <b class="dn-amt-live">sesuai nominal Anda</b> lewat salah satu cara di bawah.</p></div></div>
+        <% if (adaQris && adaBank) { %>
+          <div class="mj-seg dn-tabs" role="tablist">
+            <a href="#" class="is-active" data-dn-tab="qris" role="tab"><i class="fas fa-qrcode"></i>QRIS</a>
+            <a href="#" data-dn-tab="bank" role="tab"><i class="fas fa-building-columns"></i>Transfer Bank</a>
+          </div>
+        <% } %>
+        <% if (adaQris) { %>
+          <div class="dn-pane" data-dn-pane="qris">
+            <a class="dn-qris" href="/qris/<%= settings.donasi_qris %>" target="_blank" rel="noopener" title="Buka gambar penuh">
+              <img src="/qris/<%= settings.donasi_qris %>" alt="Kode QRIS <%= settings.masjid_nama %>" loading="lazy">
+            </a>
+            <p class="dn-help">Buka aplikasi bank / e-wallet apa pun (GoPay, OVO, DANA, m-Banking), pilih <b>Scan</b>, lalu arahkan ke kode di atas.</p>
+            <a class="mj-btn is-small" href="/qris/<%= settings.donasi_qris %>" download="QRIS-<%= settings.masjid_nama.replace(/[^A-Za-z0-9]+/g, '-') %>"><i class="fas fa-download"></i>Unduh QRIS</a>
+          </div>
+        <% } %>
+        <% if (adaBank) { %>
+          <div class="dn-pane" data-dn-pane="bank" <%- adaQris ? 'hidden' : '' %>>
+            <div class="dn-bank">
+              <small><%= settings.donasi_bank_nama %></small>
+              <div class="dn-rek" id="dn-rek"><%= settings.donasi_bank_norek %></div>
+              <% if (settings.donasi_bank_atas_nama) { %><div class="dn-an">a.n. <b><%= settings.donasi_bank_atas_nama %></b></div><% } %>
+              <button type="button" class="mj-btn is-small" data-copy="<%= settings.donasi_bank_norek.replace(/\D/g, '') %>"><i class="fas fa-copy"></i>Salin nomor rekening</button>
+            </div>
+          </div>
+        <% } %>
+        <% if (settings.donasi_catatan) { %><p class="dn-note"><i class="fas fa-circle-info"></i><%= settings.donasi_catatan %></p><% } %>
+      </section>
+
+      <!-- Langkah 3 -->
+      <section class="mj-card dn-step">
+        <div class="dn-step-head"><span class="dn-no">3</span><div><h2>Konfirmasi</h2><p>Agar pengurus dapat mencatat donasi Anda.</p></div></div>
+        <div class="dn-two">
+          <div class="dn-field"><label for="dn-nama">Nama <span class="req">*</span></label><input class="mj-input" id="dn-nama" name="nama" maxlength="100" required placeholder="Nama Anda" autocomplete="name"></div>
+          <div class="dn-field"><label for="dn-wa">No. WhatsApp <span class="opt">(opsional)</span></label><input class="mj-input" id="dn-wa" name="nomor_wa" inputmode="tel" maxlength="20" placeholder="0812 3456 7890" autocomplete="tel"><small>Untuk ucapan terima kasih dari pengurus.</small></div>
+        </div>
+        <label class="dn-check"><input type="checkbox" name="anonim" value="1"><span>Sembunyikan nama saya (tampil sebagai <b>Hamba Allah</b>)</span></label>
+        <div class="dn-field"><label for="dn-pesan">Pesan / doa <span class="opt">(opsional)</span></label><textarea class="mj-input" id="dn-pesan" name="pesan" maxlength="255" rows="2" placeholder="Semoga berkah…" style="height:auto;padding:10px 12px"></textarea></div>
+
+        <div class="dn-field">
+          <label>Bukti transfer <span class="req">*</span></label>
+          <label class="dn-drop" id="dn-drop" for="dn-bukti">
+            <input type="file" id="dn-bukti" accept="image/jpeg,image/png,image/webp" hidden>
+            <span class="dn-drop-empty"><i class="fas fa-cloud-arrow-up"></i><b>Ketuk untuk unggah foto bukti</b><small>JPG / PNG / WebP · otomatis dikecilkan</small></span>
+            <span class="dn-drop-preview" hidden>
+              <span class="dn-pv-img"><img alt="Pratinjau bukti transfer"><span class="dn-pv-fail" hidden><i class="fas fa-image"></i>Pratinjau tidak tersedia, berkas tetap akan dikirim</span></span>
+              <span class="dn-pv-bar"><span class="dn-pv-info"><i class="fas fa-circle-check"></i><span><b id="dn-file-name"></b><small id="dn-file-size"></small></span></span><span class="dn-pv-acts"><span class="dn-pv-btn"><i class="fas fa-rotate"></i>Ganti</span><button type="button" id="dn-file-clear" class="dn-pv-btn is-del" aria-label="Hapus foto"><i class="fas fa-trash"></i>Hapus</button></span></span>
+            </span>
+          </label>
+        </div>
+
+        <div class="dn-error" id="dn-error" role="alert" hidden><i class="fas fa-circle-exclamation"></i><span></span></div>
+        <button type="submit" class="dn-submit" id="dn-submit"><i class="fas fa-paper-plane"></i><span>Kirim Konfirmasi Donasi</span></button>
+        <p class="dn-fine"><i class="fas fa-shield-halved"></i>Data Anda hanya dipakai pengurus untuk verifikasi. Nomor WhatsApp tidak ditampilkan ke publik.</p>
+      </section>
+    </form>
+
+    <aside class="dn-side">
+      <section class="mj-card dn-trust">
+        <div class="dn-trust-top">
+          <i class="fas fa-seedling"></i>
+          <div><b><%= rupiah(totalDonasi) %></b><small>terkumpul dari <%= jumlahDonatur %> donasi online</small></div>
+        </div>
+        <a href="/transparansi" class="mj-btn is-small" style="justify-content:center"><i class="fas fa-chart-pie"></i>Lihat penggunaan dana</a>
+      </section>
+      <section class="mj-card dn-recent">
+        <div class="mj-head"><div><h2>Donatur terbaru</h2><p>Jazakumullahu khairan 🤲</p></div></div>
+        <% if (!terbaru.length) { %>
+          <div class="mj-empty" style="padding:26px 16px"><i class="fas fa-heart"></i><p style="margin:0">Jadilah donatur pertama.</p></div>
+        <% } else { %>
+          <ul>
+            <% terbaru.forEach(function (d) { %>
+              <li><span class="dn-av"><%= d.nama.charAt(0).toUpperCase() %></span><div><b><%= d.nama %></b><small><%= d.tujuan %> · <%= d.lalu %></small></div><em><%= rupiah(d.jumlah) %></em></li>
+            <% }) %>
+          </ul>
+        <% } %>
+      </section>
+    </aside>
+  </div>
+  <% } %>
+
+  <section class="mj-card dn-cek" id="dn-cek">
+    <div>
+      <h2>Sudah berdonasi?</h2>
+      <p>Masukkan kode donasi (contoh <b>DN-AB12CD34</b>) untuk melihat apakah sudah diterima pengurus.</p>
+    </div>
+    <form action="/donasi/cek" method="GET" class="dn-cek-form">
+      <input class="mj-input" name="kode" placeholder="DN-XXXXXXXX" maxlength="14" autocomplete="off" required style="text-transform:uppercase">
+      <button class="mj-btn is-solid" type="submit"><i class="fas fa-magnifying-glass"></i>Cek</button>
+    </form>
+  </section>
+</section>
+
+<% if (aktif) { %>
+<script>
+  (function () {
+    var form = document.getElementById("dn-form");
+    var jumlah = document.getElementById("dn-jumlah");
+    var live = document.querySelector(".dn-amt-live");
+    var errBox = document.getElementById("dn-error");
+    var submit = document.getElementById("dn-submit");
+    var fileInput = document.getElementById("dn-bukti");
+    var drop = document.getElementById("dn-drop");
+    var chosen = null; // Blob/File yang akan dikirim
+    var rp = new Intl.NumberFormat("id-ID");
+
+    function paintAmount() {
+      var n = Number(jumlah.value || 0);
+      live.textContent = n > 0 ? "Rp " + rp.format(n) : "sesuai nominal Anda";
+      document.querySelectorAll(".dn-chip").forEach(function (c) { c.classList.toggle("is-on", Number(c.dataset.nominal) === n); });
+    }
+    document.querySelectorAll(".dn-chip").forEach(function (c) {
+      c.addEventListener("click", function () { jumlah.value = c.dataset.nominal; paintAmount(); });
+    });
+    form.addEventListener("input", function (e) { if (e.target === document.getElementById("dn-jumlah_display") || e.target === jumlah) { setTimeout(paintAmount, 0); } });
+    paintAmount();
+
+    // Tab QRIS / Bank
+    document.querySelectorAll("[data-dn-tab]").forEach(function (tab) {
+      tab.addEventListener("click", function (e) {
+        e.preventDefault();
+        document.querySelectorAll("[data-dn-tab]").forEach(function (t) { t.classList.toggle("is-active", t === tab); });
+        document.querySelectorAll("[data-dn-pane]").forEach(function (p) { p.hidden = p.dataset.dnPane !== tab.dataset.dnTab; });
+      });
+    });
+
+    // Salin nomor rekening
+    document.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-copy]");
+      if (!b) { return; }
+      var text = b.getAttribute("data-copy");
+      var done = function () { var old = b.innerHTML; b.innerHTML = '<i class="fas fa-check"></i>Tersalin'; setTimeout(function () { b.innerHTML = old; }, 1600); };
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done); }
+      else { var t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); done(); } catch (x) {} t.remove(); }
+    });
+
+    // Foto bukti: kecilkan di browser agar cepat dikirim walau sinyal lemah
+    function fmt(bytes) { return bytes > 1048576 ? (bytes / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(bytes / 1024)) + " KB"; }
+    function showPreview(blob, name) {
+      var wrap = drop.querySelector(".dn-drop-preview");
+      var img = wrap.querySelector("img");
+      if (img.src) { URL.revokeObjectURL(img.src); }
+      var fail = wrap.querySelector(".dn-pv-fail");
+      fail.hidden = true; img.hidden = false;
+      img.onerror = function () { img.hidden = true; fail.hidden = false; };
+      img.src = URL.createObjectURL(blob);
+      document.getElementById("dn-file-name").textContent = name;
+      document.getElementById("dn-file-size").textContent = fmt(blob.size);
+      drop.querySelector(".dn-drop-empty").hidden = true; wrap.hidden = false; drop.classList.add("has-file");
+    }
+    function shrink(file) {
+      return new Promise(function (resolve) {
+        if (file.size < 900 * 1024) { return resolve(file); }
+        var img = new Image();
+        var url = URL.createObjectURL(file);
+        img.onload = function () {
+          var max = 1600, s = Math.min(1, max / Math.max(img.width, img.height));
+          var c = document.createElement("canvas"); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          URL.revokeObjectURL(url);
+          c.toBlob(function (blob) { resolve(blob && blob.size < file.size ? blob : file); }, "image/jpeg", 0.82);
+        };
+        img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
+        img.src = url;
+      });
+    }
+    fileInput.addEventListener("change", function () {
+      var f = fileInput.files[0];
+      if (!f) { return; }
+      shrink(f).then(function (blob) { chosen = blob; showPreview(blob, f.name); fail(""); });
+    });
+    document.getElementById("dn-file-clear").addEventListener("click", function (e) {
+      e.preventDefault(); e.stopPropagation();
+      chosen = null; fileInput.value = "";
+      drop.querySelector(".dn-drop-preview").hidden = true; drop.querySelector(".dn-drop-empty").hidden = false; drop.classList.remove("has-file");
+    });
+
+    function fail(message) {
+      errBox.hidden = !message;
+      if (message) { errBox.querySelector("span").textContent = message; errBox.scrollIntoView({ block: "center", behavior: "smooth" }); }
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      fail("");
+      var n = Number(jumlah.value || 0);
+      if (!(n >= <%= min %>)) { fail("Isi nominal donasi (minimal Rp <%= new Intl.NumberFormat('id-ID').format(min) %>)."); jumlah.closest("form").querySelector("#dn-jumlah_display, #dn-jumlah").focus(); return; }
+      if (!form.nama.value.trim()) { fail("Nama wajib diisi."); form.nama.focus(); return; }
+      if (!chosen) { fail("Unggah foto bukti transfer terlebih dahulu."); return; }
+      var data = new FormData(form);
+      data.set("jumlah", String(n));
+      data.set("bukti", chosen, "bukti.jpg");
+      submit.disabled = true; submit.classList.add("is-busy"); submit.querySelector("span").textContent = "Mengirim…";
+      fetch("/donasi/kirim", { method: "POST", credentials: "same-origin", headers: { "X-Requested-With": "fetch", Accept: "application/json" }, body: data })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok && d.ok !== false, d: d }; }); })
+        .then(function (res) {
+          if (res.ok) { window.location.href = res.d.redirect || "/donasi"; return; }
+          fail(res.d.message || "Gagal mengirim, coba lagi.");
+          submit.disabled = false; submit.classList.remove("is-busy"); submit.querySelector("span").textContent = "Kirim Konfirmasi Donasi";
+        })
+        .catch(function () {
+          fail("Tidak dapat terhubung. Periksa sinyal lalu coba lagi.");
+          submit.disabled = false; submit.classList.remove("is-busy"); submit.querySelector("span").textContent = "Kirim Konfirmasi Donasi";
+        });
+    });
+  })();
+</script>
+<% } %>
+<%- include('../layouts/footer') %>

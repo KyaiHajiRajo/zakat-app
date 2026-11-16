@@ -1,0 +1,109 @@
+<%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'kas' }) %>
+<%- include('../masjid/partials/ui') %>
+<%
+  const rp = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(Number(n) || 0));
+  const tipe = settings.masjid_tipe === 'masjid' ? 'Masjid' : 'Musholla';
+%>
+<style>
+  .lp-sheet { padding: 28px 32px; }
+  .lp-head { text-align: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid var(--ink); }
+  .lp-head h1 { margin: 0; font-size: 1.35rem; font-weight: 800; color: var(--ink); letter-spacing: .02em; }
+  .lp-head p { margin: 3px 0 0; color: var(--ink-2); font-size: .9rem; }
+  .lp-sum { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .lp-sum div { border: 1px solid var(--line-strong); border-radius: 12px; padding: 10px 12px; }
+  .lp-sum small { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
+  .lp-sum b { font-size: 1.05rem; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .lp-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-bottom: 18px; }
+  .lp-cols h3, .lp-sheet h3.lp-h { margin: 0 0 8px; font-size: .95rem; color: var(--ink); }
+  .lp-group { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  .lp-group td { padding: 6px 4px; border-bottom: 1px dashed var(--line-strong); color: var(--ink); }
+  .lp-group td:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .lp-group tr.is-total td { border-bottom: 0; border-top: 2px solid var(--ink); font-weight: 800; }
+  table.lp-tx { width: 100%; border-collapse: collapse; font-size: .84rem; }
+  .lp-tx th, .lp-tx td { border: 1px solid var(--line-strong); padding: 6px 8px; color: var(--ink); text-align: left; }
+  .lp-tx th { background: var(--surface-2); font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .lp-tx .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .lp-sign { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px; margin-top: 36px; text-align: center; color: var(--ink); font-size: .9rem; }
+  .lp-sign div { padding-bottom: 64px; }
+  .lp-sign span { display: block; border-top: 1px solid var(--ink); padding-top: 4px; font-weight: 700; }
+  .lp-foot { margin-top: 16px; font-size: .78rem; color: var(--muted); text-align: right; }
+  @media (max-width: 720px) { .lp-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lp-cols { grid-template-columns: minmax(0, 1fr); } .lp-sheet { padding: 18px; } }
+  @media print {
+    .mj-page { max-width: none; padding: 0; }
+    .mj-card { border: 0; box-shadow: none; }
+    .lp-sheet { padding: 0; }
+    .lp-head, .lp-head h1, .lp-head p, .lp-sum b, .lp-sum small, .lp-group td, .lp-tx th, .lp-tx td, .lp-sign, .lp-cols h3, .lp-sheet h3.lp-h { color: #000 !important; }
+    .lp-tx th, .lp-sum div, .lp-tx td, .lp-tx th { background: #fff !important; border-color: #888 !important; }
+    @page { size: A4; margin: 14mm; }
+  }
+</style>
+
+<section class="mj-page" style="--mj-glyph:'\f15c'">
+  <div class="mj-card mj-noprint" style="padding:14px 18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+    <form method="GET" action="/kas/laporan" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <label for="lp-bulan" style="font-weight:600;color:var(--ink-2)">Periode</label>
+      <input type="month" id="lp-bulan" name="bulan" value="<%= bulan %>" class="mj-input">
+      <button class="mj-btn is-solid" type="submit">Tampilkan</button>
+    </form>
+    <div class="mj-actions">
+      <a class="mj-btn" href="/kas?bulan=<%= bulan %>"><i class="fas fa-arrow-left"></i>Kembali ke Kas</a>
+      <button class="mj-btn is-solid" type="button" onclick="window.print()"><i class="fas fa-print"></i>Cetak / PDF</button>
+    </div>
+  </div>
+
+  <article class="mj-card lp-sheet">
+    <header class="lp-head">
+      <h1>LAPORAN KEUANGAN KAS <%= tipe.toUpperCase() %> <%= settings.masjid_nama.replace(/^(musholla|masjid)\s+/i, '').toUpperCase() %></h1>
+      <p>Periode <%= periode %><%= settings.masjid_alamat ? ' · ' + settings.masjid_alamat : '' %></p>
+    </header>
+
+    <div class="lp-sum">
+      <div><small>Saldo awal</small><b><%= rp(saldoAwal) %></b></div>
+      <div><small>Pemasukan</small><b><%= rp(masuk) %></b></div>
+      <div><small>Pengeluaran</small><b><%= rp(keluar) %></b></div>
+      <div><small>Saldo akhir</small><b><%= rp(saldoAkhir) %></b></div>
+    </div>
+
+    <div class="lp-cols">
+      <div>
+        <h3>Rincian Pemasukan</h3>
+        <table class="lp-group"><tbody>
+          <% if (!grupMasuk.length) { %><tr><td colspan="2">Tidak ada pemasukan</td></tr><% } %>
+          <% grupMasuk.forEach(function (g) { %><tr><td><%= g.label %></td><td><%= rp(g.total) %></td></tr><% }) %>
+          <tr class="is-total"><td>Total</td><td><%= rp(masuk) %></td></tr>
+        </tbody></table>
+      </div>
+      <div>
+        <h3>Rincian Pengeluaran</h3>
+        <table class="lp-group"><tbody>
+          <% if (!grupKeluar.length) { %><tr><td colspan="2">Tidak ada pengeluaran</td></tr><% } %>
+          <% grupKeluar.forEach(function (g) { %><tr><td><%= g.label %></td><td><%= rp(g.total) %></td></tr><% }) %>
+          <tr class="is-total"><td>Total</td><td><%= rp(keluar) %></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <h3 class="lp-h">Daftar Transaksi</h3>
+    <table class="lp-tx" data-no-stack-mobile="true">
+      <thead><tr><th>Tanggal</th><th>Uraian</th><th class="n">Masuk</th><th class="n">Keluar</th></tr></thead>
+      <tbody>
+        <% if (!transaksi.length) { %><tr><td colspan="4" style="text-align:center">Belum ada transaksi pada periode ini.</td></tr><% } %>
+        <% transaksi.forEach(function (t) { %>
+          <tr>
+            <td><%= labelTanggal(t.tanggal) %></td>
+            <td><%= t.kategoriLabel %><%= t.pihak ? ' — ' + t.pihak : '' %><%= t.keterangan ? ' (' + t.keterangan + ')' : '' %></td>
+            <td class="n"><%= t.tipe === 'masuk' ? rp(t.jumlah) : '' %></td>
+            <td class="n"><%= t.tipe === 'keluar' ? rp(t.jumlah) : '' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <div class="lp-sign">
+      <div>Mengetahui,<br>Ketua / Pengurus<br><br><br><br><span>(…………………………)</span></div>
+      <div>Bendahara<br><br><br><br><br><span>(…………………………)</span></div>
+    </div>
+    <p class="lp-foot">Dicetak <%= cetakTanggal %> melalui Aplikasi <%= settings.masjid_nama %></p>
+  </article>
+</section>
+<%- include('../layouts/footer') %>

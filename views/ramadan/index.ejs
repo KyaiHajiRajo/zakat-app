@@ -1,0 +1,587 @@
+<%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'ramadan' }) %>
+<% if (!user) { %><%- include('../masjid/partials/public-nav', { settings: settings, active: 'ramadan' }) %><% } %>
+
+<%
+  const TIMES = [
+    { key: 'imsak', label: 'Imsak', icon: 'fa-bowl-rice' },
+    { key: 'subuh', label: 'Subuh', icon: 'fa-cloud-moon' },
+    { key: 'terbit', label: 'Terbit', icon: 'fa-sun' },
+    { key: 'dzuhur', label: 'Dzuhur', icon: 'fa-sun' },
+    { key: 'ashar', label: 'Ashar', icon: 'fa-cloud-sun' },
+    { key: 'maghrib', label: 'Maghrib', icon: 'fa-utensils' },
+    { key: 'isya', label: 'Isya', icon: 'fa-moon' }
+  ];
+  const pad = (n) => String(n).padStart(2, '0');
+  const hm = (m) => pad(Math.floor(m / 60) % 24) + ':' + pad(m % 60);
+  const tzName = { 7: 'WIB', 8: 'WITA', 9: 'WIT' }[lok.tz] || ('UTC+' + lok.tz);
+  const total = days.length;
+  const tipe = settings.masjid_tipe === 'masjid' ? 'Masjid' : 'Musholla';
+  const focusDay = hariIni || days[0];
+  const waText = ['🌙 *Jadwal Ramadan ' + settings.ramadan_tahun_h + ' H*', settings.masjid_nama + ' · ' + lok.nama, '',
+    '📅 ' + focusDay.hari + ', ' + focusDay.label + (hariIni ? ' (hari ke-' + focusDay.no + ')' : ' (awal Ramadan)'),
+    '🍚 Imsak ' + focusDay.times.imsak + ' · Subuh ' + focusDay.times.subuh,
+    '🌇 Maghrib (berbuka) ' + focusDay.times.maghrib + ' · Isya ' + focusDay.times.isya]
+    .concat(focusDay.kegiatan.length ? ['', ...focusDay.kegiatan.map(function (e) { return '• ' + e.jenisLabel + ': ' + e.petugas; })] : [], ['', 'Jadwal lengkap: /jadwal-ramadan']).join('\n');
+  let status;
+  if (hariIni) status = 'Hari ke-' + hariIni.no + ' dari ' + total;
+  else if (selisihMulai > 0) status = 'Dimulai ' + selisihMulai + ' hari lagi';
+  else status = 'Ramadan telah berakhir';
+%>
+
+<style>
+  .rm-page { max-width: 1180px; margin: 0 auto; padding: 8px 8px 32px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .rm-page > *, .rm-today > * { min-width: 0; }
+  .rm-hero {
+    position: relative; overflow: hidden; border-radius: var(--header-radius, 24px); padding: 26px 28px;
+    color: #fff; display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between;
+    background:
+      radial-gradient(420px 220px at 92% -20%, rgba(201,162,75,.35), transparent 70%),
+      radial-gradient(360px 200px at 0% 120%, rgba(255,255,255,.10), transparent 70%),
+      linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-darker) 55%, var(--forest) 100%);
+    box-shadow: var(--shadow-md);
+  }
+  .rm-hero::after { content: "\f186"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: 22px; bottom: -34px; font-size: 150px; color: rgba(255,255,255,.07); pointer-events: none; }
+  .rm-kicker { font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: #f1dca6; font-weight: 700; }
+  .rm-title { margin: 4px 0 6px; font-size: clamp(1.5rem, 3.2vw, 2.15rem); font-weight: 800; line-height: 1.15; color: #fff; }
+  .rm-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: .9rem; color: rgba(255,255,255,.88); }
+  .rm-meta i { margin-right: 6px; color: #f1dca6; }
+  .rm-actions { display: flex; flex-wrap: wrap; gap: 8px; position: relative; z-index: 1; }
+  .rm-btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,.28);
+    background: rgba(255,255,255,.14); color: #fff; font: inherit; font-weight: 600; font-size: .88rem; cursor: pointer; text-decoration: none;
+    backdrop-filter: blur(6px); transition: background-color .2s ease, transform .2s ease;
+  }
+  .rm-btn:hover { background: rgba(255,255,255,.26); transform: translateY(-1px); }
+  .rm-btn.is-solid { background: #fff; color: var(--primary-darker); border-color: #fff; }
+  .rm-btn.is-solid:hover { background: #f4fbf5; }
+
+  .rm-today { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 16px; }
+  .rm-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--card-radius, 18px); box-shadow: var(--shadow-sm); }
+  .rm-count { padding: 22px; display: flex; flex-direction: column; gap: 6px; justify-content: center; position: relative; overflow: hidden; }
+  .rm-count::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: linear-gradient(90deg, var(--primary-color), var(--gold)); }
+  .rm-count-label { font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .rm-count-time { font-size: clamp(2.2rem, 5vw, 3rem); font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ink); line-height: 1.05; }
+  .rm-count-sub { font-size: .88rem; color: var(--ink-2); }
+  .rm-chip { align-self: flex-start; display: inline-flex; gap: 6px; align-items: center; padding: 5px 12px; border-radius: 999px; background: var(--gold-soft); color: var(--gold-ink); font-size: .8rem; font-weight: 700; }
+
+  .rm-times { padding: 18px; }
+  .rm-times-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .rm-times-head h2 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--ink); }
+  .rm-times-head span { font-size: .82rem; color: var(--muted); }
+  .rm-time-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+  .rm-time {
+    border: 1px solid var(--line); background: var(--surface-2); border-radius: 14px; padding: 12px 6px; text-align: center;
+    transition: transform .2s ease, border-color .2s ease, background-color .2s ease;
+  }
+  .rm-time i { display: block; font-size: .95rem; color: var(--primary-dark); margin-bottom: 6px; }
+  .rm-time b { display: block; font-size: 1.12rem; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .rm-time small { display: block; margin-top: 2px; font-size: .74rem; color: var(--muted); font-weight: 600; }
+  .rm-time.is-passed { opacity: .55; }
+  .rm-time.is-next { border-color: var(--primary-color); background: rgba(30,175,47,.10); transform: translateY(-2px); box-shadow: 0 10px 20px -12px rgba(30,175,47,.7); }
+  .rm-time.is-key i { color: var(--gold-ink); }
+
+  .rm-tabs { display: flex; overflow-x: auto; gap: 4px; padding: 5px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-sm); width: fit-content; max-width: 100%; }
+  .rm-tab { border: 0; background: transparent; padding: 9px 16px; border-radius: 10px; font: inherit; font-weight: 600; font-size: .9rem; color: var(--ink-2); cursor: pointer; display: inline-flex; gap: 8px; align-items: center; white-space: nowrap; }
+  .rm-tab.is-active { background: linear-gradient(135deg, #2bc23c 0%, var(--primary-darker) 100%); color: #fff; box-shadow: 0 8px 16px -8px rgba(30,175,47,.8); }
+
+  .rm-panel { display: none; }
+  .rm-panel.is-active { display: block; }
+  .rm-panel-head { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; padding: 16px 18px; border-bottom: 1px solid var(--line); }
+  .rm-panel-head h2 { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--ink); }
+  .rm-panel-head p { margin: 2px 0 0; font-size: .82rem; color: var(--muted); }
+  .rm-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  table.rm-table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 760px; font-size: .9rem; }
+  .rm-table th { position: sticky; top: 0; background: var(--surface-2); color: var(--muted); font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; padding: 11px 12px; text-align: center; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .rm-table td { padding: 11px 12px; text-align: center; border-bottom: 1px solid var(--line); color: var(--ink); font-variant-numeric: tabular-nums; }
+  .rm-table th:nth-child(1), .rm-table td:nth-child(1) { width: 56px; }
+  .rm-table th:nth-child(2), .rm-table td:nth-child(2) { text-align: left; min-width: 150px; }
+  .rm-table tbody tr:hover td { background: var(--surface-2); }
+  .rm-table tr.is-past td { color: var(--muted); }
+  .rm-table tr.is-today td { background: rgba(30,175,47,.12); font-weight: 700; }
+  .rm-table tr.is-today td:first-child { box-shadow: inset 4px 0 0 var(--primary-color); }
+  .rm-no { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); font-weight: 700; font-size: .82rem; }
+  .is-today .rm-no { background: var(--primary-color); color: #fff; border-color: transparent; }
+  .rm-day small { display: block; color: var(--muted); font-weight: 500; font-size: .78rem; }
+  .rm-day b { color: var(--ink); }
+  .rm-flag { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; font-size: .68rem; font-weight: 700; background: var(--gold-soft); color: var(--gold-ink); vertical-align: middle; }
+  .rm-flag.is-jumat { background: rgba(30,175,47,.14); color: var(--primary-dark); }
+  .rm-maghrib { font-weight: 800; color: var(--primary-dark); }
+  html.dark-mode .rm-maghrib { color: #6ee37e; }
+
+  .rm-cell { text-align: left !important; vertical-align: top; min-width: 150px; }
+  .rm-entry { display: block; padding: 6px 9px; margin-bottom: 5px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); text-decoration: none; font-weight: 600; font-size: .84rem; line-height: 1.3; font-variant-numeric: normal; }
+  a.rm-entry:hover { border-color: var(--primary-color); background: rgba(30,175,47,.08); }
+  .rm-entry small { display: block; font-weight: 500; color: var(--muted); font-size: .75rem; }
+  .rm-add { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; border: 1px dashed var(--line-strong); color: var(--muted); font-size: .74rem; font-weight: 600; text-decoration: none; background: transparent; }
+  .rm-add:hover { border-color: var(--primary-color); color: var(--primary-dark); }
+  .rm-empty { color: var(--faint); }
+  .rm-th-icon { margin-right: 6px; color: var(--primary-dark); }
+
+
+  .rm-kbd { padding: 1px 6px; border-radius: 6px; border: 1px solid var(--line-strong); background: var(--surface-2); font-size: .75rem; font-family: inherit; font-weight: 700; color: var(--ink-2); }
+  .rm-save-state { font-size: .82rem; font-weight: 700; color: var(--muted); min-height: 20px; }
+  .rm-save-state.is-ok { color: var(--primary-dark); }
+  .rm-save-state.is-err { color: #dc2626; }
+  html.dark-mode .rm-save-state.is-ok { color: #6ee37e; }
+  .rm-stack { display: grid; gap: 6px; min-width: 170px; }
+  .rm-inline {
+    width: 100%; height: 38px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2);
+    color: var(--ink); font: inherit; font-size: .86rem; font-weight: 600; font-variant-numeric: normal; transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+  }
+  .rm-line { display: flex; gap: 6px; align-items: center; }
+  .rm-line .rm-inline { flex: 1 1 auto; min-width: 0; }
+  .rm-line.is-blank .rm-inline { background: transparent; border-style: dashed; border-color: var(--line-strong); font-weight: 500; }
+  .rm-line.is-blank .rm-x { display: none; }
+  .rm-x { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: .85rem; transition: all .15s ease; }
+  .rm-x:hover, .rm-x:focus-visible { background: rgba(220,38,38,.1); border-color: #dc2626; color: #dc2626; outline: none; }
+  .rm-add { display: none; align-items: center; justify-content: center; gap: 6px; height: 32px; border-radius: 10px; border: 1px dashed var(--line-strong); background: transparent; color: var(--primary-dark); font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; transition: all .15s ease; }
+  .rm-stack.has-data .rm-add { display: inline-flex; }
+  .rm-add:hover, .rm-add:focus-visible { background: rgba(30,175,47,.1); border-color: var(--primary-color); outline: none; }
+  html.dark-mode .rm-add { color: #6ee37e; }
+  .rm-inline::placeholder { color: var(--faint); font-weight: 500; }
+  .rm-inline:hover { border-color: rgba(30,175,47,.5); }
+  .rm-inline:focus { outline: none; border-style: solid; border-color: var(--primary-color); background: var(--surface); box-shadow: 0 0 0 3px rgba(30,175,47,.18); }
+  .rm-inline.is-saving { opacity: .6; }
+  .rm-inline.is-saved { border-color: var(--primary-color); background: rgba(30,175,47,.12); }
+  .rm-inline.is-error { border-color: #dc2626; background: rgba(220,38,38,.08); }
+  .rm-btn-wa { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(37,211,102,.5); background: rgba(37,211,102,.1); color: #128c7e; font: inherit; font-weight: 700; font-size: .86rem; cursor: pointer; transition: all .15s ease; }
+  .rm-btn-wa:hover { background: rgba(37,211,102,.2); transform: translateY(-1px); }
+  html.dark-mode .rm-btn-wa { color: #4ade80; }
+  .rm-note { margin: 0; padding: 12px 18px 16px; font-size: .82rem; color: var(--muted); }
+  .rm-extra { padding: 14px 18px 18px; border-top: 1px solid var(--line); }
+  .rm-extra h3 { margin: 0 0 8px; font-size: .9rem; color: var(--ink); }
+
+  .am-btn[hidden] { display: none !important; }
+  .am-btn-danger-ghost { border-color: rgba(220,38,38,.35); background: transparent; color: #dc2626; }
+  .am-btn-danger-ghost:hover { background: rgba(220,38,38,.08); }
+  .rm-alert { padding: 12px 16px; border-radius: 14px; font-size: .9rem; font-weight: 600; }
+  .rm-alert.ok { background: rgba(30,175,47,.12); color: var(--primary-dark); border: 1px solid rgba(30,175,47,.3); }
+  .rm-alert.err { background: rgba(220,38,38,.1); color: #dc2626; border: 1px solid rgba(220,38,38,.3); }
+  .rm-print-head { display: none; }
+
+  @media (max-width: 900px) {
+    .rm-today { grid-template-columns: minmax(0, 1fr); }
+    .rm-time-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .rm-hero { padding: 20px 18px; }
+    .rm-time-grid { grid-template-columns: repeat(3, 1fr); }
+    .rm-tab { padding: 9px 12px; }
+    .rm-btn { padding: 9px 12px; }
+  }
+
+  @media print {
+    .sidebar, .sidebar-overlay, .sidebar-handle, .top-navbar, .bottom-nav, .app-footer, .cmdk, .rm-noprint, .rm-hero, .rm-today, .rm-tabs, .rm-add, .rm-note { display: none !important; }
+    .main-content { margin: 0 !important; padding: 0 !important; }
+    body { background: #fff !important; }
+    .rm-page { padding: 0; max-width: none; }
+    .rm-card { box-shadow: none; border: 0; }
+    .rm-print-head { display: block; text-align: center; margin-bottom: 10px; color: #000; }
+    .rm-print-head h1 { margin: 0; font-size: 20px; }
+    .rm-print-head p { margin: 2px 0 0; font-size: 12px; }
+    .rm-panel { display: none !important; }
+    body.rm-print-jadwal #rm-panel-jadwal, body.rm-print-petugas #rm-panel-petugas { display: block !important; }
+    .rm-panel-head { display: none; }
+    table.rm-table { min-width: 0; font-size: 11px; }
+    .rm-table th, .rm-table td { padding: 5px 6px; color: #000 !important; background: #fff !important; border: 1px solid #999; }
+    .rm-table tr.is-today td { background: #e8f5e9 !important; }
+    .rm-entry { border: 0; background: none; padding: 0; margin: 0 0 2px; font-size: 11px; }
+    .rm-inline { border: 0 !important; background: none !important; box-shadow: none !important; padding: 0; height: auto; font-size: 11px; color: #000 !important; }
+    .rm-line.is-blank, .rm-x, .rm-add, .rm-save-state { display: none !important; }
+  }
+</style>
+
+<section class="rm-page" id="rm-page"
+  data-tz="<%= lok.tz %>"
+  data-times='<%- JSON.stringify(todayTimes) %>'
+  data-in-ramadan="<%= hariIni ? 1 : 0 %>">
+
+
+  <header class="rm-hero">
+    <div style="position:relative;z-index:1">
+      <div class="rm-kicker">Ramadan <%= settings.ramadan_tahun_h %> H</div>
+      <h1 class="rm-title"><%= settings.masjid_nama %></h1>
+      <div class="rm-meta">
+        <span><i class="fas fa-location-dot"></i><%= lok.nama %> · <%= tzName %></span>
+        <span><i class="fas fa-calendar-days"></i><%= mulaiLabel %> – <%= akhirLabel %></span>
+        <span><i class="fas fa-champagne-glasses"></i>Idul Fitri ±<%= idulFitriLabel %></span>
+      </div>
+    </div>
+    <div class="rm-actions rm-noprint">
+      <button type="button" class="rm-btn is-solid" id="rm-print"><i class="fas fa-print"></i>Cetak</button>
+      <a href="#" class="rm-btn" id="rm-wa" data-wa-text="<%= waText %>" data-wa-link="/jadwal-ramadan"><i class="fab fa-whatsapp"></i>Bagikan</a>
+      <% if (!readonly) { %>
+        <button type="button" class="rm-btn" id="rm-copy" data-url="/jadwal-ramadan"><i class="fas fa-link"></i>Salin Tautan Publik</button>
+        <% if (isAdmin) { %>
+          <a href="#" class="rm-btn" data-modal-open="rm-setting-modal"><i class="fas fa-sliders"></i>Pengaturan</a>
+        <% } %>
+      <% } %>
+    </div>
+  </header>
+
+  <div class="rm-print-head">
+    <h1><%= tipe %> <%= settings.masjid_nama.replace(/^(musholla|masjid)\s+/i, '') %> — Jadwal Ramadan <%= settings.ramadan_tahun_h %> H</h1>
+    <p><%= lok.nama %> · <%= mulaiLabel %> s.d. <%= akhirLabel %></p>
+  </div>
+
+  <div class="rm-today">
+    <div class="rm-card rm-count" aria-live="polite">
+      <span class="rm-chip"><i class="fas fa-moon"></i><%= status %></span>
+      <div class="rm-count-label" id="rm-count-label">Menghitung…</div>
+      <div class="rm-count-time" id="rm-count-time">--:--:--</div>
+      <div class="rm-count-sub" id="rm-count-sub"><%= todayLabel %></div>
+    </div>
+
+    <div class="rm-card rm-times">
+      <div class="rm-times-head">
+        <h2>Waktu Sholat Hari Ini</h2>
+        <span><%= todayLabel %> · <%= lok.nama %></span>
+      </div>
+      <div class="rm-time-grid" id="rm-time-grid">
+        <% TIMES.forEach(function (t) { %>
+          <div class="rm-time <%= (t.key === 'imsak' || t.key === 'maghrib') ? 'is-key' : '' %>" data-key="<%= t.key %>">
+            <i class="fas <%= t.icon %>"></i>
+            <b><%= hm(todayTimes[t.key]) %></b>
+            <small><%= t.label %></small>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+
+  <div class="rm-tabs rm-noprint" role="tablist">
+    <button type="button" class="rm-tab is-active" role="tab" data-tab="jadwal"><i class="fas fa-table-list"></i>Jadwal Imsakiyah</button>
+    <button type="button" class="rm-tab" role="tab" data-tab="petugas"><i class="fas fa-people-roof"></i>Jadwal Petugas</button>
+  </div>
+
+  <!-- Imsakiyah -->
+  <section class="rm-card rm-panel is-active" id="rm-panel-jadwal">
+    <div class="rm-panel-head">
+      <div>
+        <h2>Jadwal Imsakiyah <%= settings.ramadan_tahun_h %> H</h2>
+        <p>Dihitung otomatis untuk <%= lok.nama %> (Subuh 20°, Isya 18°, ihtiyati <%= settings.ihtiyati_menit %> menit).</p>
+      </div>
+    </div>
+    <div class="rm-scroll">
+      <table class="rm-table" data-no-stack-mobile="true">
+        <thead>
+          <tr>
+            <th>Hari</th><th>Tanggal</th>
+            <% TIMES.forEach(function (t) { %><th><%= t.label %></th><% }) %>
+          </tr>
+        </thead>
+        <tbody>
+          <% days.forEach(function (d) { %>
+            <tr class="<%= d.isToday ? 'is-today' : (d.isPast ? 'is-past' : '') %>">
+              <td><span class="rm-no"><%= d.no %></span></td>
+              <td class="rm-day">
+                <b><%= d.hari %>, <%= d.label %></b>
+                <% if (d.isJumat) { %><span class="rm-flag is-jumat">Jumat</span><% } %>
+                <% if (d.badge) { %><span class="rm-flag"><%= d.badge %></span><% } %>
+              </td>
+              <% TIMES.forEach(function (t) { %>
+                <td class="<%= t.key === 'maghrib' ? 'rm-maghrib' : '' %>"><%= d.times[t.key] %></td>
+              <% }) %>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <p class="rm-note">Catatan: tanggal 1 Ramadan mengikuti pengaturan pengurus dan dapat bergeser 1 hari sesuai sidang isbat. Imsak = Subuh − 10 menit.</p>
+  </section>
+
+  <!-- Petugas -->
+  <section class="rm-card rm-panel" id="rm-panel-petugas">
+    <div class="rm-panel-head">
+      <div>
+        <h2>Jadwal Petugas Tarawih &amp; Kultum</h2>
+        <p><% if (readonly) { %><%= totalKegiatan %> jadwal tercatat.<% } else { %>Ketik nama langsung di kolom, lalu tekan <kbd class="rm-kbd">Enter</kbd> (otomatis tersimpan). Kosongkan untuk menghapus.<% } %></p>
+      </div>
+      <% if (!readonly) { %><div class="rm-noprint" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <span class="rm-save-state" id="rm-save-state" aria-live="polite"></span>
+        <button type="button" class="rm-btn-wa" data-modal-open="rm-ingat-modal"><i class="fab fa-whatsapp"></i>Pengingat WA</button>
+      </div><% } %>
+    </div>
+    <div class="rm-scroll">
+      <table class="rm-table" data-no-stack-mobile="true">
+        <thead>
+          <tr>
+            <th>Hari</th><th>Tanggal</th>
+            <% kolom.forEach(function (k) { %><th><i class="fas <%= k.icon %> rm-th-icon"></i><%= k.label %></th><% }) %>
+          </tr>
+        </thead>
+        <tbody>
+          <% days.forEach(function (d) { %>
+            <tr class="<%= d.isToday ? 'is-today' : (d.isPast ? 'is-past' : '') %>">
+              <td><span class="rm-no"><%= d.no %></span></td>
+              <td class="rm-day"><b><%= d.hari %>, <%= d.label %></b><% if (!readonly) { %><button type="button" class="rm-bell rm-noprint" data-modal-open="rm-ingat-modal" data-tanggal="<%= d.tanggal %>" title="Kirim pengingat WA untuk hari ini" aria-label="Pengingat WA <%= d.hari %>, <%= d.label %>"><i class="fas fa-bell"></i></button><% } %></td>
+              <% kolom.forEach(function (k) {
+                   const items = d.kegiatan.filter(function (e) { return e.kolom === k.key; }); %>
+                <td class="rm-cell">
+                  <% if (readonly) { %>
+                    <% items.forEach(function (e) { %><span class="rm-entry"><%= e.petugas %></span><% }) %>
+                    <% if (!items.length) { %><span class="rm-empty">—</span><% } %>
+                  <% } else { %>
+                    <div class="rm-stack<%= items.length ? ' has-data' : '' %>" data-tanggal="<%= d.tanggal %>" data-jenis="<%= k.key %>" data-placeholder="<%= k.placeholder %>" data-label="<%= k.label %> <%= d.hari %> <%= d.label %>">
+                      <% items.forEach(function (e) { %>
+                        <div class="rm-line">
+                          <input type="text" class="rm-inline" value="<%= e.petugas %>" data-id="<%= e.id %>" data-orig="<%= e.petugas %>" maxlength="120" placeholder="<%= k.placeholder %>" aria-label="<%= k.label %> <%= d.hari %> <%= d.label %>" autocomplete="off">
+                          <button type="button" class="rm-x" title="Hapus nama ini" aria-label="Hapus <%= e.petugas %>"><i class="fas fa-xmark"></i></button>
+                        </div>
+                      <% }) %>
+                      <% if (!items.length) { %>
+                        <div class="rm-line is-blank">
+                          <input type="text" class="rm-inline" value="" data-id="" data-orig="" maxlength="120" placeholder="<%= k.placeholder %>" aria-label="<%= k.label %> <%= d.hari %> <%= d.label %>" autocomplete="off">
+                          <button type="button" class="rm-x" title="Hapus nama ini" aria-label="Hapus"><i class="fas fa-xmark"></i></button>
+                        </div>
+                      <% } %>
+                      <button type="button" class="rm-add rm-noprint"><i class="fas fa-plus"></i>Tambah</button>
+                    </div>
+                  <% } %>
+                </td>
+              <% }) %>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if (outside.length) { %>
+      <div class="rm-extra">
+        <h3>Jadwal di luar tanggal Ramadan</h3>
+        <% outside.forEach(function (e) { %>
+          <span class="rm-entry"><%= e.tanggal %> · <%= e.jenisLabel %> — <%= e.petugas %></span>
+        <% }) %>
+      </div>
+    <% } %>
+    <p class="rm-note">Tarawih dan kultum dilaksanakan pada malam setelah berbuka di tanggal yang tertera. Satu kolom bisa berisi lebih dari satu nama: isi kolom “+ tambah nama” di bawahnya.</p>
+  </section>
+</section>
+
+<% if (!readonly) { %>
+  <% if (isAdmin) { %><%- include('partials/pengaturan-modal') %><% } %>
+  <% if (!readonly) { %><%- include('partials/pengingat-modal') %><% } %>
+<% } %>
+
+<script>
+  (function () {
+    var page = document.getElementById("rm-page");
+    var tz = Number(page.dataset.tz);
+    var times = JSON.parse(page.dataset.times);
+    var inRamadan = page.dataset.inRamadan === "1";
+    var ORDER = ["imsak", "subuh", "terbit", "dzuhur", "ashar", "maghrib", "isya"];
+    var NAMES = { imsak: "Imsak", subuh: "Subuh", terbit: "Terbit", dzuhur: "Dzuhur", ashar: "Ashar", maghrib: "Maghrib", isya: "Isya" };
+    var label = document.getElementById("rm-count-label");
+    var clock = document.getElementById("rm-count-time");
+    var sub = document.getElementById("rm-count-sub");
+    var cards = [].slice.call(document.querySelectorAll("#rm-time-grid .rm-time"));
+    var lastNext = null;
+
+    function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+    function tick() {
+      var now = new Date(Date.now() + tz * 3600e3);
+      var nowSec = now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+      var next = null, nextSec = 0;
+      for (var i = 0; i < ORDER.length; i++) {
+        var s = times[ORDER[i]] * 60;
+        if (s > nowSec) { next = ORDER[i]; nextSec = s; break; }
+      }
+      var tomorrow = false;
+      if (!next) { next = "imsak"; nextSec = times.imsak * 60 + 86400; tomorrow = true; }
+
+      // fokus Ramadan: sebelum berbuka -> hitung mundur ke Maghrib; setelahnya -> ke Imsak
+      var focus = next, focusSec = nextSec, text;
+      if (inRamadan) {
+        var imsak = times.imsak * 60, maghrib = times.maghrib * 60;
+        if (nowSec >= imsak && nowSec < maghrib) { focus = "maghrib"; focusSec = maghrib; text = "Menuju waktu berbuka"; }
+        else if (tomorrow || nowSec < imsak) { focus = "imsak"; focusSec = tomorrow ? imsak + 86400 : imsak; text = "Menuju imsak"; }
+        else { focus = "imsak"; focusSec = imsak + 86400; text = "Menuju imsak besok"; }
+      } else {
+        text = "Menuju " + NAMES[next] + (tomorrow ? " besok" : "");
+      }
+
+      var diff = Math.max(0, focusSec - nowSec);
+      label.textContent = text + (inRamadan ? " · " + NAMES[focus] : "");
+      clock.textContent = pad(Math.floor(diff / 3600)) + ":" + pad(Math.floor(diff % 3600 / 60)) + ":" + pad(diff % 60);
+      sub.textContent = "Berikutnya: " + NAMES[next] + " pukul " + pad(Math.floor(times[next] / 60) % 24) + ":" + pad(times[next] % 60) + (tomorrow ? " (besok)" : "");
+
+      if (next !== lastNext || tomorrow) {
+        lastNext = next;
+        cards.forEach(function (card) {
+          var key = card.dataset.key;
+          card.classList.toggle("is-next", !tomorrow && key === next);
+          card.classList.toggle("is-passed", !tomorrow ? ORDER.indexOf(key) < ORDER.indexOf(next) : true);
+        });
+      }
+    }
+    tick();
+    setInterval(tick, 1000);
+
+    // Tab
+    var tabs = [].slice.call(document.querySelectorAll(".rm-tab"));
+    function showTab(name) {
+      tabs.forEach(function (t) { t.classList.toggle("is-active", t.dataset.tab === name); });
+      ["jadwal", "petugas"].forEach(function (n) {
+        document.getElementById("rm-panel-" + n).classList.toggle("is-active", n === name);
+      });
+      document.body.classList.remove("rm-print-jadwal", "rm-print-petugas");
+      document.body.classList.add("rm-print-" + name);
+      try { history.replaceState(null, "", "#" + name); } catch (e) { /* abaikan */ }
+    }
+    tabs.forEach(function (t) { t.addEventListener("click", function () { showTab(t.dataset.tab); }); });
+    showTab(new URLSearchParams(location.search).get("tab") === "petugas" || location.hash === "#petugas" ? "petugas" : "jadwal");
+
+    document.getElementById("rm-print").addEventListener("click", function () { window.print(); });
+    var wa = document.getElementById("rm-wa");
+    if (wa) { wa.setAttribute("data-wa-text", wa.getAttribute("data-wa-text").replace("/jadwal-ramadan", location.origin + "/jadwal-ramadan")); }
+
+
+    // ---- Isi nama petugas langsung di sel ----
+    var stateEl = document.getElementById("rm-save-state");
+    var stateTimer = null;
+    function setState(text, cls) {
+      if (!stateEl) { return; }
+      stateEl.textContent = text; stateEl.className = "rm-save-state rm-noprint " + (cls || "");
+      clearTimeout(stateTimer);
+      if (cls === "is-ok") { stateTimer = setTimeout(function () { stateEl.textContent = ""; }, 2200); }
+    }
+    function flash(input, cls) { input.classList.add(cls); setTimeout(function () { input.classList.remove(cls); }, 1200); }
+
+    function makeLine(stack) {
+      var line = document.createElement("div");
+      line.className = "rm-line is-blank";
+      var input = document.createElement("input");
+      input.type = "text"; input.className = "rm-inline"; input.value = "";
+      input.setAttribute("data-id", ""); input.setAttribute("data-orig", "");
+      input.maxLength = 120; input.autocomplete = "off";
+      input.placeholder = stack.dataset.placeholder || "Nama petugas";
+      input.setAttribute("aria-label", stack.dataset.label || "Nama petugas");
+      var x = document.createElement("button");
+      x.type = "button"; x.className = "rm-x"; x.title = "Hapus nama ini"; x.setAttribute("aria-label", "Hapus");
+      x.innerHTML = '<i class="fas fa-xmark"></i>';
+      line.appendChild(input); line.appendChild(x);
+      stack.insertBefore(line, stack.querySelector(".rm-add"));
+      return line;
+    }
+
+    // Pastikan sel selalu punya minimal satu baris, dan tombol Tambah hanya muncul bila sudah ada nama.
+    function refresh(stack) {
+      var lines = stack.querySelectorAll(".rm-line");
+      if (!lines.length) { makeLine(stack); }
+      stack.classList.toggle("has-data", !!stack.querySelector(".rm-line:not(.is-blank)"));
+    }
+
+    function request(stack, id, value) {
+      return fetch("/ramadan/kegiatan/inline", {
+        method: "POST", credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "Accept": "application/json", "X-Requested-With": "fetch" },
+        body: JSON.stringify({ tanggal: stack.dataset.tanggal, jenis: stack.dataset.jenis, petugas: value, id: id })
+      })
+        .then(function (r) { return r.json().then(function (data) { return { status: r.status, data: data }; }); })
+        .then(function (res) {
+          if (!res.data.ok) { throw new Error(res.data.message || "Gagal menyimpan"); }
+          return res.data;
+        });
+    }
+
+    function save(input) {
+      var line = input.closest(".rm-line");
+      var stack = input.closest(".rm-stack");
+      var value = input.value.trim().replace(/\s+/g, " ");
+      var orig = input.getAttribute("data-orig");
+      var id = input.getAttribute("data-id");
+      if (value === orig) { input.value = value; return Promise.resolve(); }
+      if (input.__saving) { return Promise.resolve(); }
+      input.__saving = true; input.classList.add("is-saving"); setState("Menyimpan…", "");
+
+      return request(stack, id, value)
+        .then(function (data) {
+          if (data.deleted) {
+            line.remove(); refresh(stack);
+            setState("Terhapus", "is-ok");
+            return;
+          }
+          if (data.noop) { setState("", ""); return; }
+          input.value = data.petugas; input.setAttribute("data-orig", data.petugas); input.setAttribute("data-id", data.id);
+          line.classList.remove("is-blank"); refresh(stack);
+          flash(input, "is-saved"); setState("Tersimpan ✓", "is-ok");
+        })
+        .catch(function (error) {
+          input.value = orig; flash(input, "is-error");
+          setState(error.message || "Gagal menyimpan", "is-err");
+        })
+        .then(function () { input.__saving = false; input.classList.remove("is-saving"); });
+    }
+
+    function removeLine(button) {
+      var line = button.closest(".rm-line");
+      var stack = button.closest(".rm-stack");
+      var input = line.querySelector(".rm-inline");
+      var id = input.getAttribute("data-id");
+      if (!id) { line.remove(); refresh(stack); return; }
+      input.__saving = true; setState("Menghapus…", "");
+      request(stack, id, "")
+        .then(function () { line.remove(); refresh(stack); setState("Terhapus", "is-ok"); })
+        .catch(function (error) { input.__saving = false; setState(error.message || "Gagal menghapus", "is-err"); });
+    }
+
+    var petugasPanel = document.getElementById("rm-panel-petugas");
+    if (petugasPanel && stateEl) {
+      petugasPanel.addEventListener("click", function (event) {
+        var x = event.target.closest(".rm-x");
+        if (x) { removeLine(x); return; }
+        var add = event.target.closest(".rm-add");
+        if (add) {
+          var stack = add.closest(".rm-stack");
+          var blank = stack.querySelector(".rm-line.is-blank .rm-inline");
+          var target = blank || makeLine(stack).querySelector(".rm-inline");
+          target.focus();
+        }
+      });
+      petugasPanel.addEventListener("focusout", function (event) {
+        var input = event.target;
+        if (!input.classList || !input.classList.contains("rm-inline")) { return; }
+        save(input).then(function () {
+          // baris kosong tambahan dibuang agar sel tetap rapi
+          setTimeout(function () {
+            var line = input.closest(".rm-line");
+            var stack = input.closest(".rm-stack");
+            if (!line || !stack || !line.isConnected || document.activeElement === input) { return; }
+            if (line.classList.contains("is-blank") && stack.querySelectorAll(".rm-line").length > 1) { line.remove(); refresh(stack); }
+          }, 200);
+        });
+      });
+      petugasPanel.addEventListener("keydown", function (event) {
+        var input = event.target;
+        if (!input.classList || !input.classList.contains("rm-inline")) { return; }
+        if (event.key === "Escape") { input.value = input.getAttribute("data-orig"); input.blur(); return; }
+        if (event.key !== "Enter") { return; }
+        event.preventDefault();
+        var col = [].indexOf.call(input.closest("tr").children, input.closest("td"));
+        var next = input.closest("tr").nextElementSibling;
+        save(input).then(function () {
+          // lanjut ke baris berikutnya di kolom yang sama (seperti spreadsheet)
+          if (!next) { input.blur(); return; }
+          var target = next.children[col] && next.children[col].querySelector(".rm-inline");
+          if (target) { target.focus(); target.select(); }
+        });
+      });
+    }
+
+    var copy = document.getElementById("rm-copy");
+    if (copy) {
+      copy.addEventListener("click", function () {
+        var url = location.origin + copy.dataset.url;
+        var done = function () {
+          if (window.Swal) { Swal.fire({ icon: "success", title: "Tautan disalin", text: url, timer: 2200, showConfirmButton: false }); }
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(url).then(done); }
+        else { window.prompt("Salin tautan ini:", url); }
+      });
+    }
+  })();
+</script>
+
+<%- include('../layouts/footer') %>

@@ -9,7 +9,19 @@ const path = require("path");
 // Load environment variables
 dotenv.config();
 
+const compression = require("compression");
+const { auditMiddleware } = require("./utils/audit");
+const { getSessionSecret, securityHeaders, sameOriginGuard } = require("./utils/security");
+
 const app = express();
+app.disable("x-powered-by");
+if (process.env.TRUST_PROXY) {
+  // aplikasi berada di belakang reverse proxy (Nginx, Cloudflare, dll.)
+  app.set("trust proxy", Number(process.env.TRUST_PROXY) || process.env.TRUST_PROXY);
+}
+app.use(securityHeaders);
+// Kompres HTML/CSS/JS (halaman Anda ratusan KB -> belasan KB)
+app.use(compression({ threshold: 1024 }));
 
 // Setup database connection pool
 const dbConfig = {
@@ -45,33 +57,74 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 // Middleware
-app.use(express.urlencoded({ extended: true })); // Changed to true to support complex objects
+app.use(express.urlencoded({ extended: true, limit: "1mb", parameterLimit: 2000 }));
 
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
+
+// Tolak permintaan ubah-data yang berasal dari situs lain (CSRF)
+app.use(sameOriginGuard);
 
 app.use(methodOverride("_method"));
-app.use(express.static(path.join(__dirname, "public")));
-app.use(
-  "/vendor/flatpickr",
-  express.static(path.join(__dirname, "node_modules", "flatpickr", "dist"))
-);
 
 // Session middleware (stored in MySQL so logins survive server restarts)
 const MySQLStore = require("express-mysql-session")(session);
 const sessionStore = new MySQLStore({ clearExpired: true }, pool);
 
+// Perpanjang masa sesi di MySQL paling sering sekali per 5 menit (bukan di setiap permintaan)
+const originalTouch = sessionStore.touch.bind(sessionStore);
+const lastTouched = new Map();
+sessionStore.touch = (sid, sess, callback) => {
+  const now = Date.now();
+  if (now - (lastTouched.get(sid) || 0) < 5 * 60 * 1000) {
+    return callback && callback();
+  }
+  if (lastTouched.size > 2000) {
+    lastTouched.clear();
+  }
+  lastTouched.set(sid, now);
+  return originalTouch(sid, sess, callback);
+};
+
+const sessionMiddleware = session({
+  store: sessionStore,
+  secret: getSessionSecret(),
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.COOKIE_SECURE === "true", // isi COOKIE_SECURE=true jika memakai HTTPS
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  },
+});
+
+// PWA: manifest, service worker (harus dari root), dan halaman offline
+const pwaRoutes = require("./routes/pwa");
+app.use(pwaRoutes.router);
+
+// Bukti foto hanya boleh dibuka setelah login (sebelum static agar tidak terbuka publik)
 app.use(
-  session({
-    store: sessionStore,
-    secret: process.env.SESSION_SECRET || "your-default-secret-key",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: false, // set to true if using HTTPS
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
-  })
+  "/uploads",
+  sessionMiddleware,
+  (req, res, next) => {
+    if (req.session && req.session.user) {
+      res.setHeader("Cache-Control", "private, max-age=3600");
+      return next();
+    }
+    return res.status(401).send("Silakan login untuk melihat berkas ini");
+  },
+  express.static(path.join(__dirname, "public", "uploads"), { index: false, dotfiles: "deny" })
 );
+
+// Pustaka pihak ketiga disajikan dari server sendiri (tanpa CDN) dan boleh disimpan lama di browser
+const vendorOptions = { maxAge: "7d", index: false };
+app.use("/vendor/flatpickr", express.static(path.join(__dirname, "node_modules", "flatpickr", "dist"), vendorOptions));
+app.use("/vendor/sweetalert2", express.static(path.join(__dirname, "node_modules", "sweetalert2", "dist"), vendorOptions));
+app.use("/vendor", express.static(path.join(__dirname, "public", "vendor"), vendorOptions));
+app.use("/images", express.static(path.join(__dirname, "public", "images"), { maxAge: "7d" }));
+app.use(express.static(path.join(__dirname, "public"), { maxAge: "5m" }));
+
+app.use(sessionMiddleware);
 
 // CSS mode gelap per halaman (dibuat oleh `npm run build-dark`)
 const darkManifestPath = path.join(__dirname, "public", "css", "dark", "manifest.json");
@@ -141,6 +194,19 @@ app.use((req, res, next) => {
   next();
 });
 
+// Jumlah donasi online yang menunggu verifikasi (lencana di menu) untuk pengurus yang login
+app.use(async (req, res, next) => {
+  res.locals.donasiPending = 0;
+  if (req.method === "GET" && req.session && req.session.user) {
+    try {
+      res.locals.donasiPending = await require("./routes/donasi").pendingCount(pool);
+    } catch (error) {
+      // tabel belum ada / gangguan sesaat: abaikan lencana
+    }
+  }
+  next();
+});
+
 // Authentication middleware
 function isAuthenticated(req, res, next) {
   if (req.session.user) {
@@ -166,6 +232,9 @@ function isAdmin(req, res, next) {
 app.locals.isAuthenticated = isAuthenticated;
 app.locals.isAdmin = isAdmin;
 
+// Catat setiap perubahan data (siapa, apa, kapan) ke log aktivitas
+app.use(auditMiddleware(pool));
+
 // Routes
 const authRoutes = require("./routes/auth");
 const publicReportRoutes = require("./routes/public-report");
@@ -178,9 +247,22 @@ const rtRoutes = require("./routes/rt");
 const rwRoutes = require("./routes/rw");
 const mustahikRoutes = require("./routes/mustahik");
 const distribusiRoutes = require("./routes/distribusi");
+const ramadanRoutes = require("./routes/ramadan");
+const kasRoutes = require("./routes/kas");
+const agendaRoutes = require("./routes/agenda");
+const inventarisRoutes = require("./routes/inventaris");
+const aktivitasRoutes = require("./routes/aktivitas");
+const donasiRoutes = require("./routes/donasi");
+const transparansiRoutes = require("./routes/transparansi");
+const { masjidSummary } = require("./utils/masjid-summary");
 
 // Route middleware
 app.use("/auth", authRoutes);
+app.use(["/jadwal-ramadan", "/info-masjid", "/donasi", "/transparansi"], pwaRoutes.markPublic);
+app.use("/jadwal-ramadan", ramadanRoutes.publicRouter); // halaman publik, hanya baca
+app.use("/info-masjid", agendaRoutes.publicRouter); // agenda & pengumuman publik
+app.use("/donasi", donasiRoutes.publicRouter); // donasi online untuk jamaah
+app.use("/transparansi", transparansiRoutes.router); // laporan kas terbuka
 app.use("/", publicReportRoutes);
 app.use("/users/profile", isAuthenticated, profileRoutes);
 app.use("/users", isAuthenticated, isAdmin, usersRoutes);
@@ -194,6 +276,12 @@ app.use("/rt", isAuthenticated, rtRoutes);
 app.use("/rw", isAuthenticated, rwRoutes);
 app.use("/mustahik", isAuthenticated, mustahikRoutes);
 app.use("/distribusi", isAuthenticated, distribusiRoutes);
+app.use("/ramadan", isAuthenticated, ramadanRoutes.router);
+app.use("/kas", isAuthenticated, kasRoutes.router);
+app.use("/agenda", isAuthenticated, agendaRoutes.router);
+app.use("/inventaris", isAuthenticated, inventarisRoutes.router);
+app.use("/donasi-masuk", isAuthenticated, donasiRoutes.router); // verifikasi donasi (pengurus)
+app.use("/aktivitas", isAuthenticated, isAdmin, aktivitasRoutes.router); // log aktivitas (admin)
 
 // Dashboard route
 app.get("/dashboard", isAuthenticated, async (req, res) => {
@@ -372,6 +460,7 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
       dashboardInsights,
       recentMuzakki: recentMuzakki || [],
       rtStats: rtStats || [],
+      masjid: await masjidSummary(db),
       success: req.flash("success"),
       error: req.flash("error"),
     });
@@ -382,61 +471,23 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
   }
 });
 
-// Home route - landing page
-app.get("/", async (req, res) => {
+// Home route - landing page publik (jadwal sholat, donasi, laporan kas, agenda, zakat)
+app.get("/", pwaRoutes.markPublic, async (req, res) => {
   if (req.session.user) {
-    res.redirect("/dashboard");
-  } else {
-    try {
-      const db = req.app.locals.db;
-
-      // Get some basic statistics for the landing page
-      const [statsResult] = await db.execute(`
-        SELECT
-          COUNT(DISTINCT m.id) as total_muzakki,
-          COALESCE(SUM(CASE 
-            WHEN m.jenis_zakat = 'uang' THEN m.jumlah_uang 
-            ELSE m.jumlah_beras_kg * 12000 
-          END), 0) as total_zakat_terkumpul,
-          COUNT(DISTINCT m.rt_id) as total_rt_aktif
-        FROM muzakki m
-      `);
-
-      const [infakResult] = await db.execute(`
-        SELECT COALESCE(SUM(jumlah), 0) as total_infak FROM infak
-      `);
-
-      const stats = {
-        ...statsResult[0],
-        total_infak: infakResult[0].total_infak,
-      };
-
-      // Handle query parameters for flash messages
-      const success = req.query.success;
-      const error = req.query.error;
-
-      res.render("home", {
-        title: "Sistem Manajemen Zakat Fitrah",
-        stats: stats || {},
-        success: success || null,
-        error: error || null,
-        layout: false, // Gunakan layout khusus untuk home
-      });
-    } catch (error) {
-      console.error("Home page error:", error);
-      res.render("home", {
-        title: "Sistem Manajemen Zakat Fitrah",
-        stats: {
-          total_muzakki: 0,
-          total_zakat_terkumpul: 0,
-          total_rt_aktif: 0,
-          total_infak: 0,
-        },
-        success: req.query.success || null,
-        error: req.query.error || null,
-        layout: false,
-      });
-    }
+    return res.redirect("/dashboard");
+  }
+  try {
+    const data = await require("./utils/landing").landingData(req.app.locals.db);
+    res.render("home", {
+      ...data,
+      title: `${data.settings.masjid_nama} - Jadwal Sholat, Donasi & Laporan Kas`,
+      success: req.query.success || null,
+      error: req.query.error || null,
+      layout: false,
+    });
+  } catch (error) {
+    console.error("Home page error:", error);
+    res.status(500).render("error", { title: "Server Error", message: "Gagal memuat halaman utama", error: {} });
   }
 });
 

@@ -465,10 +465,10 @@
                     <button onclick='editUser(<%= JSON.stringify(user) %>)' class="btn-icon btn-icon-primary" title="Edit">
                       <i class="fas fa-edit"></i>
                     </button>
-                    <button onclick="resetPassword(<%= user.id %>, '<%= user.name %>')" class="btn-icon btn-icon-info" title="Reset Password">
+                    <button onclick="resetPassword(<%= user.id %>, <%= JSON.stringify(user.name) %>)" class="btn-icon btn-icon-info" title="Reset Password">
                       <i class="fas fa-key"></i>
                     </button>
-                    <button onclick="deleteUser(<%= user.id %>, '<%= user.name %>')" class="btn-icon btn-icon-danger" title="Hapus">
+                    <button onclick="deleteUser(<%= user.id %>, <%= JSON.stringify(user.name) %>)" class="btn-icon btn-icon-danger" title="Hapus">
                       <i class="fas fa-trash"></i>
                     </button>
                   </div>
@@ -535,10 +535,10 @@
               <button onclick='editUser(<%= JSON.stringify(user) %>)' class="btn-icon btn-icon-primary" style="flex: 1; padding: 10px;">
                 <i class="fas fa-edit mr-1"></i>Edit
               </button>
-              <button onclick="resetPassword(<%= user.id %>, '<%= user.name %>')" class="btn-icon btn-icon-info" style="flex: 1; padding: 10px;">
+              <button onclick="resetPassword(<%= user.id %>, <%= JSON.stringify(user.name) %>)" class="btn-icon btn-icon-info" style="flex: 1; padding: 10px;">
                 <i class="fas fa-key mr-1"></i>Reset
               </button>
-              <button onclick="deleteUser(<%= user.id %>, '<%= user.name %>')" class="btn-icon btn-icon-danger" style="flex: 1; padding: 10px;">
+              <button onclick="deleteUser(<%= user.id %>, <%= JSON.stringify(user.name) %>)" class="btn-icon btn-icon-danger" style="flex: 1; padding: 10px;">
                 <i class="fas fa-trash mr-1"></i>Hapus
               </button>
             </div>
@@ -624,7 +624,7 @@
           id="userPassword" 
           name="password" 
           style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; transition: all 0.3s;"
-          placeholder="Minimal 6 karakter"
+          placeholder="Minimal 8 karakter"
           onfocus="this.style.borderColor='#1EAF2F'"
           onblur="this.style.borderColor='#e5e7eb'"
         >
@@ -683,7 +683,7 @@
     document.getElementById('userRole').value = 'panitia';
     document.getElementById('userPassword').value = '';
     document.getElementById('userPassword').required = true;
-    document.getElementById('passwordField').querySelector('small').textContent = 'Minimal 6 karakter';
+    document.getElementById('passwordField').querySelector('small').textContent = 'Minimal 8 karakter';
     document.getElementById('userModal').style.display = 'block';
     document.body.style.overflow = 'hidden';
   }
@@ -709,10 +709,16 @@
     document.body.style.overflow = 'auto';
   }
 
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
   function deleteUser(id, name) {
     Swal.fire({
       title: 'Konfirmasi Hapus',
-      html: `Apakah Anda yakin ingin menghapus user <strong>${name}</strong>?<br><small style="color: #6b7280;">Tindakan ini tidak dapat dibatalkan.</small>`,
+      html: `Apakah Anda yakin ingin menghapus user <strong>${escapeHtml(name)}</strong>?<br><small style="color: #6b7280;">Tindakan ini tidak dapat dibatalkan.</small>`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: '<i class="fas fa-trash mr-2"></i>Ya, Hapus',
@@ -739,7 +745,7 @@
   function resetPassword(id, name) {
     Swal.fire({
       title: 'Reset Password',
-      html: `Reset password untuk user <strong>${name}</strong>?<br><small style="color: #6b7280;">Password akan direset ke default (123456).</small>`,
+      html: `Reset password untuk user <strong>${escapeHtml(name)}</strong>?<br><small style="color: #6b7280;">Sistem membuat password sementara acak yang ditampilkan sekali.</small>`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: '<i class="fas fa-key mr-2"></i>Reset',
@@ -843,12 +849,12 @@
   // Handle form submit
   document.getElementById('userForm')?.addEventListener('submit', function(e) {
     const password = document.getElementById('userPassword').value;
-    if (!isEditMode && password.length < 6) {
+    if (!isEditMode && password.length < 8) {
       e.preventDefault();
       Swal.fire({
         icon: 'error',
         title: 'Password Terlalu Pendek',
-        text: 'Password minimal 6 karakter',
+        text: 'Password minimal 8 karakter',
         confirmButtonColor: '#ef4444'
       });
       return false;

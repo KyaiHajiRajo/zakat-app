@@ -1,0 +1,80 @@
+<%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'agenda' }) %>
+<%- include('../masjid/partials/ui') %>
+<%- include('partials/agenda-css') %>
+<section class="mj-page" style="--mj-glyph:'\f073'">
+
+  <header class="mj-hero">
+    <div>
+      <div class="mj-kicker"><%= settings.masjid_nama %></div>
+      <h1 class="mj-title">Agenda &amp; Pengumuman</h1>
+      <p class="mj-sub">Jadwal pengajian dan kegiatan, plus informasi untuk jamaah. Setiap item bisa dibagikan ke WhatsApp.</p>
+    </div>
+    <div class="mj-actions">
+      <a href="#" class="mj-btn is-solid" data-modal-open="agenda-modal" data-mode="create"><i class="fas fa-calendar-plus"></i>Tambah Agenda</a>
+      <a href="#" class="mj-btn" data-modal-open="pengumuman-modal" data-mode="create"><i class="fas fa-bullhorn"></i>Tambah Pengumuman</a>
+      <button type="button" class="mj-btn" id="ag-copy" data-url="/info-masjid"><i class="fas fa-link"></i>Salin Tautan Publik</button>
+    </div>
+  </header>
+
+  <div class="mj-stats">
+    <article class="mj-card mj-stat"><span class="mj-stat-icon"><i class="fas fa-calendar-check"></i></span><div><small>Agenda mendatang</small><b><%= mendatang.length %></b><span><%= mendatang[0] ? 'Berikutnya: ' + labelTanggal(mendatang[0].tanggal) : 'Belum ada agenda' %></span></div></article>
+    <article class="mj-card mj-stat"><span class="mj-stat-icon is-gold"><i class="fas fa-bullhorn"></i></span><div><small>Pengumuman aktif</small><b><%= aktif.length %></b><span><%= aktif.filter(function (p) { return p.penting; }).length %> bertanda penting</span></div></article>
+  </div>
+
+  <div class="ag-tabs" role="tablist">
+    <button type="button" class="ag-tab is-active" data-tab="agenda" role="tab"><i class="fas fa-calendar-days"></i>Agenda</button>
+    <button type="button" class="ag-tab" data-tab="pengumuman" role="tab"><i class="fas fa-bullhorn"></i>Pengumuman</button>
+  </div>
+
+  <section class="mj-card ag-panel is-active" id="ag-panel-agenda">
+    <div class="mj-head"><div><h2>Agenda Mendatang</h2><p>Diurutkan dari yang terdekat</p></div></div>
+    <% if (!mendatang.length) { %>
+      <div class="mj-empty"><i class="fas fa-calendar-plus"></i><h3>Belum ada agenda</h3><p>Tambahkan pengajian rutin atau kegiatan pertama.</p>
+        <a href="#" class="mj-btn is-solid" data-modal-open="agenda-modal" data-mode="create"><i class="fas fa-plus"></i>Tambah Agenda</a></div>
+    <% } else { %>
+      <div class="ag-list"><% mendatang.forEach(function (a) { %><%- include('partials/agenda-card', { a: a, settings: settings, readonly: false, today: today, hariTanggal: hariTanggal, labelTanggal: labelTanggal }) %><% }) %></div>
+    <% } %>
+    <% if (lampau.length) { %>
+      <details class="ag-past"><summary><i class="fas fa-clock-rotate-left"></i> Agenda terdahulu (<%= lampau.length %>)</summary>
+        <div class="ag-list"><% lampau.forEach(function (a) { %><%- include('partials/agenda-card', { a: a, settings: settings, readonly: false, today: today, hariTanggal: hariTanggal, labelTanggal: labelTanggal }) %><% }) %></div>
+      </details>
+    <% } %>
+  </section>
+
+  <section class="mj-card ag-panel" id="ag-panel-pengumuman">
+    <div class="mj-head"><div><h2>Pengumuman Aktif</h2><p>Yang penting tampil paling atas</p></div></div>
+    <% if (!aktif.length) { %>
+      <div class="mj-empty"><i class="fas fa-bullhorn"></i><h3>Belum ada pengumuman</h3><p>Terbitkan informasi untuk jamaah.</p>
+        <a href="#" class="mj-btn is-solid" data-modal-open="pengumuman-modal" data-mode="create"><i class="fas fa-plus"></i>Tambah Pengumuman</a></div>
+    <% } else { %>
+      <div class="pg-list"><% aktif.forEach(function (p) { %><%- include('partials/pengumuman-card', { p: p, settings: settings, readonly: false, labelTanggal: labelTanggal }) %><% }) %></div>
+    <% } %>
+    <% if (arsip.length) { %>
+      <details class="ag-past"><summary><i class="fas fa-box-archive"></i> Arsip pengumuman (<%= arsip.length %>)</summary>
+        <div class="pg-list"><% arsip.forEach(function (p) { %><%- include('partials/pengumuman-card', { p: p, settings: settings, readonly: false, labelTanggal: labelTanggal }) %><% }) %></div>
+      </details>
+    <% } %>
+  </section>
+</section>
+
+<%- include('partials/agenda-modal') %>
+<%- include('partials/pengumuman-modal') %>
+
+<script>
+  (function () {
+    var tabs = [].slice.call(document.querySelectorAll(".ag-tab"));
+    function show(name) {
+      tabs.forEach(function (t) { t.classList.toggle("is-active", t.dataset.tab === name); });
+      ["agenda", "pengumuman"].forEach(function (n) { document.getElementById("ag-panel-" + n).classList.toggle("is-active", n === name); });
+    }
+    tabs.forEach(function (t) { t.addEventListener("click", function () { show(t.dataset.tab); }); });
+    show(new URLSearchParams(location.search).get("tab") === "pengumuman" ? "pengumuman" : "agenda");
+    var copy = document.getElementById("ag-copy");
+    copy.addEventListener("click", function () {
+      var url = location.origin + copy.dataset.url;
+      var done = function () { if (window.Swal) { Swal.fire({ icon: "success", title: "Tautan disalin", text: url, timer: 2200, showConfirmButton: false }); } };
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(url).then(done); } else { window.prompt("Salin tautan ini:", url); }
+    });
+  })();
+</script>
+<%- include('../layouts/footer') %>

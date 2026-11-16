@@ -528,3 +528,65 @@ html.dark-mode .insight-note {
 html.dark-mode .chart-surface-badge[style*="--badge-bg"] {
     background: var(--badge-bg)
 }
+html.dark-mode .mw-card {
+    background: var(--surface);
+    border: 1px solid var(--line)
+}
+html.dark-mode .mw-card.is-green {
+    background: radial-gradient(300px 160px at 90% -20%, rgba(201,162,75,.35), transparent 70%), linear-gradient(135deg, var(--primary-dark), var(--primary-darker) 60%, var(--forest));
+    color: #fff;
+    border: 0
+}
+html.dark-mode .mw-top {
+    color: var(--muted)
+}
+html.dark-mode .is-green .mw-top {
+    color: #f1dca6
+}
+html.dark-mode .mw-top a {
+    color: inherit
+}
+html.dark-mode .mw-big {
+    color: var(--ink)
+}
+html.dark-mode .is-green .mw-big {
+    color: #fff
+}
+html.dark-mode .mw-sub {
+    color: var(--muted)
+}
+html.dark-mode .is-green .mw-sub {
+    color: rgba(255,255,255,.85)
+}
+html.dark-mode .mw-row {
+    color: var(--ink-2)
+}
+html.dark-mode .mw-in {
+    color: var(--primary-dark)
+}
+html.dark-mode .mw-out {
+    color: #e35353
+}
+html.dark-mode .mw-d {
+    background: linear-gradient(135deg, var(--primary-dark), var(--forest));
+    color: #fff
+}
+html.dark-mode .mw-d span {
+    color: #f1dca6
+}
+html.dark-mode .mw-list .t {
+    color: var(--ink)
+}
+html.dark-mode .mw-list .t small {
+    color: var(--muted)
+}
+html.dark-mode .mw-warn {
+    background: var(--gold-soft);
+    color: var(--gold-ink)
+}
+html.dark-mode .mw-empty {
+    color: var(--muted)
+}
+html.dark-mode [style="color:var(--primary-dark);font-weight:600"] {
+    color: var(--primary-dark) !important
+}

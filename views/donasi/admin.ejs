@@ -1,0 +1,373 @@
+<%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'donasi' }) %>
+<%- include('../masjid/partials/ui') %>
+<%- include('partials/donasi-css') %>
+<style>
+  .da-list { display: grid; gap: 12px; padding: 14px; }
+  .da-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); transition: border-color .15s ease, box-shadow .15s ease; }
+  .da-item:hover { border-color: rgba(30,175,47,.4); box-shadow: var(--shadow-sm); }
+  .da-item.is-wait { border-left: 4px solid var(--gold); }
+  .da-proof { width: 74px; height: 74px; border-radius: 14px; border: 1px solid var(--line); overflow: hidden; background: var(--surface-2); padding: 0; cursor: zoom-in; position: relative; }
+  .da-proof img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .da-proof::after { content: "\f00e"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: 4px; bottom: 4px; width: 22px; height: 22px; border-radius: 8px; display: grid; place-items: center; background: rgba(0,0,0,.55); color: #fff; font-size: .7rem; }
+  .da-main { min-width: 0; }
+  .da-top { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+  .da-name { font-weight: 800; color: var(--ink); font-size: 1rem; }
+  .da-amt { font-weight: 800; font-size: 1.15rem; color: var(--primary-dark); font-variant-numeric: tabular-nums; }
+  html.dark-mode .da-amt { color: #6ee37e; }
+  .da-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 4px; font-size: .8rem; color: var(--muted); }
+  .da-meta i { margin-right: 4px; }
+  .da-msg { margin-top: 6px; padding: 7px 10px; border-radius: 10px; background: var(--surface-2); font-size: .84rem; color: var(--ink-2); font-style: italic; }
+  .da-acts { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+  .da-btn { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; border-radius: 11px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-2); font: inherit; font-weight: 700; font-size: .84rem; cursor: pointer; text-decoration: none; transition: all .15s ease; }
+  .da-btn:hover { transform: translateY(-1px); }
+  .da-btn.is-ok { background: linear-gradient(135deg, #2bc23c 0%, var(--primary-darker) 100%); border-color: transparent; color: #fff; box-shadow: 0 8px 16px -10px rgba(30,175,47,.9); }
+  .da-btn.is-no:hover { border-color: #dc2626; color: #dc2626; background: rgba(220,38,38,.08); }
+  .da-btn.is-wa { border-color: rgba(37,211,102,.5); color: #128c7e; }
+  .da-btn.is-wa:hover { background: rgba(37,211,102,.12); }
+  .da-reason { margin-top: 6px; font-size: .82rem; color: #dc2626; }
+  .da-setup { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 14px 18px; border-radius: 16px; background: var(--gold-soft); border: 1px solid rgba(201,162,75,.45); color: var(--gold-ink); }
+  .da-setup b { display: block; }
+  .da-link { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); font-size: .84rem; color: var(--ink-2); }
+  .da-link code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: var(--primary-dark); }
+  .da-qris-up { display: flex; gap: 14px; align-items: center; padding: 12px; border: 1px dashed var(--line-strong); border-radius: 14px; background: var(--surface-2); }
+  .da-qris-up img { width: 84px; height: 84px; object-fit: contain; border-radius: 10px; background: #fff; border: 1px solid var(--line); }
+  .da-qris-up .ph { width: 84px; height: 84px; border-radius: 10px; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); color: var(--faint); font-size: 1.6rem; }
+  .da-qris-up > div { display: grid; gap: 6px; }
+  .da-switch { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-2); cursor: pointer; }
+  .da-switch input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--primary-color); }
+  .da-switch b { display: block; font-size: .9rem; color: var(--ink); }
+  .da-switch small { color: var(--muted); font-size: .78rem; }
+  .da-lightbox { position: fixed; inset: 0; z-index: 2600; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(5,12,8,.86); backdrop-filter: blur(4px); }
+  .da-lightbox.is-open { display: flex; }
+  .da-lightbox img { max-width: min(92vw, 780px); max-height: 86vh; border-radius: 14px; box-shadow: 0 30px 80px rgba(0,0,0,.5); background: #fff; }
+  .da-lightbox button { position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,.18); color: #fff; font-size: 1.1rem; cursor: pointer; }
+  .da-reasons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .da-reasons button { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--ink-2); font: inherit; font-size: .78rem; font-weight: 600; cursor: pointer; }
+  .da-reasons button:hover { border-color: var(--primary-color); color: var(--primary-dark); }
+  .da-sum { padding: 12px 14px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); margin-bottom: 14px; display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+  .da-sum b { font-size: 1.2rem; color: var(--primary-dark); font-variant-numeric: tabular-nums; }
+  @media (max-width: 720px) {
+    .da-item { grid-template-columns: auto minmax(0, 1fr); }
+    .da-acts { grid-column: 1 / -1; justify-content: stretch; }
+    .da-acts > * { flex: 1; justify-content: center; }
+  }
+</style>
+<%
+  const tipe = settings.masjid_tipe === 'masjid' ? 'Masjid' : 'Musholla';
+  const linkDonasi = '/donasi';
+  const waText = '🤲 *Donasi & Infaq ' + settings.masjid_nama + '*\nSalurkan donasi Anda secara online dengan mudah, lengkap dengan laporan penggunaan dana yang terbuka.\n\n';
+  const baseQs = function (s, p) { return '/donasi-masuk?status=' + s + (p > 1 ? '&page=' + p : ''); };
+%>
+<section class="mj-page" style="--mj-glyph:'\f4be'">
+  <header class="mj-hero">
+    <div>
+      <div class="mj-kicker">Donasi Online</div>
+      <h1 class="mj-title">Donasi Masuk</h1>
+      <p class="mj-sub">Periksa bukti transfer jamaah, lalu terima agar otomatis tercatat di kas dan laporan publik.</p>
+    </div>
+    <div class="mj-actions">
+      <a href="/donasi" target="_blank" rel="noopener" class="mj-btn is-solid"><i class="fas fa-arrow-up-right-from-square"></i>Halaman Donasi</a>
+      <a href="#" class="mj-btn" id="da-share" data-wa-text="<%= waText %>" data-wa-link="/donasi"><i class="fab fa-whatsapp"></i>Bagikan</a>
+      <% if (isAdmin) { %><a href="#" class="mj-btn" data-modal-open="da-setting-modal"><i class="fas fa-sliders"></i>Pengaturan</a><% } %>
+    </div>
+  </header>
+
+  <% if (success && success.length) { %><div class="mj-alert ok"><%= success %></div><% } %>
+  <% if (error && error.length) { %><div class="mj-alert err"><%= error %></div><% } %>
+
+  <% if (!siap || settings.donasi_aktif !== '1') { %>
+    <div class="da-setup">
+      <div><b><i class="fas fa-triangle-exclamation"></i> Donasi online belum aktif untuk jamaah</b>
+        <span><%= !siap ? 'Isi gambar QRIS atau nomor rekening terlebih dahulu.' : 'Donasi online sedang dimatikan di pengaturan.' %></span></div>
+      <% if (isAdmin) { %><a href="#" class="mj-btn is-solid" data-modal-open="da-setting-modal"><i class="fas fa-gear"></i>Atur sekarang</a><% } else { %><span>Hubungi admin untuk mengaktifkan.</span><% } %>
+    </div>
+  <% } %>
+
+  <div class="mj-stats">
+    <div class="mj-card mj-stat"><span class="mj-stat-icon is-gold"><i class="fas fa-hourglass-half"></i></span><div><small>Menunggu</small><b><%= counts.menunggu %> donasi</b><span><%= rupiah(totalMenunggu) %></span></div></div>
+    <div class="mj-card mj-stat"><span class="mj-stat-icon"><i class="fas fa-circle-check"></i></span><div><small>Diterima</small><b><%= rupiah(totalDiterima) %></b><span><%= counts.diterima %> donasi</span></div></div>
+    <div class="mj-card mj-stat"><span class="mj-stat-icon is-out"><i class="fas fa-circle-xmark"></i></span><div><small>Ditolak</small><b><%= counts.ditolak %> donasi</b><span>&nbsp;</span></div></div>
+  </div>
+
+  <section class="mj-card">
+    <div class="mj-head">
+      <div><h2>Daftar donasi</h2><p>Yang menunggu selalu di atas.</p></div>
+      <div class="mj-seg" role="tablist">
+        <% [['menunggu','Menunggu'],['diterima','Diterima'],['ditolak','Ditolak'],['semua','Semua']].forEach(function (t) { %>
+          <a href="<%= baseQs(t[0], 1) %>" class="<%= filter === t[0] ? 'is-active' : '' %>"><%= t[1] %><% if (t[0] === 'menunggu' && counts.menunggu) { %> <span class="mj-badge is-gold" style="padding:1px 8px"><%= counts.menunggu %></span><% } %></a>
+        <% }) %>
+      </div>
+    </div>
+
+    <% if (!rows.length) { %>
+      <div class="mj-empty">
+        <i class="fas fa-inbox"></i>
+        <h3><%= filter === 'menunggu' ? 'Tidak ada donasi yang menunggu' : 'Belum ada donasi' %></h3>
+        <p>Bagikan tautan halaman donasi ke grup jamaah agar mereka bisa berdonasi dengan mudah.</p>
+        <a href="#" class="mj-btn is-solid" data-wa-text="<%= waText %>" data-wa-link="/donasi"><i class="fab fa-whatsapp"></i>Bagikan ke WhatsApp</a>
+      </div>
+    <% } else { %>
+      <div class="da-list">
+        <% rows.forEach(function (r) { %>
+          <article class="da-item <%= r.status === 'menunggu' ? 'is-wait' : '' %>">
+            <button type="button" class="da-proof" data-proof="/uploads/bukti-donasi/<%= r.bukti %>" aria-label="Lihat bukti transfer <%= r.nama %>"><img src="/uploads/bukti-donasi/<%= r.bukti %>" alt="Bukti transfer" loading="lazy"></button>
+            <div class="da-main">
+              <div class="da-top">
+                <span class="da-name"><%= r.nama %></span>
+                <% if (r.anonim) { %><span class="mj-badge"><i class="fas fa-user-secret"></i>Anonim</span><% } %>
+                <span class="da-amt"><%= rupiah(r.jumlah) %></span>
+                <% if (r.status === 'menunggu') { %><span class="mj-badge is-gold"><i class="fas fa-hourglass-half"></i>Menunggu</span>
+                <% } else if (r.status === 'diterima') { %><span class="mj-badge is-green"><i class="fas fa-circle-check"></i>Diterima</span>
+                <% } else { %><span class="mj-badge is-red"><i class="fas fa-circle-xmark"></i>Ditolak</span><% } %>
+              </div>
+              <div class="da-meta">
+                <span><i class="fas <%= r.tujuanIcon %>"></i><%= r.tujuanLabel %></span>
+                <span><i class="far fa-clock"></i><%= r.lalu %></span>
+                <span><i class="fas fa-hashtag"></i><%= r.kode %></span>
+                <% if (r.wa) { %><span><i class="fab fa-whatsapp"></i><%= r.waTampil %></span><% } %>
+                <% if (r.status !== 'menunggu' && r.oleh) { %><span><i class="fas fa-user-check"></i>oleh <%= r.oleh %></span><% } %>
+              </div>
+              <% if (r.pesan) { %><div class="da-msg">“<%= r.pesan %>”</div><% } %>
+              <% if (r.status === 'ditolak' && r.alasan_tolak) { %><div class="da-reason"><i class="fas fa-circle-info"></i> <%= r.alasan_tolak %></div><% } %>
+            </div>
+            <div class="da-acts">
+              <% if (r.status === 'menunggu') { %>
+                <button type="button" class="da-btn is-ok" data-modal-open="da-terima-modal" data-id="<%= r.id %>" data-nama="<%= r.anonim ? 'Hamba Allah' : r.nama %>" data-jumlah="<%= r.jumlah %>" data-tujuan="<%= r.tujuan %>" data-kode="<%= r.kode %>"><i class="fas fa-check"></i>Terima</button>
+                <button type="button" class="da-btn is-no" data-modal-open="da-tolak-modal" data-id="<%= r.id %>" data-nama="<%= r.nama %>" data-jumlah="<%= r.jumlah %>"><i class="fas fa-xmark"></i>Tolak</button>
+              <% } %>
+              <% if (r.wa) {
+                   const pesanWa = r.status === 'diterima'
+                     ? 'Assalamu\'alaikum ' + r.nama + ', alhamdulillah donasi Anda sebesar ' + rupiah(r.jumlah) + ' untuk ' + r.tujuanLabel + ' di ' + settings.masjid_nama + ' sudah kami terima dan dicatat. Jazakumullahu khairan katsiran, semoga menjadi amal jariyah dan dilipatgandakan pahalanya. Aamiin. (Kode ' + r.kode + ')'
+                     : r.status === 'ditolak'
+                     ? 'Assalamu\'alaikum ' + r.nama + ', mohon maaf donasi Anda (kode ' + r.kode + ') belum dapat kami verifikasi. ' + (r.alasan_tolak || '') + ' Silakan kirim ulang konfirmasi atau hubungi kami. Terima kasih.'
+                     : 'Assalamu\'alaikum ' + r.nama + ', kami dari ' + settings.masjid_nama + ' sedang memverifikasi donasi Anda (kode ' + r.kode + '). Mohon ditunggu ya, terima kasih.'; %>
+                <a class="da-btn is-wa" href="https://wa.me/<%= r.wa %>?text=<%= encodeURIComponent(pesanWa) %>" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i><%= r.status === 'diterima' ? 'Ucapkan terima kasih' : 'WhatsApp' %></a>
+              <% } %>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+      <% if (totalPages > 1) { %>
+        <div class="mj-pager">
+          <span>Halaman <%= page %> dari <%= totalPages %> · <%= total %> donasi</span>
+          <nav>
+            <% if (page > 1) { %><a href="<%= baseQs(filter, page - 1) %>" aria-label="Sebelumnya"><i class="fas fa-chevron-left"></i></a><% } else { %><span class="pg is-off"><i class="fas fa-chevron-left"></i></span><% } %>
+            <span class="pg is-current"><%= page %></span>
+            <% if (page < totalPages) { %><a href="<%= baseQs(filter, page + 1) %>" aria-label="Berikutnya"><i class="fas fa-chevron-right"></i></a><% } else { %><span class="pg is-off"><i class="fas fa-chevron-right"></i></span><% } %>
+          </nav>
+        </div>
+      <% } %>
+    <% } %>
+  </section>
+</section>
+
+<!-- Lightbox bukti -->
+<div class="da-lightbox" id="da-lightbox" role="dialog" aria-modal="true" aria-label="Bukti transfer"><button type="button" aria-label="Tutup"><i class="fas fa-xmark"></i></button><img alt="Bukti transfer"></div>
+
+<!-- Modal terima -->
+<div class="am" id="da-terima-modal" role="dialog" aria-modal="true" aria-labelledby="da-t-title" aria-hidden="true">
+  <div class="am-backdrop" data-modal-close></div>
+  <div class="am-panel" style="--am-w: 480px">
+    <header class="am-head">
+      <span class="am-head-icon"><i class="fas fa-circle-check"></i></span>
+      <div class="am-head-text"><h2 class="am-title" id="da-t-title">Terima Donasi</h2><p class="am-sub">Otomatis dicatat sebagai pemasukan kas</p></div>
+      <button type="button" class="am-close" data-modal-close aria-label="Tutup"><i class="fas fa-xmark"></i></button>
+    </header>
+    <form class="am-form" id="da-terima-form" method="POST" action="" novalidate>
+      <input type="hidden" name="filter" value="<%= filter %>">
+      <div class="am-body">
+        <div class="am-error" data-am-error role="alert"><i class="fas fa-circle-exclamation"></i><span></span></div>
+        <div class="da-sum"><div><small style="color:var(--muted)">Dari</small><div id="da-t-nama" style="font-weight:800;color:var(--ink)"></div></div><b id="da-t-jumlah"></b></div>
+        <div class="am-row">
+          <div class="am-field"><label for="da-t-tanggal">Tanggal masuk kas</label>
+            <div class="am-control" data-control><i class="fas fa-calendar-day lead"></i><input type="date" id="da-t-tanggal" name="tanggal" value="<%= hariIni %>" required></div></div>
+          <div class="am-field"><label for="da-t-kategori">Kategori kas</label>
+            <div class="am-control" data-control><i class="fas fa-tags lead"></i>
+              <select id="da-t-kategori" name="kategori"><% Object.keys(KATEGORI_MASUK).forEach(function (k) { %><option value="<%= k %>"><%= KATEGORI_MASUK[k].label %></option><% }) %></select></div></div>
+        </div>
+        <div class="am-hint">Pastikan dana sudah benar-benar masuk ke rekening/QRIS sebelum menerima.</div>
+      </div>
+      <footer class="am-foot">
+        <button type="button" class="am-btn am-btn-ghost" data-modal-close>Batal</button>
+        <button type="submit" class="am-btn am-btn-primary"><i class="fas fa-check"></i><span>Terima &amp; Catat ke Kas</span></button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<!-- Modal tolak -->
+<div class="am" id="da-tolak-modal" role="dialog" aria-modal="true" aria-labelledby="da-n-title" aria-hidden="true">
+  <div class="am-backdrop" data-modal-close></div>
+  <div class="am-panel" style="--am-w: 480px">
+    <header class="am-head">
+      <span class="am-head-icon" style="background:rgba(220,38,38,.12);color:#dc2626"><i class="fas fa-circle-xmark"></i></span>
+      <div class="am-head-text"><h2 class="am-title" id="da-n-title">Tolak Donasi</h2><p class="am-sub">Alasan akan terlihat oleh donatur</p></div>
+      <button type="button" class="am-close" data-modal-close aria-label="Tutup"><i class="fas fa-xmark"></i></button>
+    </header>
+    <form class="am-form" id="da-tolak-form" method="POST" action="" novalidate>
+      <div class="am-body">
+        <div class="am-error" data-am-error role="alert"><i class="fas fa-circle-exclamation"></i><span></span></div>
+        <div class="da-sum"><div><small style="color:var(--muted)">Dari</small><div id="da-n-nama" style="font-weight:800;color:var(--ink)"></div></div><b id="da-n-jumlah"></b></div>
+        <div class="am-field"><label for="da-n-alasan">Alasan penolakan <span class="req">*</span></label>
+          <div class="am-control is-area" data-control><i class="fas fa-comment-dots lead"></i><textarea id="da-n-alasan" name="alasan" maxlength="255" required placeholder="Contoh: Dana belum masuk ke rekening"></textarea></div>
+          <div class="da-reasons">
+            <button type="button" data-reason="Dana belum masuk ke rekening kami.">Dana belum masuk</button>
+            <button type="button" data-reason="Nominal pada bukti tidak sesuai dengan yang dikonfirmasi.">Nominal tidak sesuai</button>
+            <button type="button" data-reason="Foto bukti kurang jelas, mohon kirim ulang.">Bukti kurang jelas</button>
+            <button type="button" data-reason="Donasi ini terkirim ganda.">Ganda</button>
+          </div></div>
+      </div>
+      <footer class="am-foot">
+        <button type="button" class="am-btn am-btn-ghost" data-modal-close>Batal</button>
+        <button type="submit" class="am-btn am-btn-primary" style="background:linear-gradient(135deg,#ef4444,#b91c1c)"><i class="fas fa-xmark"></i><span>Tolak Donasi</span></button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<% if (isAdmin) { %>
+<!-- Modal pengaturan (admin) -->
+<div class="am" id="da-setting-modal" role="dialog" aria-modal="true" aria-labelledby="da-s-title" aria-hidden="true">
+  <div class="am-backdrop" data-modal-close></div>
+  <div class="am-panel" style="--am-w: 600px">
+    <header class="am-head">
+      <span class="am-head-icon"><i class="fas fa-sliders"></i></span>
+      <div class="am-head-text"><h2 class="am-title" id="da-s-title">Pengaturan Donasi &amp; Laporan Publik</h2><p class="am-sub">Rekening, QRIS, dan apa yang tampil ke jamaah</p></div>
+      <button type="button" class="am-close" data-modal-close aria-label="Tutup"><i class="fas fa-xmark"></i></button>
+    </header>
+    <form class="am-form" id="da-s-form" method="POST" action="/donasi-masuk/pengaturan" novalidate>
+      <div class="am-body">
+        <div class="am-error" data-am-error role="alert"><i class="fas fa-circle-exclamation"></i><span></span></div>
+
+        <label class="da-switch"><input type="checkbox" name="donasi_aktif" value="1" <%= settings.donasi_aktif === '1' ? 'checked' : '' %>><span><b>Terima donasi online</b><small>Jamaah dapat membuka halaman <b>/donasi</b> dan mengirim konfirmasi.</small></span></label>
+
+        <div class="am-field"><label>Gambar QRIS</label>
+          <div class="da-qris-up" id="da-qris-box">
+            <% if (settings.donasi_qris) { %><img src="/qris/<%= settings.donasi_qris %>" alt="QRIS" id="da-qris-img"><% } else { %><span class="ph" id="da-qris-ph"><i class="fas fa-qrcode"></i></span><% } %>
+            <div>
+              <label class="mj-btn is-small" style="cursor:pointer"><i class="fas fa-upload"></i><span id="da-qris-label"><%= settings.donasi_qris ? 'Ganti gambar' : 'Unggah gambar QRIS' %></span><input type="file" id="da-qris-file" accept="image/jpeg,image/png,image/webp" hidden></label>
+              <button type="button" class="mj-btn is-small is-danger" id="da-qris-del" <%= settings.donasi_qris ? '' : 'hidden' %>><i class="fas fa-trash"></i>Hapus</button>
+              <small style="color:var(--muted)">Foto atau tangkapan layar QRIS musholla (maks. 4 MB). Tersimpan langsung.</small>
+            </div>
+          </div></div>
+
+        <div class="am-row">
+          <div class="am-field"><label for="da-s-bank">Nama bank</label>
+            <div class="am-control" data-control><i class="fas fa-building-columns lead"></i><input type="text" id="da-s-bank" name="donasi_bank_nama" maxlength="60" value="<%= settings.donasi_bank_nama %>" placeholder="Contoh: BSI / BCA / Mandiri"></div></div>
+          <div class="am-field"><label for="da-s-norek">Nomor rekening</label>
+            <div class="am-control" data-control><i class="fas fa-hashtag lead"></i><input type="text" id="da-s-norek" name="donasi_bank_norek" inputmode="numeric" maxlength="40" value="<%= settings.donasi_bank_norek %>" placeholder="1234567890"></div></div>
+        </div>
+        <div class="am-row">
+          <div class="am-field"><label for="da-s-an">Atas nama</label>
+            <div class="am-control" data-control><i class="fas fa-user lead"></i><input type="text" id="da-s-an" name="donasi_bank_atas_nama" maxlength="80" value="<%= settings.donasi_bank_atas_nama %>" placeholder="Nama pemilik rekening"></div></div>
+          <div class="am-field"><label for="da-s-wa">WhatsApp pengurus</label>
+            <div class="am-control" data-control><i class="fab fa-whatsapp lead"></i><input type="text" id="da-s-wa" name="donasi_wa" inputmode="tel" maxlength="20" value="<%= settings.donasi_wa ? '0' + settings.donasi_wa.slice(2) : '' %>" placeholder="0812…"></div>
+            <div class="am-hint">Dipakai tombol “Konfirmasi via WhatsApp” untuk donatur.</div></div>
+        </div>
+        <div class="am-field"><label for="da-s-cat">Catatan untuk donatur <span class="opt">(opsional)</span></label>
+          <div class="am-control" data-control><i class="fas fa-circle-info lead"></i><input type="text" id="da-s-cat" name="donasi_catatan" maxlength="255" value="<%= settings.donasi_catatan %>" placeholder="Contoh: Mohon tambahkan kode unik di akhir nominal"></div></div>
+
+        <hr style="border:0;border-top:1px solid var(--line);margin:6px 0">
+        <label class="da-switch"><input type="checkbox" name="transparansi_aktif" value="1" <%= settings.transparansi_aktif === '1' ? 'checked' : '' %>><span><b>Tampilkan laporan kas ke publik</b><small>Halaman <b>/transparansi</b> memperlihatkan pemasukan, pengeluaran, dan saldo.</small></span></label>
+        <label class="da-switch"><input type="checkbox" name="transparansi_nama_donatur" value="1" <%= settings.transparansi_nama_donatur === '1' ? 'checked' : '' %>><span><b>Tampilkan nama pihak pada transaksi</b><small>Jika mati, nama penyumbang/penerima disembunyikan dari publik (lebih menjaga privasi).</small></span></label>
+      </div>
+      <footer class="am-foot">
+        <button type="button" class="am-btn am-btn-ghost" data-modal-close>Batal</button>
+        <button type="submit" class="am-btn am-btn-primary"><i class="fas fa-floppy-disk"></i><span>Simpan Pengaturan</span></button>
+      </footer>
+    </form>
+  </div>
+</div>
+<% } %>
+
+<script>
+  (function () {
+    var rp = new Intl.NumberFormat("id-ID");
+    function money(n) { return "Rp " + rp.format(Number(n) || 0); }
+
+    // Bukti transfer layar penuh
+    var box = document.getElementById("da-lightbox");
+    document.addEventListener("click", function (e) {
+      var p = e.target.closest("[data-proof]");
+      if (p) { box.querySelector("img").src = p.getAttribute("data-proof"); box.classList.add("is-open"); return; }
+      if (box.classList.contains("is-open") && (e.target === box || e.target.closest("#da-lightbox button"))) { box.classList.remove("is-open"); }
+    });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") { box.classList.remove("is-open"); } });
+
+    // Terima
+    var tm = document.getElementById("da-terima-modal");
+    var tf = document.getElementById("da-terima-form");
+    tm.addEventListener("am:open", function (e) {
+      var t = e.detail.trigger; if (!t) { return; }
+      tf.action = "/donasi-masuk/" + t.dataset.id + "/terima";
+      document.getElementById("da-t-nama").textContent = t.dataset.nama + " · " + t.dataset.kode;
+      document.getElementById("da-t-jumlah").textContent = money(t.dataset.jumlah);
+      var sel = document.getElementById("da-t-kategori"); if ([].some.call(sel.options, function (o) { return o.value === t.dataset.tujuan; })) { sel.value = t.dataset.tujuan; }
+      tf.querySelector("[data-am-error]").classList.remove("is-visible");
+    });
+    tf.addEventListener("submit", function (e) { e.preventDefault(); window.AppModal.submit(tf); });
+
+    // Tolak
+    var nm = document.getElementById("da-tolak-modal");
+    var nf = document.getElementById("da-tolak-form");
+    var alasan = document.getElementById("da-n-alasan");
+    nm.addEventListener("am:open", function (e) {
+      var t = e.detail.trigger; if (!t) { return; }
+      nf.action = "/donasi-masuk/" + t.dataset.id + "/tolak";
+      document.getElementById("da-n-nama").textContent = t.dataset.nama;
+      document.getElementById("da-n-jumlah").textContent = money(t.dataset.jumlah);
+      alasan.value = ""; nf.querySelector("[data-am-error]").classList.remove("is-visible");
+      setTimeout(function () { alasan.focus(); }, 280);
+    });
+    nm.addEventListener("click", function (e) { var b = e.target.closest("[data-reason]"); if (b) { alasan.value = b.dataset.reason; alasan.focus(); } });
+    nf.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var eb = nf.querySelector("[data-am-error]");
+      if (!alasan.value.trim()) { eb.querySelector("span").textContent = "Tulis alasan penolakan."; eb.classList.add("is-visible"); return; }
+      window.AppModal.submit(nf);
+    });
+
+    // Pengaturan + QRIS
+    var sf = document.getElementById("da-s-form");
+    if (sf) {
+      sf.addEventListener("submit", function (e) { e.preventDefault(); window.AppModal.submit(sf); });
+      var file = document.getElementById("da-qris-file");
+      var del = document.getElementById("da-qris-del");
+      function showQris(url) {
+        var boxq = document.getElementById("da-qris-box");
+        var img = document.getElementById("da-qris-img");
+        var ph = document.getElementById("da-qris-ph");
+        if (url) {
+          if (!img) { img = document.createElement("img"); img.id = "da-qris-img"; img.alt = "QRIS"; boxq.insertBefore(img, boxq.firstChild); }
+          img.src = url + "?t=" + Date.now(); if (ph) { ph.remove(); }
+          document.getElementById("da-qris-label").textContent = "Ganti gambar"; del.hidden = false;
+        } else {
+          if (img) { img.remove(); }
+          var s = document.createElement("span"); s.className = "ph"; s.id = "da-qris-ph"; s.innerHTML = '<i class="fas fa-qrcode"></i>'; boxq.insertBefore(s, boxq.firstChild);
+          document.getElementById("da-qris-label").textContent = "Unggah gambar QRIS"; del.hidden = true;
+        }
+      }
+      var errBox = sf.querySelector("[data-am-error]");
+      function qErr(m) { errBox.querySelector("span").textContent = m; errBox.classList.add("is-visible"); }
+      file.addEventListener("change", function () {
+        if (!file.files[0]) { return; }
+        var fd = new FormData(); fd.append("qris", file.files[0]);
+        errBox.classList.remove("is-visible");
+        fetch("/donasi-masuk/qris", { method: "POST", credentials: "same-origin", headers: { "X-Requested-With": "fetch", Accept: "application/json" }, body: fd })
+          .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok && d.ok !== false, d: d }; }); })
+          .then(function (res) { if (res.ok) { showQris(res.d.url); } else { qErr(res.d.message || "Gagal mengunggah QRIS"); } })
+          .catch(function () { qErr("Tidak dapat terhubung ke server."); })
+          .then(function () { file.value = ""; });
+      });
+      del.addEventListener("click", function () {
+        fetch("/donasi-masuk/qris/hapus", { method: "POST", credentials: "same-origin", headers: { "X-Requested-With": "fetch", Accept: "application/json" } })
+          .then(function (r) { return r.json(); }).then(function (d) { if (d.ok) { showQris(null); } else { qErr(d.message || "Gagal menghapus"); } })
+          .catch(function () { qErr("Tidak dapat terhubung ke server."); });
+      });
+    }
+
+    // tautan donasi lengkap (dengan alamat situs) ditambahkan ke teks bagikan
+    document.querySelectorAll('[data-wa-link="/donasi"]').forEach(function (a) { a.setAttribute("data-wa-text", a.getAttribute("data-wa-text") + location.origin + "/donasi"); });
+  })();
+</script>
+<%- include('../layouts/footer') %>

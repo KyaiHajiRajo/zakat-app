@@ -10,6 +10,9 @@ const server = app.listen(PORT, () => {
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
 });
 
+// Log aktivitas lebih dari 1 tahun dibersihkan saat server menyala
+app.locals.db.execute("DELETE FROM log_aktivitas WHERE created_at < (NOW() - INTERVAL 365 DAY)").catch(() => {});
+
 // Graceful shutdown
 function shutdown(signal) {
   console.log(`📥 ${signal} received. Shutting down gracefully...`);

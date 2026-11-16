@@ -1,0 +1,112 @@
+<%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'aktivitas' }) %>
+<%- include('../masjid/partials/ui') %>
+<%
+  const BLN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  const two = (n) => String(n).padStart(2, '0');
+  const waktu = (d) => { const x = new Date(new Date(d).getTime() + tz * 3600e3); return { tgl: x.getUTCDate() + ' ' + BLN[x.getUTCMonth()] + ' ' + x.getUTCFullYear(), jam: two(x.getUTCHours()) + ':' + two(x.getUTCMinutes()) + ':' + two(x.getUTCSeconds()) }; };
+  const rel = (d) => { const s = Math.max(0, Math.round((Date.now() - new Date(d).getTime()) / 1000)); if (s < 60) return 'baru saja'; if (s < 3600) return Math.floor(s / 60) + ' menit lalu'; if (s < 86400) return Math.floor(s / 3600) + ' jam lalu'; if (s < 172800) return 'kemarin'; return Math.floor(s / 86400) + ' hari lalu'; };
+  const TONE = { 'Menambah': ['green', 'fa-circle-plus'], 'Mengubah': ['blue', 'fa-pen'], 'Mengubah status': ['blue', 'fa-arrows-rotate'], 'Mengubah pengaturan': ['blue', 'fa-sliders'], 'Menghapus': ['red', 'fa-trash-can'], 'Login': ['gold', 'fa-right-to-bracket'], 'Login gagal': ['red', 'fa-shield-halved'], 'Mereset password': ['gold', 'fa-key'], 'Mengganti password': ['gold', 'fa-key'] };
+  const qs = (extra) => {
+    const p = new URLSearchParams();
+    ['modul', 'aksi', 'user', 'q', 'dari', 'sampai'].forEach((k) => { if (f[k]) p.set(k, f[k]); });
+    Object.keys(extra || {}).forEach((k) => { if (extra[k] === '' || extra[k] === null) p.delete(k); else p.set(k, extra[k]); });
+    const s = p.toString();
+    return s ? '?' + s : '';
+  };
+  const filtered = !!(f.modul || f.aksi || f.user || f.q || f.dari || f.sampai);
+%>
+<style>
+  .lg-who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .lg-av { width: 34px; height: 34px; border-radius: 50%; flex: none; display: grid; place-items: center; background: linear-gradient(135deg, var(--primary-color), var(--forest)); color: #fff; font-weight: 800; font-size: .85rem; }
+  .lg-av.is-anon { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+  .lg-who b { display: block; font-size: .88rem; color: var(--ink); }
+  .lg-who small { color: var(--muted); }
+  .lg-sum { color: var(--ink); line-height: 1.45; }
+  .lg-sum .mod { margin-right: 6px; margin-bottom: 4px; }
+  .lg-time b { display: block; font-size: .86rem; color: var(--ink); white-space: nowrap; }
+  .lg-time small { white-space: nowrap; }
+  .lg-ip { font-variant-numeric: tabular-nums; color: var(--faint); font-size: .76rem; }
+  .lg-date { height: 40px; min-width: 150px; }
+  .lg-clear { align-self: center; font-size: .84rem; color: var(--muted); text-decoration: underline; }
+  @media print { .mj-hero, .mj-filter, .mj-stats, .mj-pager { display: none !important; } }
+</style>
+
+<section class="mj-page" style="--mj-glyph:'\f1da'">
+  <header class="mj-hero">
+    <div>
+      <div class="mj-kicker"><%= settings.masjid_nama %></div>
+      <h1 class="mj-title">Log Aktivitas</h1>
+      <p class="mj-sub">Catatan siapa melakukan apa dan kapan — mulai dari menambah, mengubah, menghapus data, sampai login. Berguna untuk transparansi antar pengurus. Log disimpan 1 tahun.</p>
+    </div>
+    <div class="mj-actions mj-noprint">
+      <button type="button" class="mj-btn" onclick="window.print()"><i class="fas fa-print"></i>Cetak</button>
+    </div>
+  </header>
+
+  <div class="mj-stats">
+    <article class="mj-card mj-stat"><span class="mj-stat-icon"><i class="fas fa-bolt"></i></span><div><small>24 jam terakhir</small><b><%= stat.hari %></b><span><%= stat.aktif %> pengguna aktif</span></div></article>
+    <article class="mj-card mj-stat"><span class="mj-stat-icon is-blue"><i class="fas fa-calendar-week"></i></span><div><small>7 hari terakhir</small><b><%= stat.minggu %></b><span>aktivitas tercatat</span></div></article>
+    <article class="mj-card mj-stat"><span class="mj-stat-icon is-out"><i class="fas fa-trash-can"></i></span><div><small>Penghapusan (7 hari)</small><b><%= stat.hapus %></b><span>data dihapus</span></div></article>
+    <article class="mj-card mj-stat"><span class="mj-stat-icon is-gold"><i class="fas fa-shield-halved"></i></span><div><small>Login gagal (7 hari)</small><b><%= stat.gagal %></b><span><%= stat.gagal > 5 ? 'perlu diperhatikan' : 'aman' %></span></div></article>
+  </div>
+
+  <section class="mj-card">
+    <form class="mj-filter mj-noprint" method="GET" action="/aktivitas" id="lg-filter">
+      <select name="user" class="mj-select" aria-label="Pengguna">
+        <option value="">Semua pengguna</option>
+        <% users.forEach(function (u) { %><option value="<%= u.id %>" <%= f.user === u.id ? 'selected' : '' %>><%= u.name %></option><% }) %>
+      </select>
+      <select name="modul" class="mj-select" aria-label="Modul">
+        <option value="">Semua modul</option>
+        <% moduls.forEach(function (m) { %><option value="<%= m %>" <%= f.modul === m ? 'selected' : '' %>><%= m %></option><% }) %>
+      </select>
+      <select name="aksi" class="mj-select" aria-label="Aksi">
+        <option value="">Semua aksi</option>
+        <% aksis.forEach(function (a) { %><option value="<%= a %>" <%= f.aksi === a ? 'selected' : '' %>><%= a %></option><% }) %>
+      </select>
+      <input type="date" name="dari" value="<%= f.dari %>" class="mj-input lg-date" placeholder="Dari tanggal" aria-label="Dari tanggal">
+      <input type="date" name="sampai" value="<%= f.sampai %>" class="mj-input lg-date" placeholder="Sampai tanggal" aria-label="Sampai tanggal">
+      <input type="search" name="q" value="<%= f.q %>" class="mj-input mj-grow" placeholder="Cari rincian atau nama…" aria-label="Cari">
+      <button type="submit" class="mj-btn is-solid"><i class="fas fa-magnifying-glass"></i>Terapkan</button>
+      <% if (filtered) { %><a class="lg-clear" href="/aktivitas">Hapus filter</a><% } %>
+    </form>
+
+    <div class="mj-head" style="border-top:0">
+      <div><h2>Riwayat</h2><p><%= total %> aktivitas<%= filtered ? ' sesuai filter' : '' %> · waktu ditampilkan menurut zona waktu masjid</p></div>
+    </div>
+
+    <% if (!logs.length) { %>
+      <div class="mj-empty"><i class="fas fa-clock-rotate-left"></i><h3><%= filtered ? 'Tidak ada aktivitas yang cocok' : 'Belum ada aktivitas tercatat' %></h3><p>Aktivitas muncul otomatis saat pengurus menambah, mengubah, atau menghapus data.</p></div>
+    <% } else { %>
+      <div class="mj-scroll">
+        <table class="mj-table">
+          <thead><tr><th>Waktu</th><th>Pengguna</th><th>Aktivitas</th><th>IP</th></tr></thead>
+          <tbody>
+            <% logs.forEach(function (l) { const w = waktu(l.created_at); const t = TONE[l.aksi] || ['', 'fa-circle-info']; %>
+              <tr>
+                <td data-label="Waktu" class="lg-time"><b><%= w.tgl %> · <%= w.jam %></b><small><%= rel(l.created_at) %></small></td>
+                <td data-label="Pengguna"><div class="lg-who"><span class="lg-av <%= l.user_name ? '' : 'is-anon' %>"><%= l.user_name ? l.user_name.charAt(0).toUpperCase() : '?' %></span><div><b><%= l.user_name || 'Tidak dikenal' %></b></div></div></td>
+                <td data-label="Aktivitas" class="lg-sum"><span class="mj-badge is-<%= t[0] %> mod"><i class="fas <%= t[1] %>"></i><%= l.aksi %></span><span class="mj-badge mod"><%= l.modul %></span><br><%= l.ringkasan %></td>
+                <td data-label="IP" class="lg-ip"><%= l.ip ? l.ip.replace('::ffff:', '') : '—' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <div class="mj-pager mj-noprint">
+        <span>Menampilkan <b><%= (page - 1) * perPage + 1 %>–<%= Math.min(page * perPage, total) %></b> dari <b><%= total %></b></span>
+        <% if (totalPages > 1) { %>
+        <nav aria-label="Halaman">
+          <% if (page > 1) { %><a href="/aktivitas<%= qs({ page: page - 1 }) %>" aria-label="Sebelumnya">‹</a><% } else { %><span class="pg is-off">‹</span><% } %>
+          <% for (let p = Math.max(1, page - 2); p <= Math.min(totalPages, page + 2); p++) { %>
+            <% if (p === page) { %><span class="pg is-current"><%= p %></span><% } else { %><a href="/aktivitas<%= qs({ page: p }) %>"><%= p %></a><% } %>
+          <% } %>
+          <% if (page < totalPages) { %><a href="/aktivitas<%= qs({ page: page + 1 }) %>" aria-label="Berikutnya">›</a><% } else { %><span class="pg is-off">›</span><% } %>
+        </nav>
+        <% } %>
+      </div>
+    <% } %>
+  </section>
+</section>
+<script>[].forEach.call(document.querySelectorAll('#lg-filter select'), function (s) { s.addEventListener('change', function () { s.form.submit(); }); });</script>
+<%- include('../layouts/footer') %>

@@ -1,2688 +1,618 @@
-<!DOCTYPE html>
-<html lang="id" class="scroll-smooth">
+<%
+  const rp = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(Number(n) || 0));
+  const pad = (n) => String(n).padStart(2, '0');
+  const hm = (m) => pad(Math.floor(m / 60) % 24) + ':' + pad(m % 60);
+  const nama = settings.masjid_nama;
+  const alamat = settings.masjid_alamat || '';
+  const inRamadan = ramadan.dayNo > 0;
+  const TIMES = [
+    ['imsak', 'Imsak', 'fa-bowl-rice'], ['subuh', 'Subuh', 'fa-cloud-moon'], ['terbit', 'Terbit', 'fa-sun'],
+    ['dzuhur', 'Dzuhur', 'fa-sun'], ['ashar', 'Ashar', 'fa-cloud-sun'], ['maghrib', 'Maghrib', 'fa-utensils'], ['isya', 'Isya', 'fa-moon']
+  ];
+  const tzName = { 7: 'WIB', 8: 'WITA', 9: 'WIT' }[lok.tz] || ('UTC+' + lok.tz);
+  const navLinks = [['#sholat', 'Waktu Sholat'], ['#layanan', 'Layanan']];
+  if (donasi) navLinks.push(['#donasi', 'Donasi']);
+  if (kas) navLinks.push(['#kas', 'Laporan Kas']);
+  navLinks.push(['#agenda', 'Agenda']);
+  const waText = '🌙 *' + nama + '*\nJadwal sholat, info kegiatan, donasi & laporan kas terbuka:\n';
+%><!DOCTYPE html>
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <meta name="description" content="<%= nama %> — jadwal sholat & imsakiyah, info kegiatan, donasi online, dan laporan kas yang terbuka untuk jamaah." />
     <link rel="shortcut icon" href="/images/logo-dkm.png" type="image/x-icon" />
-    <title>Musholla Nurul Fitrah</title>
-
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: {
-                50: "#f0f9ff",
-                100: "#e0f2fe",
-                200: "#bae6fd",
-                300: "#7dd3fc",
-                400: "#38bdf8",
-                500: "#0ea5e9",
-                600: "#0284c7",
-                700: "#0369a1",
-                800: "#075985",
-                900: "#0c4a6e",
-              },
-            },
-          },
-        },
-      };
-    </script>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#0a4d1d">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Musholla">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <meta property="og:title" content="<%= nama %>" />
+    <meta property="og:description" content="Jadwal sholat, donasi online, dan laporan kas terbuka." />
+    <meta property="og:image" content="/icons/icon-512.png" />
+    <link href="/vendor/fontawesome/css/all.min.css" rel="stylesheet" />
     <script>
       (function () {
-        const storageKey = "app-theme";
-        let theme = null;
-
-        try {
-          theme = localStorage.getItem(storageKey);
-        } catch (error) {
-          theme = null;
-        }
-
-        const prefersDark =
-          window.matchMedia &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const shouldUseDark = theme === "dark" || (!theme && prefersDark);
-
-        if (shouldUseDark) {
-          document.documentElement.classList.add("dark-mode");
-        }
+        var theme = null;
+        try { theme = localStorage.getItem("app-theme"); } catch (e) {}
+        var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (theme === "dark" || (!theme && dark)) { document.documentElement.classList.add("dark-mode"); }
       })();
     </script>
-
-    <!-- Font Awesome -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-
-    <!-- Custom CSS -->
     <style>
-      .gradient-bg {
-        background: linear-gradient(
-          135deg,
-          #059669 0%,
-          #0d9488 50%,
-          #0891b2 100%
-        );
+      :root {
+        --primary: #1eaf2f; --primary-dark: #14912a; --primary-darker: #0c6b1e; --forest: #0a4d1d;
+        --gold: #c9a24b; --gold-soft: #f5edd8; --gold-ink: #86671a;
+        --ink: #0f1a14; --ink-2: #36443b; --muted: #66766b; --faint: #9aa9a0;
+        --bg: #f2f6f3; --surface: #fff; --surface-2: #f7faf8; --line: #e5ebe7; --line-strong: #d5ded8;
+        --shadow-sm: 0 1px 2px rgba(15,26,20,.04), 0 2px 8px rgba(15,26,20,.05);
+        --shadow-md: 0 2px 4px rgba(15,26,20,.04), 0 14px 30px -10px rgba(15,26,20,.14);
+        --shadow-lg: 0 4px 8px rgba(15,26,20,.05), 0 28px 56px -16px rgba(15,26,20,.22);
+        --wrap: 1180px;
       }
-      .islamic-pattern {
-        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20zm0 0c0 11.046 8.954 20 20 20s20-8.954 20-20-8.954-20-20-20-20 8.954-20 20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-      }
-      .floating-animation {
-        animation: floating 3s ease-in-out infinite;
-      }
-      @keyframes floating {
-        0%,
-        100% {
-          transform: translateY(0px);
-        }
-        50% {
-          transform: translateY(-10px);
-        }
-      }
-      .fade-in {
-        animation: fadeIn 1s ease-in;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .glass-effect {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-      }
-      .islamic-glow {
-        animation: islamicGlow 3s ease-in-out infinite alternate;
-      }
-      @keyframes islamicGlow {
-        from {
-          box-shadow: 0 0 30px rgba(16, 185, 129, 0.6),
-            0 0 60px rgba(16, 185, 129, 0.4);
-        }
-        to {
-          box-shadow: 0 0 40px rgba(16, 185, 129, 0.8),
-            0 0 80px rgba(16, 185, 129, 0.6);
-        }
-      }
-      .crescent-moon {
-        position: relative;
-      }
-      .crescent-moon::before {
-        content: "☪️";
-        font-size: 1.2em;
-        margin-right: 0.5rem;
-      }
-      .bismillah-text {
-        font-family: "Times New Roman", serif;
-        font-style: italic;
-        color: #065f46;
-        background: linear-gradient(45deg, #059669, #0d9488);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-      .slide-up {
-        animation: slideUp 0.8s ease-out;
-      }
-      @keyframes slideUp {
-        from {
-          opacity: 0;
-          transform: translateY(30px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      /* ===============================
-         CAROUSEL CUSTOM STYLES
-         =============================== */
-      .carousel-container {
-        position: relative;
-        background: linear-gradient(
-          135deg,
-          rgba(16, 185, 129, 0.15) 0%,
-          rgba(13, 148, 136, 0.1) 100%
-        );
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
-      }
-
-      .carousel-track {
-        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      .carousel-slide {
-        background: linear-gradient(
-          135deg,
-          rgba(16, 185, 129, 0.1) 0%,
-          rgba(13, 148, 136, 0.05) 100%
-        );
-      }
-
-      .carousel-dot {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        cursor: pointer;
-      }
-
-      .carousel-dot:hover {
-        transform: scale(1.2);
-      }
-
-      .carousel-dot.active {
-        background: white !important;
-        transform: scale(1.25);
-      }
-
-      /* Carousel button hover effects */
-      #prevBtn:hover,
-      #nextBtn:hover {
-        background: rgba(255, 255, 255, 0.4);
-        transform: scale(1.1);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      }
-
-      /* Card hover animations in carousel */
-      .carousel-slide .bg-white\/10:hover {
-        background: rgba(255, 255, 255, 0.15) !important;
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-      }
-
-      /* Smooth transitions for all interactive elements */
-      .carousel-slide .bg-gradient-to-br {
-        transition: all 0.3s ease;
-      }
-
-      .carousel-slide .bg-gradient-to-br:hover {
-        transform: scale(1.05) rotateZ(2deg);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-      }
-
-      /* Auto-play indicator animation */
-      .auto-play-indicator {
-        animation: indicatorPulse 2s ease-in-out infinite;
-      }
-
-      @keyframes indicatorPulse {
-        0%,
-        100% {
-          opacity: 0.7;
-        }
-        50% {
-          opacity: 1;
-        }
-      }
-
-      /* Responsive carousel adjustments */
-      @media (max-width: 768px) {
-        .carousel-slide {
-          padding: 1rem !important;
-        }
-
-        .carousel-slide .grid {
-          grid-template-columns: 1fr !important;
-          gap: 2rem !important;
-        }
-
-        .carousel-slide .order-2 {
-          order: 1 !important;
-        }
-
-        .carousel-slide .order-1 {
-          order: 2 !important;
-        }
-      }
-
-      /* ===============================
-         END CAROUSEL CUSTOM STYLES
-         =============================== */
-
-      /* ===============================
-         FLASH MESSAGE STYLES
-         =============================== */
-      #success-message,
-      #error-message {
-        animation: slideInRight 0.3s ease-out;
-        transition: all 0.3s ease;
-      }
-
-      @keyframes slideInRight {
-        from {
-          opacity: 0;
-          transform: translateX(100%);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(0);
-        }
-      }
-
-      /* Flash message hover effects */
-      #success-message:hover,
-      #error-message:hover {
-        transform: scale(1.02);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-      }
-
-      /* ===============================
-         END FLASH MESSAGE STYLES
-         =============================== */
-
-      /* ===============================
-         ENHANCED MOBILE RESPONSIVENESS
-         =============================== */
-      @media (max-width: 640px) {
-        .bismillah-text {
-          font-size: 1.25rem !important;
-          line-height: 1.8;
-        }
-
-        .floating-animation {
-          animation-duration: 4s;
-        }
-
-        /* Mobile navigation improvements */
-        nav .flex.flex-col span:first-child {
-          font-size: 1rem;
-        }
-
-        /* Hero section mobile adjustments */
-        #home {
-          padding-top: 5rem;
-          padding-bottom: 2rem;
-        }
-
-        /* Enhanced mobile typography */
-        h1 {
-          line-height: 1.2;
-        }
-
-        /* Button responsiveness */
-        .group {
-          min-height: 3rem;
-        }
-
-        #navbar .max-w-7xl {
-          padding-left: 0.75rem;
-          padding-right: 0.75rem;
-        }
-
-        #navbar .nav-main-row {
-          min-height: 4.25rem;
-          gap: 0.5rem;
-        }
-
-        #navbar .brand-title {
-          max-width: 8.75rem;
-        }
-
-        #navbar .mobile-nav-actions {
-          gap: 0.4rem;
-        }
-
-        #navbar .mobile-icon-btn {
-          padding: 0.55rem;
-        }
-      }
-
-      /* Font for Arabic text */
-      .font-arabic {
-        font-family: "Times New Roman", "Amiri", "Traditional Arabic", serif;
-        font-weight: 600;
-      }
-
-      /* Enhanced gradient backgrounds */
-      .gradient-bg {
-        background: linear-gradient(
-          135deg,
-          #059669 0%,
-          #0d9488 25%,
-          #0891b2 50%,
-          #0284c7 75%,
-          #0369a1 100%
-        );
-        background-size: 300% 300%;
-        animation: gradientShift 8s ease infinite;
-      }
-
-      @keyframes gradientShift {
-        0%,
-        100% {
-          background-position: 0% 50%;
-        }
-        50% {
-          background-position: 100% 50%;
-        }
-      }
-
-      /* Enhanced glass effect for mobile */
-      @media (max-width: 768px) {
-        .bg-white\/10,
-        .bg-white\/15 {
-          background: rgba(255, 255, 255, 0.2);
-          backdrop-filter: blur(20px);
-        }
-      }
-
-      /* Enhanced navbar blur effect */
-      #navbar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        width: 100%;
-        transform: translateY(0);
-      }
-
-      nav.backdrop-blur-md {
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      /* Mobile menu animation styles */
-      #mobile-menu {
-        opacity: 0;
-        transform: translateY(-10px);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 100%;
-        z-index: 49;
-        background: rgba(255, 255, 255, 0.98);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-        border-top: 1px solid rgba(16, 185, 129, 0.15);
-        border-bottom-left-radius: 1rem;
-        border-bottom-right-radius: 1rem;
-        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14);
-        overflow: hidden;
-      }
-
-      #mobile-menu:not(.hidden) {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      @supports not ((backdrop-filter: blur(1px))) {
-        #mobile-menu {
-          background: #ffffff;
-        }
-      }
-
-      /* Mobile menu button animation */
-      #mobile-menu-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 2.5rem;
-        height: 2.5rem;
-        padding: 0 !important;
-        border-radius: 0.75rem;
-        border: 1px solid rgba(16, 185, 129, 0.18);
-        background: rgba(16, 185, 129, 0.08);
-        color: #065f46;
-        line-height: 1;
-        box-shadow: 0 6px 18px rgba(15, 118, 110, 0.12);
-        transition: all 0.2s ease;
-      }
-
-      #mobile-menu-btn:hover {
-        background: rgba(16, 185, 129, 0.14);
-        transform: translateY(-1px);
-      }
-
-      #mobile-menu-btn:active {
-        transform: scale(0.95);
-      }
-
-      /* Icon rotation animation */
-      #mobile-menu-btn i {
-        width: 1rem;
-        height: 1rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-
-      /* Smooth scrolling for mobile */
-      html {
-        scroll-behavior: smooth;
-      }
-
-      /* Enhanced hover effects for mobile touch */
-      @media (hover: none) and (pointer: coarse) {
-        .hover\:scale-105:hover {
-          transform: scale(1.02);
-        }
-
-        .group:active {
-          transform: scale(0.98);
-        }
-      }
-
-      /* ===============================
-         END ENHANCED MOBILE RESPONSIVENESS
-         =============================== */
-
-      /* ===============================
-         DARK MODE
-         =============================== */
-      body {
-        transition: background 0.35s ease, color 0.35s ease;
-      }
-
-      .theme-toggle-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.45rem;
-        height: 2.5rem;
-        padding: 0 0.85rem;
-        border-radius: 0.75rem;
-        border: 1px solid rgba(16, 185, 129, 0.18);
-        background: rgba(16, 185, 129, 0.08);
-        color: #065f46;
-        font-weight: 700;
-        line-height: 1;
-        box-shadow: 0 6px 18px rgba(15, 118, 110, 0.12);
-        transition: all 0.25s ease;
-      }
-
-      .theme-toggle-btn i {
-        width: 1rem;
-        height: 1rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-      }
-
-      #theme-toggle-desktop {
-        min-width: 5.5rem;
-      }
-
-      #theme-toggle-mobile {
-        width: 2.5rem;
-        height: 2.5rem;
-        padding: 0 !important;
-        border-radius: 0.75rem;
-        flex-shrink: 0;
-      }
-
-      .theme-toggle-btn:hover {
-        background: rgba(16, 185, 129, 0.14);
-        transform: translateY(-1px);
-      }
-
-      .theme-toggle-btn:focus-visible {
-        outline: 2px solid rgba(16, 185, 129, 0.6);
-        outline-offset: 2px;
-      }
-
       html.dark-mode {
+        --ink: #f1f5f9; --ink-2: #cbd5e1; --muted: #94a3b8; --faint: #64748b;
+        --bg: #070c18; --surface: #0f172a; --surface-2: #111c33; --line: #1e293b; --line-strong: #2b3a52;
+        --gold-soft: rgba(201,162,75,.14); --gold-ink: #dcbc6a;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,.3); --shadow-md: 0 14px 30px -10px rgba(0,0,0,.55); --shadow-lg: 0 28px 56px -16px rgba(0,0,0,.7);
         color-scheme: dark;
       }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+      body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+      a { color: inherit; text-decoration: none; }
+      img { max-width: 100%; display: block; }
+      button { font: inherit; }
+      .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 20px; }
+      .sec { padding: 64px 0; }
+      .sec-head { max-width: 640px; margin-bottom: 30px; }
+      .eyebrow { display: inline-flex; gap: 8px; align-items: center; font-size: .76rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--primary-dark); }
+      .eyebrow::before { content: ""; width: 22px; height: 2px; background: var(--gold); border-radius: 2px; }
+      html.dark-mode .eyebrow { color: #6ee37e; }
+      .sec-head h2 { margin-top: 8px; font-size: clamp(1.6rem, 3.4vw, 2.3rem); line-height: 1.15; font-weight: 800; letter-spacing: -.01em; }
+      .sec-head p { margin-top: 10px; color: var(--muted); font-size: 1.02rem; }
+      .card { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow-sm); }
+      .btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 48px; padding: 0 22px; border-radius: 14px; font-weight: 700; font-size: .95rem; border: 1px solid transparent; cursor: pointer; transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease; white-space: nowrap; }
+      .btn:hover { transform: translateY(-2px); }
+      .btn-primary { color: #fff; background: linear-gradient(135deg, #2bc23c 0%, var(--primary-darker) 100%); box-shadow: 0 14px 24px -14px rgba(30,175,47,.95); }
+      .btn-light { color: var(--primary-darker); background: #fff; box-shadow: 0 14px 28px -14px rgba(0,0,0,.45); }
+      .btn-ghost { color: #fff; background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.32); backdrop-filter: blur(6px); }
+      .btn-ghost:hover { background: rgba(255,255,255,.22); }
+      .btn-line { color: var(--ink-2); background: var(--surface); border-color: var(--line-strong); }
+      .btn-line:hover { border-color: var(--primary); color: var(--primary-dark); }
+      .btn-wa { color: #fff; background: linear-gradient(135deg, #25d366, #128c7e); }
+      .btn[hidden] { display: none !important; }
+      .btn-sm { min-height: 40px; padding: 0 16px; font-size: .86rem; border-radius: 12px; }
+      .rv { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1); }
+      .rv.is-in { opacity: 1; transform: none; }
+      @media (prefers-reduced-motion: reduce) { .rv { opacity: 1; transform: none; transition: none; } html { scroll-behavior: auto; } }
 
-      html.dark-mode body {
-        background: radial-gradient(
-            circle at 20% 0%,
-            rgba(16, 185, 129, 0.14),
-            transparent 36%
-          ),
-          linear-gradient(145deg, #020617 0%, #0f172a 45%, #111827 100%);
-      }
+      /* ---------- Navbar ---------- */
+      .nav { position: fixed; inset: 0 0 auto 0; z-index: 100; transition: background-color .25s ease, box-shadow .25s ease, border-color .25s ease; border-bottom: 1px solid transparent; }
+      .nav.is-solid { background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: saturate(1.5) blur(16px); -webkit-backdrop-filter: saturate(1.5) blur(16px); border-bottom-color: var(--line); box-shadow: var(--shadow-sm); }
+      .nav-in { display: flex; align-items: center; gap: 18px; height: 68px; }
+      .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+      .brand img { width: 42px; height: 42px; padding: 5px; border-radius: 13px; background: #fff; object-fit: contain; box-shadow: 0 6px 16px -8px rgba(0,0,0,.4); flex: none; }
+      .brand b { display: block; font-size: 1.02rem; font-weight: 800; line-height: 1.1; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .brand small { display: block; font-size: .64rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; color: #f1dca6; }
+      .nav.is-solid .brand b { color: var(--ink); }
+      .nav.is-solid .brand small { color: var(--gold-ink); }
+      .nav-links { display: flex; gap: 2px; margin-left: auto; }
+      .nav-links a { padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: .9rem; color: rgba(255,255,255,.9); transition: background-color .15s ease, color .15s ease; }
+      .nav-links a:hover { background: rgba(255,255,255,.16); color: #fff; }
+      .nav.is-solid .nav-links a { color: var(--ink-2); }
+      .nav.is-solid .nav-links a:hover { background: var(--surface-2); color: var(--primary-dark); }
+      .nav-tools { display: flex; gap: 8px; align-items: center; }
+      .ic-btn { width: 42px; height: 42px; border-radius: 13px; display: inline-grid; place-items: center; cursor: pointer; border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.12); color: #fff; transition: all .15s ease; }
+      .ic-btn:hover { background: rgba(255,255,255,.24); }
+      .nav.is-solid .ic-btn { border-color: var(--line-strong); background: var(--surface-2); color: var(--ink-2); }
+      .nav.is-solid .ic-btn:hover { border-color: var(--primary); color: var(--primary-dark); }
+      .ic-btn[hidden] { display: none !important; }
+      .tm-sun { display: none; } html.dark-mode .tm-sun { display: inline; } html.dark-mode .tm-moon { display: none; }
+      .nav-login { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 16px; border-radius: 13px; font-weight: 700; font-size: .88rem; background: #fff; color: var(--primary-darker); }
+      .nav.is-solid .nav-login { background: linear-gradient(135deg, #2bc23c, var(--primary-darker)); color: #fff; }
+      .burger { display: none; }
+      .sheet { position: fixed; inset: 68px 12px auto 12px; z-index: 99; display: none; padding: 10px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-lg); }
+      .sheet.is-open { display: grid; gap: 2px; animation: sheet-in .2s ease; }
+      .sheet a { padding: 13px 14px; border-radius: 12px; font-weight: 600; color: var(--ink-2); }
+      .sheet a:hover { background: var(--surface-2); color: var(--primary-dark); }
+      @keyframes sheet-in { from { opacity: 0; transform: translateY(-8px); } }
 
-      html.dark-mode .islamic-pattern {
-        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.025'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20zm0 0c0 11.046 8.954 20 20 20s20-8.954 20-20-8.954-20-20-20-20 8.954-20 20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-      }
+      /* ---------- Hero ---------- */
+      .hero { position: relative; overflow: hidden; color: #fff; padding: 128px 0 76px; isolation: isolate;
+        background: radial-gradient(620px 360px at 92% -6%, rgba(201,162,75,.42), transparent 70%), radial-gradient(520px 340px at -4% 108%, rgba(43,194,60,.35), transparent 70%), linear-gradient(140deg, #12862a 0%, #0c6b1e 46%, #083d17 100%); }
+      .hero::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .9; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.075' stroke-width='1.2'%3E%3Cpath d='M40 6l9.5 15.5L67 18l-3 17.5L78 40l-14 4.5L67 62l-17.5-3.5L40 74l-9.5-15.5L13 62l3-17.5L2 40l14-4.5L13 18l17.5 3.5z'/%3E%3C/g%3E%3C/svg%3E"); mask-image: linear-gradient(180deg, #000 30%, transparent 100%); -webkit-mask-image: linear-gradient(180deg, #000 30%, transparent 100%); }
+      .hero-moon { position: absolute; z-index: -1; right: -60px; top: 70px; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 420px; line-height: 1; color: rgba(255,255,255,.06); pointer-events: none; }
+      .hero-grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 40px; align-items: center; }
+      .chip { display: inline-flex; gap: 8px; align-items: center; padding: 7px 14px; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); backdrop-filter: blur(6px); font-size: .82rem; font-weight: 700; color: #fff; }
+      .chip i { color: #f1dca6; }
+      .hero h1 { margin: 18px 0 14px; font-size: clamp(2.2rem, 5.4vw, 3.7rem); line-height: 1.04; font-weight: 800; letter-spacing: -.02em; }
+      .hero h1 span { background: linear-gradient(90deg, #f6e7b4, #fff 60%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .hero-sub { max-width: 520px; font-size: 1.1rem; color: rgba(255,255,255,.88); }
+      .hero-addr { margin-top: 12px; display: flex; gap: 8px; align-items: flex-start; font-size: .92rem; color: rgba(255,255,255,.8); }
+      .hero-addr i { color: #f1dca6; margin-top: 4px; }
+      .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+      .hero-ayat { margin-top: 26px; font-size: .86rem; font-style: italic; color: rgba(255,255,255,.7); }
+      .prayer { padding: 22px; border-radius: 28px; background: linear-gradient(160deg, rgba(255,255,255,.18), rgba(255,255,255,.07)); border: 1px solid rgba(255,255,255,.3); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); box-shadow: 0 40px 80px -30px rgba(0,0,0,.55); }
+      .prayer-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: .8rem; color: rgba(255,255,255,.8); font-weight: 600; }
+      .prayer-top b { color: #f1dca6; letter-spacing: .1em; text-transform: uppercase; font-size: .72rem; }
+      .count-label { margin-top: 14px; font-size: .85rem; font-weight: 700; color: rgba(255,255,255,.85); }
+      .count { font-size: clamp(2.6rem, 6vw, 3.6rem); font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+      .ptimes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 18px; }
+      .pt { padding: 11px 6px; border-radius: 16px; text-align: center; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.16); transition: all .25s ease; }
+      .pt i { display: block; font-size: .85rem; color: #f1dca6; margin-bottom: 5px; }
+      .pt b { display: block; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+      .pt small { font-size: .7rem; color: rgba(255,255,255,.78); font-weight: 600; }
+      .pt.is-passed { opacity: .5; }
+      .pt.is-next { opacity: 1; background: #fff; border-color: #fff; transform: translateY(-3px); box-shadow: 0 16px 28px -14px rgba(0,0,0,.6); }
+      .pt.is-next, .pt.is-next b { color: var(--primary-darker); } .pt.is-next i { color: var(--primary-dark); } .pt.is-next small { color: var(--muted); }
+      .hero-wave { position: absolute; left: 0; right: 0; bottom: -1px; height: 40px; z-index: 0; }
+      .hero-wave svg { width: 100%; height: 100%; display: block; fill: var(--bg); }
 
-      html.dark-mode #navbar {
-        border-color: rgba(16, 185, 129, 0.22) !important;
-      }
+      /* ---------- Layanan ---------- */
+      .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: -8px; }
+      .tile { position: relative; padding: 24px 22px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+      .tile:hover { transform: translateY(-6px); box-shadow: var(--shadow-md); border-color: rgba(30,175,47,.45); }
+      .tile::after { content: ""; position: absolute; width: 140px; height: 140px; right: -50px; top: -50px; border-radius: 50%; background: radial-gradient(circle, rgba(30,175,47,.16), transparent 70%); transition: transform .4s ease; }
+      .tile:hover::after { transform: scale(1.5); }
+      .tile-ic { width: 54px; height: 54px; border-radius: 17px; display: grid; place-items: center; font-size: 1.35rem; color: #fff; background: linear-gradient(135deg, #2bc23c, var(--primary-darker)); box-shadow: 0 14px 22px -12px rgba(30,175,47,.9); }
+      .tile.is-gold .tile-ic { background: linear-gradient(135deg, #e0b84f, #b88a22); box-shadow: 0 14px 22px -12px rgba(184,138,34,.9); }
+      .tile.is-blue .tile-ic { background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 14px 22px -12px rgba(37,99,235,.85); }
+      .tile.is-rose .tile-ic { background: linear-gradient(135deg, #f472b6, #be185d); box-shadow: 0 14px 22px -12px rgba(190,24,93,.8); }
+      .tile h3 { margin-top: 8px; font-size: 1.08rem; font-weight: 800; }
+      .tile p { color: var(--muted); font-size: .9rem; flex: 1; }
+      .tile .go { display: inline-flex; gap: 8px; align-items: center; margin-top: 8px; font-weight: 700; font-size: .88rem; color: var(--primary-dark); }
+      html.dark-mode .tile .go { color: #6ee37e; }
+      .tile .go i { transition: transform .2s ease; } .tile:hover .go i { transform: translateX(4px); }
 
-      html.dark-mode #mobile-menu {
-        background: rgba(15, 23, 42, 0.97) !important;
-        border-color: rgba(16, 185, 129, 0.2) !important;
-      }
+      /* ---------- Ramadan band ---------- */
+      .band { position: relative; overflow: hidden; border-radius: 28px; padding: 30px; color: #fff; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 26px; align-items: center; box-shadow: var(--shadow-md);
+        background: radial-gradient(380px 220px at 100% 0%, rgba(201,162,75,.45), transparent 70%), linear-gradient(135deg, #0f7a22, #083d17); }
+      .band::after { content: "\f186"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: 150px; bottom: -50px; font-size: 200px; color: rgba(255,255,255,.06); pointer-events: none; }
+      .band > * { position: relative; z-index: 1; }
+      .band-num { text-align: center; padding: 14px 22px; border-radius: 22px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); min-width: 150px; }
+      .band-num b { display: block; font-size: 3.2rem; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .band-num small { font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #f1dca6; }
+      .band h2 { font-size: clamp(1.3rem, 2.8vw, 1.8rem); font-weight: 800; line-height: 1.2; }
+      .band p { margin-top: 6px; color: rgba(255,255,255,.85); }
+      .petugas { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+      .petugas span { display: inline-flex; gap: 8px; align-items: center; padding: 7px 13px; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.24); font-size: .85rem; font-weight: 600; }
+      .petugas i { color: #f1dca6; }
 
-      html.dark-mode #navbar a,
-      html.dark-mode #mobile-menu a,
-      html.dark-mode #navbar .text-gray-700,
-      html.dark-mode #mobile-menu .text-gray-700 {
-        color: #e2e8f0 !important;
-      }
+      /* ---------- Donasi ---------- */
+      .don { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 20px; align-items: stretch; }
+      .don-main { padding: 32px; display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden; }
+      .don-main::before { content: "\f4be"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: -14px; bottom: -34px; font-size: 190px; color: rgba(30,175,47,.07); pointer-events: none; }
+      .don-main > * { position: relative; }
+      .don-stats { display: flex; flex-wrap: wrap; gap: 12px; }
+      .don-stat { flex: 1 1 150px; padding: 14px 16px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--line); }
+      .don-stat small { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+      .don-stat b { display: block; font-size: 1.35rem; color: var(--primary-dark); font-variant-numeric: tabular-nums; }
+      html.dark-mode .don-stat b { color: #6ee37e; }
+      .don-steps { display: grid; gap: 10px; list-style: none; }
+      .don-steps li { display: flex; gap: 12px; align-items: center; font-size: .94rem; color: var(--ink-2); }
+      .don-steps b { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; font-size: .82rem; color: #fff; background: linear-gradient(135deg, #2bc23c, var(--primary-darker)); flex: none; }
+      .don-recent { display: flex; flex-wrap: wrap; gap: 8px; }
+      .don-recent span { display: inline-flex; gap: 8px; align-items: center; padding: 6px 12px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); font-size: .8rem; color: var(--ink-2); }
+      .don-recent em { font-style: normal; font-weight: 800; color: var(--primary-dark); } html.dark-mode .don-recent em { color: #6ee37e; }
+      .pay { padding: 28px; display: grid; gap: 16px; align-content: start; background: linear-gradient(160deg, var(--surface), var(--surface-2)); }
+      .pay-qris { display: grid; justify-items: center; gap: 10px; }
+      .pay-qris a { display: block; padding: 12px; border-radius: 22px; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow-md); max-width: 260px; transition: transform .25s ease; }
+      .pay-qris a:hover { transform: scale(1.03); }
+      .pay-qris img { border-radius: 10px; width: 100%; }
+      .pay-qris small { color: var(--muted); font-size: .82rem; text-align: center; }
+      .pay-bank { padding: 18px; border-radius: 20px; display: grid; gap: 4px; justify-items: center; text-align: center; color: #fff; background: radial-gradient(260px 140px at 90% -10%, rgba(201,162,75,.4), transparent 70%), linear-gradient(135deg, var(--primary-dark), var(--forest)); }
+      .pay-bank small { letter-spacing: .14em; text-transform: uppercase; font-weight: 700; color: #f1dca6; font-size: .72rem; }
+      .pay-bank .rek { font-size: 1.55rem; font-weight: 800; letter-spacing: .06em; font-variant-numeric: tabular-nums; word-break: break-all; }
+      .pay-bank .an { font-size: .86rem; color: rgba(255,255,255,.85); margin-bottom: 8px; }
+      .pay-bank button { border: 0; cursor: pointer; padding: 8px 16px; border-radius: 11px; background: #fff; color: var(--primary-darker); font-weight: 700; font-size: .84rem; }
+      .pay-note { display: flex; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--gold-soft); color: var(--gold-ink); font-size: .84rem; }
 
-      html.dark-mode #navbar .brand-title {
-        background: none !important;
-        -webkit-background-clip: initial !important;
-        background-clip: border-box !important;
-        -webkit-text-fill-color: #f8fafc !important;
-        color: #f8fafc !important;
-        text-shadow: 0 1px 2px rgba(2, 6, 23, 0.45);
-      }
+      /* ---------- Kas ---------- */
+      .kas { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 20px; }
+      .kas-main { padding: 32px; color: #fff; border: 0; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 6px;
+        background: radial-gradient(340px 200px at 100% -8%, rgba(201,162,75,.45), transparent 70%), linear-gradient(140deg, #14912a, #083d17); box-shadow: var(--shadow-md); }
+      .kas-main::after { content: "\f200"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: -10px; bottom: -34px; font-size: 170px; color: rgba(255,255,255,.07); }
+      .kas-main small { font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; color: #f1dca6; }
+      .kas-saldo { font-size: clamp(2.2rem, 5vw, 3rem); font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+      .kas-row { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; position: relative; z-index: 1; }
+      .kas-pill { flex: 1 1 140px; padding: 12px 14px; border-radius: 16px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); }
+      .kas-pill b { display: block; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+      .kas-pill span { font-size: .76rem; color: rgba(255,255,255,.8); }
+      .kas-main .btn { margin-top: 16px; align-self: flex-start; position: relative; z-index: 1; }
+      .kas-chart { padding: 26px; }
+      .kas-chart h3 { font-size: 1.05rem; font-weight: 800; } .kas-chart p { color: var(--muted); font-size: .86rem; }
+      .bars { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; height: 180px; margin-top: 18px; align-items: end; }
+      .bar { display: grid; grid-template-rows: 1fr auto; height: 100%; gap: 8px; }
+      .bar-pair { display: flex; gap: 4px; justify-content: center; align-items: flex-end; border-bottom: 1px solid var(--line); }
+      .bar-pair i { display: block; width: min(22px, 40%); border-radius: 7px 7px 0 0; min-height: 3px; transform-origin: bottom; transform: scaleY(0); transition: transform .9s cubic-bezier(.2,.9,.3,1); }
+      .is-in .bar-pair i, .bars.is-in .bar-pair i { transform: scaleY(1); }
+      .bar-pair .in { background: linear-gradient(180deg, #2bc23c, var(--primary-darker)); } .bar-pair .out { background: linear-gradient(180deg, #f87171, #dc2626); }
+      .bar span { text-align: center; font-size: .74rem; font-weight: 700; color: var(--muted); }
+      .legend { display: flex; gap: 16px; margin-top: 12px; font-size: .8rem; color: var(--muted); }
+      .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; }
 
-      html.dark-mode #navbar a:hover,
-      html.dark-mode #mobile-menu a:hover {
-        color: #6ee7b7 !important;
-      }
+      /* ---------- Agenda ---------- */
+      .agenda { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+      .box { padding: 24px; }
+      .box h3 { font-size: 1.1rem; font-weight: 800; display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }
+      .box h3 i { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; font-size: .9rem; background: rgba(30,175,47,.14); color: var(--primary-dark); }
+      html.dark-mode .box h3 i { color: #6ee37e; }
+      .ann { padding: 14px 16px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--line); margin-bottom: 10px; }
+      .ann.is-imp { background: var(--gold-soft); border-color: rgba(201,162,75,.5); }
+      .ann b { display: flex; gap: 8px; align-items: center; font-size: .96rem; }
+      .ann b i { color: var(--gold-ink); }
+      .ann p { margin-top: 4px; font-size: .88rem; color: var(--muted); }
+      .ev { display: flex; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+      .ev:last-of-type { border-bottom: 0; }
+      .ev-d { flex: none; width: 54px; height: 60px; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg, var(--primary-dark), var(--forest)); }
+      .ev-d b { font-size: 1.35rem; line-height: 1; } .ev-d span { font-size: .62rem; letter-spacing: .12em; color: #f1dca6; margin-top: 4px; font-weight: 700; }
+      .ev b.t { display: block; font-size: .98rem; } .ev small { color: var(--muted); font-size: .8rem; }
+      .ev .today { font-size: .7rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: var(--gold-soft); color: var(--gold-ink); margin-left: 6px; }
+      .empty { text-align: center; padding: 26px 10px; color: var(--muted); } .empty i { font-size: 1.8rem; color: var(--faint); display: block; margin-bottom: 8px; }
+      .more { margin-top: 12px; display: inline-flex; gap: 8px; align-items: center; font-weight: 700; font-size: .88rem; color: var(--primary-dark); } html.dark-mode .more { color: #6ee37e; }
 
-      html.dark-mode #mobile-menu a:hover {
-        background: rgba(16, 185, 129, 0.12) !important;
-      }
+      /* ---------- Zakat ---------- */
+      .zk { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+      .zk-i { padding: 22px; text-align: left; position: relative; overflow: hidden; }
+      .zk-i i { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: rgba(30,175,47,.14); color: var(--primary-dark); margin-bottom: 14px; }
+      html.dark-mode .zk-i i { color: #6ee37e; }
+      .zk-i b { display: block; font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+      .zk-i span { font-size: .84rem; color: var(--muted); font-weight: 600; }
 
-      html.dark-mode .theme-toggle-btn,
-      html.dark-mode #mobile-menu-btn {
-        background: rgba(16, 185, 129, 0.14) !important;
-        border-color: rgba(16, 185, 129, 0.25) !important;
-        color: #6ee7b7 !important;
-      }
+      /* ---------- App + footer ---------- */
+      .app { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; padding: 32px; position: relative; overflow: hidden; background: linear-gradient(135deg, rgba(30,175,47,.1), rgba(201,162,75,.12)), var(--surface); }
+      .app h2 { font-size: clamp(1.3rem, 2.8vw, 1.8rem); font-weight: 800; } .app p { margin-top: 6px; color: var(--muted); max-width: 560px; }
+      .app-ic { width: 92px; height: 92px; border-radius: 26px; box-shadow: var(--shadow-md); }
+      .app-act { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+      .foot { margin-top: 64px; background: linear-gradient(180deg, #0c6b1e, #062f12); color: rgba(255,255,255,.82); padding: 54px 0 26px; position: relative; }
+      .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 34px; }
+      .foot .brand b { color: #fff; font-size: 1.1rem; }
+      .foot p { margin-top: 12px; font-size: .9rem; max-width: 380px; }
+      .foot h4 { color: #fff; font-size: .82rem; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 14px; }
+      .foot ul { list-style: none; display: grid; gap: 9px; font-size: .92rem; }
+      .foot ul a { color: rgba(255,255,255,.8); } .foot ul a:hover { color: #f1dca6; }
+      .foot-bar { margin-top: 36px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.14); display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; font-size: .82rem; color: rgba(255,255,255,.62); }
+      .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 200; padding: 12px 20px; border-radius: 14px; font-weight: 700; box-shadow: var(--shadow-lg); animation: sheet-in .3s ease; max-width: 92vw; }
+      .toast.ok { background: #e6f9e9; color: #0c6b1e; border: 1px solid #b6ebbf; } .toast.err { background: #fde8e8; color: #b91c1c; border: 1px solid #f7b7b7; }
 
-      html.dark-mode #features,
-      html.dark-mode #quick-actions {
-        background: linear-gradient(145deg, #0f172a 0%, #111827 100%) !important;
+      @media (max-width: 1020px) {
+        .hero-grid, .don, .kas, .agenda { grid-template-columns: minmax(0, 1fr); }
+        .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .band { grid-template-columns: minmax(0, 1fr); text-align: center; justify-items: center; }
+        .petugas { justify-content: center; }
+        .hero-moon { font-size: 300px; right: -90px; }
       }
-
-      html.dark-mode #about {
-        background: linear-gradient(145deg, #020617 0%, #0f172a 100%) !important;
+      @media (max-width: 860px) {
+        .nav-links, .nav-login span { display: none; }
+        .nav-login { width: 42px; padding: 0; justify-content: center; }
+        .burger { display: inline-grid; }
+        .foot-grid { grid-template-columns: minmax(0, 1fr); }
+        .app { grid-template-columns: minmax(0, 1fr); }
+        .app-ic { display: none; }
       }
-
-      html.dark-mode #features .bg-white,
-      html.dark-mode #about .bg-white,
-      html.dark-mode #quick-actions .bg-white,
-      html.dark-mode #quick-actions .bg-white\/95 {
-        background: rgba(15, 23, 42, 0.88) !important;
-        border-color: rgba(148, 163, 184, 0.2) !important;
+      @media (max-width: 560px) {
+        .wrap { padding: 0 16px; }
+        .sec { padding: 48px 0; }
+        .hero { padding: 108px 0 64px; }
+        .tiles { grid-template-columns: minmax(0, 1fr); }
+        .don-main, .pay, .kas-main, .kas-chart, .box, .app { padding: 22px; }
+        .ptimes { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .pt { padding: 9px 2px; } .pt b { font-size: .95rem; }
+        .btn { width: 100%; }
+        .hero-cta .btn, .app-act .btn { width: 100%; }
+        .brand b { max-width: 170px; }
+        .nav-login, .nav-tools [data-pwa-install] { display: none !important; }
+        .bars { gap: 6px; height: 150px; }
       }
-
-      html.dark-mode .bg-emerald-100,
-      html.dark-mode .bg-teal-100,
-      html.dark-mode .bg-cyan-100,
-      html.dark-mode .bg-amber-100,
-      html.dark-mode .bg-rose-100,
-      html.dark-mode .bg-indigo-100 {
-        background: rgba(16, 185, 129, 0.15) !important;
-      }
-
-      html.dark-mode .text-gray-900 {
-        color: #f8fafc !important;
-      }
-
-      html.dark-mode .text-gray-700 {
-        color: #cbd5e1 !important;
-      }
-
-      html.dark-mode .text-gray-600,
-      html.dark-mode .text-gray-400 {
-        color: #94a3b8 !important;
-      }
-
-      html.dark-mode .text-emerald-600 {
-        color: #6ee7b7 !important;
-      }
-
-      html.dark-mode .bg-gray-900 {
-        background: #020617 !important;
-      }
-
-      html.dark-mode .border-gray-800 {
-        border-color: rgba(148, 163, 184, 0.2) !important;
-      }
-
-      html.dark-mode #success-message {
-        background: rgba(20, 83, 45, 0.95) !important;
-        border-left-color: #22c55e !important;
-        color: #bbf7d0 !important;
-      }
-
-      html.dark-mode #error-message {
-        background: rgba(127, 29, 29, 0.95) !important;
-        border-left-color: #ef4444 !important;
-        color: #fecaca !important;
-      }
-      /* ===============================
-         END DARK MODE
-         =============================== */
+      @media print { .nav, .sheet, .hero-wave { display: none !important; } }
     </style>
   </head>
-  <body
-    class="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 islamic-pattern transition-colors duration-500"
-  >
-    <!-- Flash Messages -->
-    <% if (typeof success !== 'undefined' && success) { %>
-    <div
-      id="success-message"
-      class="fixed top-4 right-4 z-50 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-lg max-w-md"
-    >
-      <div class="flex items-center">
-        <i class="fas fa-check-circle mr-3 text-green-500"></i>
-        <div>
-          <p class="font-medium"><%= success %></p>
+  <body>
+    <% if (typeof success !== 'undefined' && success) { %><div class="toast ok" id="toast"><i class="fas fa-circle-check"></i> <%= success %></div><% } %>
+    <% if (typeof error !== 'undefined' && error) { %><div class="toast err" id="toast"><i class="fas fa-circle-exclamation"></i> <%= error %></div><% } %>
+
+    <header class="nav" id="nav">
+      <div class="wrap nav-in">
+        <a href="#top" class="brand" aria-label="<%= nama %>">
+          <img src="/images/logo-dkm.png" alt="Logo <%= nama %>" width="42" height="42">
+          <span><b><%= nama %></b><small><%= tipe %></small></span>
+        </a>
+        <nav class="nav-links" aria-label="Menu utama">
+          <% navLinks.forEach(function (l) { %><a href="<%= l[0] %>"><%= l[1] %></a><% }) %>
+        </nav>
+        <div class="nav-tools" style="margin-left:auto">
+          <button type="button" class="ic-btn" data-pwa-install hidden title="Pasang aplikasi" aria-label="Pasang aplikasi"><i class="fas fa-download"></i></button>
+          <button type="button" class="ic-btn" id="theme" title="Mode terang / gelap" aria-label="Ganti tema"><i class="fas fa-moon tm-moon"></i><i class="fas fa-sun tm-sun"></i></button>
+          <button type="button" class="ic-btn burger" id="burger" aria-label="Buka menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
         </div>
-        <button
-          onclick="closeMessage('success-message')"
-          class="ml-4 text-green-500 hover:text-green-700"
-        >
-          <i class="fas fa-times"></i>
-        </button>
       </div>
+    </header>
+    <div class="sheet" id="sheet">
+      <% navLinks.forEach(function (l) { %><a href="<%= l[0] %>"><%= l[1] %></a><% }) %>
+      <a href="/jadwal-ramadan">Jadwal Ramadan lengkap</a>
     </div>
-    <% } %> <% if (typeof error !== 'undefined' && error) { %>
-    <div
-      id="error-message"
-      class="fixed top-4 right-4 z-50 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-lg max-w-md"
-    >
-      <div class="flex items-center">
-        <i class="fas fa-exclamation-circle mr-3 text-red-500"></i>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero" id="top">
+      <i class="hero-moon" aria-hidden="true">&#xf186;</i>
+      <div class="wrap hero-grid">
         <div>
-          <p class="font-medium"><%= error %></p>
+          <span class="chip"><i class="fas fa-moon"></i>
+            <% if (inRamadan) { %>Ramadan <%= ramadan.tahunH %> H · Hari ke-<%= ramadan.dayNo %>
+            <% } else if (ramadan.selisihMulai > 0) { %>Ramadan <%= ramadan.tahunH %> H dimulai <%= ramadan.selisihMulai %> hari lagi
+            <% } else { %><%= todayLabel %><% } %></span>
+          <h1>Selamat datang di <span><%= nama %></span></h1>
+          <p class="hero-sub">Pusat informasi jamaah: jadwal sholat &amp; imsakiyah, kegiatan, donasi online, dan laporan kas yang terbuka untuk semua.</p>
+          <% if (alamat) { %><div class="hero-addr"><i class="fas fa-location-dot"></i><span><%= alamat %> · <%= lok.nama %></span></div><% } %>
+          <div class="hero-cta">
+            <% if (donasi) { %><a href="/donasi" class="btn btn-light"><i class="fas fa-hand-holding-heart"></i>Berdonasi</a><% } %>
+            <a href="/jadwal-ramadan" class="btn <%= donasi ? 'btn-ghost' : 'btn-light' %>"><i class="fas fa-moon"></i>Jadwal Ramadan</a>
+            <% if (kas) { %><a href="/transparansi" class="btn btn-ghost"><i class="fas fa-chart-pie"></i>Laporan Kas</a><% } %>
+          </div>
+          <p class="hero-ayat">“Dan dirikanlah sholat, tunaikanlah zakat.” (QS. Al-Baqarah: 43)</p>
         </div>
-        <button
-          onclick="closeMessage('error-message')"
-          class="ml-4 text-red-500 hover:text-red-700"
-        >
-          <i class="fas fa-times"></i>
-        </button>
+
+        <div class="prayer" id="prayer" data-tz="<%= lok.tz %>" data-times='<%- JSON.stringify(times) %>' data-in="<%= inRamadan ? 1 : 0 %>">
+          <div class="prayer-top"><b>Waktu Sholat</b><span><%= todayLabel %></span></div>
+          <div class="count-label" id="count-label">Menghitung…</div>
+          <div class="count" id="count">--:--:--</div>
+          <div class="ptimes">
+            <% TIMES.forEach(function (t) { %><div class="pt" data-key="<%= t[0] %>"><i class="fas <%= t[2] %>"></i><b><%= hm(times[t[0]]) %></b><small><%= t[1] %></small></div><% }) %>
+            <div class="pt" style="background:transparent;border-style:dashed;display:grid;place-items:center"><small><%= lok.nama %><br><%= tzName %></small></div>
+          </div>
+        </div>
       </div>
-    </div>
+      <div class="hero-wave" aria-hidden="true"><svg viewBox="0 0 1440 40" preserveAspectRatio="none"><path d="M0 40V18C180 36 360 0 720 12s540 24 720 4v24z"/></svg></div>
+    </section>
+
+    <!-- ===== LAYANAN ===== -->
+    <section class="sec" id="layanan" style="padding-top:40px">
+      <div class="wrap">
+        <div class="tiles">
+          <a class="card tile rv" href="/jadwal-ramadan"><span class="tile-ic"><i class="fas fa-moon"></i></span><h3>Jadwal Ramadan</h3><p>Imsakiyah 30 hari dan jadwal imam, bilal, serta penceramah tarawih.</p><span class="go">Buka jadwal <i class="fas fa-arrow-right"></i></span></a>
+          <a class="card tile is-blue rv" href="/info-masjid"><span class="tile-ic"><i class="fas fa-bullhorn"></i></span><h3>Info &amp; Agenda</h3><p>Pengumuman dan kegiatan terbaru <%= tipe.toLowerCase() %>: pengajian, kerja bakti, dan lainnya.</p><span class="go">Lihat info <i class="fas fa-arrow-right"></i></span></a>
+          <a class="card tile is-rose rv" href="/donasi"><span class="tile-ic"><i class="fas fa-hand-holding-heart"></i></span><h3>Donasi Online</h3><p><%= donasi ? 'Infaq, donasi, dan wakaf lewat QRIS atau transfer. Cukup 3 langkah.' : 'Donasi online akan segera dibuka. Pantau terus halaman ini.' %></p><span class="go"><%= donasi ? 'Mulai berdonasi' : 'Lihat halaman' %> <i class="fas fa-arrow-right"></i></span></a>
+          <a class="card tile is-gold rv" href="/transparansi"><span class="tile-ic"><i class="fas fa-chart-pie"></i></span><h3>Laporan Kas</h3><p>Pemasukan, pengeluaran, dan saldo kas yang dilaporkan terbuka untuk jamaah.</p><span class="go">Lihat laporan <i class="fas fa-arrow-right"></i></span></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== RAMADAN BAND ===== -->
+    <% if (!ramadan.selesai) { %>
+    <section style="padding-bottom:24px">
+      <div class="wrap">
+        <div class="band rv">
+          <div class="band-num">
+            <% if (inRamadan) { %><b><%= ramadan.dayNo %></b><small>dari <%= ramadan.total %> hari</small>
+            <% } else { %><b><%= Math.max(0, ramadan.selisihMulai) %></b><small>hari lagi</small><% } %>
+          </div>
+          <div>
+            <h2><%= inRamadan ? 'Malam ini di ' + nama : 'Menyambut Ramadan ' + ramadan.tahunH + ' H' %></h2>
+            <p><%= inRamadan ? 'Imsak ' + hm(times.imsak) + ' · Berbuka ' + hm(times.maghrib) + ' · Tarawih setelah Isya ' + hm(times.isya) : ramadan.mulaiLabel + ' – ' + ramadan.akhirLabel + ' (perkiraan, mengikuti ketetapan pemerintah)' %></p>
+            <% if (petugas.length) { %><div class="petugas"><% petugas.forEach(function (p) { %><span><i class="fas <%= p.icon %>"></i><%= p.label %>: <b><%= p.names.join(' · ') %></b></span><% }) %></div><% } %>
+          </div>
+          <a href="/jadwal-ramadan" class="btn btn-light"><i class="fas fa-table-list"></i>Jadwal lengkap</a>
+        </div>
+      </div>
+    </section>
     <% } %>
 
-    <!-- Navigation -->
-    <nav
-      class="fixed top-0 left-0 w-full z-50 transition-all duration-300 backdrop-blur-md bg-white/95 shadow-lg border-b border-emerald-100"
-      id="navbar">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="nav-main-row flex justify-between items-center py-3 md:py-2">
-          <div class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1 md:flex-none">
-            <div
-              class="bg-gradient-to-br from-emerald-500 to-teal-600 p-1.5 sm:p-2 rounded-xl shadow-lg shrink-0"
-            >
-              <img
-                src="/images/logo-dkm.png"
-                alt="Logo Musholla Nurul Fitrah"
-                class="w-8 h-8 md:w-10 md:h-10 object-contain filter brightness-0 invert"
-              />
+    <!-- ===== DONASI ===== -->
+    <% if (donasi) { %>
+    <section class="sec" id="donasi">
+      <div class="wrap">
+        <div class="sec-head rv"><span class="eyebrow">Donasi Online</span><h2>Berbagi kebaikan, kapan saja dan di mana saja</h2><p>Salurkan infaq, donasi, atau wakaf untuk <%= nama %>. Setiap donasi dicatat dan tampil di laporan kas terbuka.</p></div>
+        <div class="don">
+          <div class="card don-main rv">
+            <div class="don-stats">
+              <div class="don-stat"><small>Terkumpul online</small><b><%= rp(donasi.total) %></b></div>
+              <div class="don-stat"><small>Donatur</small><b><%= donasi.jumlah %> orang</b></div>
             </div>
-            <div class="flex flex-col min-w-0">
-              <span
-                class="brand-title hidden sm:block text-lg md:text-xl font-bold bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent leading-tight truncate"
-              >
-                Musholla Nurul Fitrah
-              </span>
-              <span
-                class="brand-title sm:hidden text-sm font-bold bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent leading-tight truncate"
-              >
-                Nurul Fitrah
-              </span>
+            <ol class="don-steps">
+              <li><b>1</b>Pilih tujuan dan nominal donasi</li>
+              <li><b>2</b>Transfer lewat QRIS atau rekening</li>
+              <li><b>3</b>Unggah bukti, pengurus akan memverifikasi</li>
+            </ol>
+            <% if (donasi.terbaru.length) { %><div class="don-recent"><% donasi.terbaru.forEach(function (d) { %><span><i class="fas fa-heart" style="color:#e11d48"></i><%= d.nama %> <em><%= rp(d.jumlah) %></em></span><% }) %></div><% } %>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:auto">
+              <a href="/donasi" class="btn btn-primary"><i class="fas fa-hand-holding-heart"></i>Mulai Berdonasi</a>
+              <% if (donasi.wa) { %><a class="btn btn-line" href="https://wa.me/<%= donasi.wa %>?text=<%= encodeURIComponent('Assalamu\'alaikum, saya ingin bertanya tentang donasi untuk ' + nama) %>" target="_blank" rel="noopener"><i class="fab fa-whatsapp" style="color:#128c7e"></i>Tanya Pengurus</a><% } %>
             </div>
           </div>
-
-          <div class="hidden md:flex items-center space-x-8">
-            <a
-              href="#home"
-              class="text-gray-700 hover:text-emerald-600 transition-colors"
-              >Beranda</a
-            >
-            <a
-              href="#features"
-              class="text-gray-700 hover:text-emerald-600 transition-colors"
-              >Fitur</a
-            >
-            <a
-              href="#stats"
-              class="text-gray-700 hover:text-emerald-600 transition-colors"
-              >Statistik</a
-            >
-            <a
-              href="#about"
-              class="text-gray-700 hover:text-emerald-600 transition-colors"
-              >Tentang</a
-            >
+          <div class="card pay rv">
+            <% if (donasi.qris) { %>
+              <div class="pay-qris"><a href="/donasi" aria-label="Donasi dengan QRIS"><img src="/qris/<%= donasi.qris %>" alt="QRIS <%= nama %>" loading="lazy"></a><small>Scan dengan aplikasi bank / e-wallet apa pun</small></div>
+            <% } %>
+            <% if (donasi.bank && donasi.norek) { %>
+              <div class="pay-bank"><small><%= donasi.bank %></small><div class="rek"><%= donasi.norek %></div><% if (donasi.atasNama) { %><div class="an">a.n. <b><%= donasi.atasNama %></b></div><% } %><button type="button" data-copy="<%= donasi.norek.replace(/\D/g, '') %>"><i class="fas fa-copy"></i> Salin nomor rekening</button></div>
+            <% } %>
+            <% if (donasi.catatan) { %><div class="pay-note"><i class="fas fa-circle-info"></i><%= donasi.catatan %></div><% } %>
           </div>
-
-          <div class="mobile-nav-actions flex items-center space-x-2 shrink-0">
-            <button
-              id="theme-toggle-desktop"
-              type="button"
-              data-theme-toggle
-              class="theme-toggle-btn hidden md:inline-flex"
-              aria-label="Toggle dark mode"
-              title="Toggle dark mode"
-            >
-              <i id="theme-icon-desktop" class="fas fa-moon text-sm"></i>
-              <span id="theme-label-desktop" class="text-sm">Dark</span>
-            </button>
-
-            <button
-              id="theme-toggle-mobile"
-              type="button"
-              data-theme-toggle
-              class="theme-toggle-btn md:hidden"
-              aria-label="Toggle dark mode"
-              title="Toggle dark mode"
-            >
-              <i id="theme-icon-mobile" class="fas fa-moon text-base"></i>
-            </button>
-
-            <!-- Mobile menu button -->
-            <div class="md:hidden">
-              <button
-                id="mobile-menu-btn"
-                class="mobile-icon-btn transition-all duration-200"
-              >
-                <i class="fas fa-bars text-lg"></i>
-              </button>
-            </div>
-
-            <!-- Desktop Login Button -->
-            <a
-              href="/auth/login"
-              class="hidden md:flex items-center bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-2.5 rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              Masuk
-            </a>
-
-          </div>
-        </div>
-      </div>
-
-      <!-- Mobile menu -->
-      <div
-        id="mobile-menu"
-        class="hidden md:hidden shadow-2xl border-t border-emerald-100"
-      >
-        <div class="px-6 py-4 space-y-2">
-          <a
-            href="#home"
-            class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200 font-medium"
-          >
-            Beranda
-          </a>
-          <a
-            href="#features"
-            class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200 font-medium"
-          >
-            Fitur
-          </a>
-          <a
-            href="#stats"
-            class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200 font-medium"
-          >
-            Statistik
-          </a>
-          <a
-            href="#about"
-            class="flex items-center px-4 py-3 rounded-xl text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200 font-medium"
-          >
-            Tentang
-          </a>
-          <div class="pt-2 mt-2 border-t border-emerald-100/80">
-            <a
-              href="/auth/login"
-              class="flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-3 rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all duration-300 font-semibold shadow-lg text-sm"
-            >
-              <i class="fas fa-sign-in-alt mr-2"></i>Masuk Admin
-            </a>
-          </div>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section
-      id="home"
-      class="relative min-h-screen flex items-center justify-center overflow-hidden py-28 md:py-32 bg-gradient-to-br from-emerald-600 via-teal-600 to-green-600"
-    >
-      <div
-        class="absolute -top-24 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-white/20 blur-3xl"
-      ></div>
-      <div
-        class="absolute -bottom-24 -right-12 h-72 w-72 rounded-full bg-emerald-300/20 blur-3xl"
-      ></div>
-      <div
-        class="absolute -bottom-24 -left-14 h-64 w-64 rounded-full bg-teal-200/20 blur-3xl"
-      ></div>
-      <div
-        class="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/15"
-      ></div>
-
-      <div class="relative z-10 w-full px-4 sm:px-6 lg:px-8">
-        <div class="max-w-4xl mx-auto text-center fade-in">
-          <div
-            class="mx-auto mb-6 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-4 py-2 text-xs sm:text-sm text-emerald-50/90 backdrop-blur-sm"
-          >
-            Platform Zakat Fitrah Modern
-          </div>
-
-          <h1
-            class="text-5xl md:text-6xl font-bold tracking-tight text-white leading-tight"
-          >
-            <span
-              class="block mt-2 bg-gradient-to-r from-emerald-100 via-white to-teal-100 bg-clip-text text-transparent"
-            >
-              Zakat Fitrah Digital
-            </span>
-          </h1>
-
-          <p class="mt-6 text-lg text-gray-100 opacity-80">
-            Tunaikan zakat fitrah lebih mudah, transparan, dan aman dalam satu platform digital.
-          </p>
-
-          <div
-            class="mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4"
-          >
-            <a
-              href="/auth/login"
-              class="group inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 rounded-xl bg-emerald-500 text-white font-semibold shadow-lg shadow-emerald-950/30 hover:bg-emerald-400 hover:-translate-y-0.5 transition-all duration-300"
-            >
-              Kelola Zakat Fitrah
-              <i class="fas fa-arrow-right ml-2 text-sm transition-transform duration-300 group-hover:translate-x-1"></i>
-            </a>
-            <a
-              href="#features"
-              class="inline-flex items-center justify-center w-full sm:w-auto px-8 py-4 rounded-xl border border-white/50 bg-white/10 backdrop-blur-sm text-white font-semibold shadow-md hover:bg-white/20 hover:-translate-y-0.5 transition-all duration-300"
-            >
-              Lihat Fitur
-            </a>
-          </div>
-
-          <div
-            class="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs sm:text-sm text-emerald-50/85"
-          >
-            <span>Transparan</span>
-            <span class="h-1 w-1 rounded-full bg-emerald-100/80"></span>
-            <span>Amanah</span>
-            <span class="h-1 w-1 rounded-full bg-emerald-100/80"></span>
-            <span>Real-time</span>
-          </div>
-
-          <p class="mt-6 text-xs sm:text-sm italic text-emerald-100/80">
-            "Dan dirikanlah salat, tunaikanlah zakat." (Al-Baqarah: 43)
-          </p>
-        </div>
-      </div>
-
-      <div
-        class="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/80 animate-bounce"
-      >
-        <div
-          class="h-10 w-10 rounded-full border border-white/30 bg-white/10 backdrop-blur-sm flex items-center justify-center"
-        >
-          <i class="fas fa-chevron-down text-sm"></i>
         </div>
       </div>
     </section>
+    <% } %>
 
-    <!-- Features Section -->
-    <section
-      id="features"
-      class="py-20 bg-gradient-to-br from-emerald-50 to-teal-50"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-          <div class="mb-6">
-            <span class="text-4xl">🌟</span>
+    <!-- ===== KAS ===== -->
+    <% if (kas) { %>
+    <section class="sec" id="kas" style="<%= donasi ? 'padding-top:24px' : '' %>">
+      <div class="wrap">
+        <div class="sec-head rv"><span class="eyebrow">Transparansi</span><h2>Laporan kas yang terbuka untuk jamaah</h2><p>Amanah dijaga dengan keterbukaan. Pantau saldo, pemasukan, dan penggunaan dana kapan pun.</p></div>
+        <div class="kas">
+          <div class="card kas-main rv">
+            <small>Saldo kas saat ini</small>
+            <div class="kas-saldo"><%= rp(kas.saldo) %></div>
+            <div class="kas-row">
+              <div class="kas-pill"><b>+ <%= rp(kas.masuk) %></b><span>Pemasukan <%= kas.bulanLabel %></span></div>
+              <div class="kas-pill"><b>− <%= rp(kas.keluar) %></b><span>Pengeluaran <%= kas.bulanLabel %></span></div>
+            </div>
+            <a href="/transparansi" class="btn btn-light btn-sm"><i class="fas fa-chart-pie"></i>Lihat laporan lengkap</a>
           </div>
-          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Fitur Unggulan Zakat Digital
-          </h2>
-          <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-            "خَيْرُ النَّاسِ أَنْفَعُهُمْ لِلنَّاسِ"<br />
-            <span class="text-sm italic text-emerald-600"
-              >"Sebaik-baik manusia adalah yang paling bermanfaat bagi
-              manusia"</span
-            >
-          </p>
+          <div class="card kas-chart rv">
+            <h3>Tren 6 bulan terakhir</h3><p>Pemasukan dan pengeluaran per bulan</p>
+            <div class="bars" id="bars">
+              <% kas.chart.forEach(function (c) { %><div class="bar" title="<%= c.label %>: masuk <%= rp(c.masuk) %> · keluar <%= rp(c.keluar) %>"><div class="bar-pair"><i class="in" style="height:<%= Math.round(c.masuk / kas.chartMax * 100) %>%"></i><i class="out" style="height:<%= Math.round(c.keluar / kas.chartMax * 100) %>%"></i></div><span><%= c.label %></span></div><% }) %>
+            </div>
+            <div class="legend"><span><i style="background:var(--primary)"></i>Pemasukan</span><span><i style="background:#dc2626"></i>Pengeluaran</span></div>
+          </div>
         </div>
+      </div>
+    </section>
+    <% } %>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div
-            class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-l-4 border-emerald-500"
-          >
-            <div
-              class="bg-emerald-100 w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
-            >
-              <i class="fas fa-users text-emerald-600 text-2xl"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-900 mb-4">
-              👥 Manajemen Muzakki
-            </h3>
-            <p class="text-gray-600">
-              Kelola data muzakki dengan mudah, termasuk informasi personal,
-              jumlah tanggungan, dan status pembayaran zakat sesuai syariat
-              Islam.
-            </p>
+    <!-- ===== AGENDA ===== -->
+    <section class="sec" id="agenda" style="padding-top:24px">
+      <div class="wrap">
+        <div class="sec-head rv"><span class="eyebrow">Kegiatan Jamaah</span><h2>Pengumuman &amp; agenda terdekat</h2></div>
+        <div class="agenda">
+          <div class="card box rv">
+            <h3><i class="fas fa-bullhorn"></i>Pengumuman</h3>
+            <% if (!pengumuman.length) { %><div class="empty"><i class="fas fa-bell-slash"></i>Belum ada pengumuman aktif.</div><% } %>
+            <% pengumuman.forEach(function (p) { %><div class="ann <%= p.penting ? 'is-imp' : '' %>"><b><% if (p.penting) { %><i class="fas fa-triangle-exclamation"></i><% } %><%= p.judul %></b><% if (p.ringkas) { %><p><%= p.ringkas %><%= p.isi && p.isi.length > 140 ? '…' : '' %></p><% } %></div><% }) %>
+            <a href="/info-masjid" class="more">Semua pengumuman <i class="fas fa-arrow-right"></i></a>
           </div>
-
-          <div
-            class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-l-4 border-teal-500"
-          >
-            <div
-              class="bg-teal-100 w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
-            >
-              <i class="fas fa-calculator text-teal-600 text-2xl"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-900 mb-4">
-              🧮 Kalkulator Zakat Syar'i
-            </h3>
-            <p class="text-gray-600">
-              Hitung zakat fitrah secara otomatis berdasarkan nisab yang sesuai
-              dengan ketentuan syariat dan jenis zakat yang dipilih.
-            </p>
-          </div>
-
-          <div
-            class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-l-4 border-cyan-500"
-          >
-            <div
-              class="bg-cyan-100 w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
-            >
-              <i class="fas fa-chart-bar text-cyan-600 text-2xl"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-900 mb-4">
-              📊 Laporan Transparan
-            </h3>
-            <p class="text-gray-600">
-              Pantau perkembangan pengumpulan zakat dengan laporan detail yang
-              transparan dan akuntabel sesuai prinsip amanah.
-            </p>
-          </div>
-
-          <div
-            class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-l-4 border-amber-500"
-          >
-            <div
-              class="bg-amber-100 w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
-            >
-              <i class="fas fa-hand-holding-heart text-amber-600 text-2xl"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-900 mb-4">
-              💝 Manajemen Infak Sunnah
-            </h3>
-            <p class="text-gray-600">
-              Kelola infak dan sedekah sunnah dengan sistem yang transparan,
-              mengikuti anjuran Rasulullah SAW untuk berbagi kebaikan.
-            </p>
-          </div>
-
-          <div
-            class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-l-4 border-rose-500"
-          >
-            <div
-              class="bg-rose-100 w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
-            >
-              <i class="fas fa-users-cog text-rose-600 text-2xl"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-900 mb-4">
-              🤲 Manajemen Mustahik
-            </h3>
-            <p class="text-gray-600">
-              Kelola data mustahik (8 golongan penerima zakat) dan distribusi
-              sesuai dengan ketentuan Al-Quran dan As-Sunnah.
-            </p>
-          </div>
-
-          <div
-            class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-l-4 border-indigo-500"
-          >
-            <div
-              class="bg-indigo-100 w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
-            >
-              <i class="fas fa-mosque text-indigo-600 text-2xl"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-900 mb-4">
-              🕌 Manajemen Wilayah
-            </h3>
-            <p class="text-gray-600">
-              Organisir data berdasarkan RT/RW untuk memudahkan koordinasi
-              distribusi zakat di tingkat jamaah dan masyarakat.
-            </p>
+          <div class="card box rv">
+            <h3><i class="fas fa-calendar-days"></i>Agenda mendatang</h3>
+            <% if (!agenda.length) { %><div class="empty"><i class="fas fa-calendar-xmark"></i>Belum ada agenda. Pantau terus halaman ini.</div><% } %>
+            <% agenda.forEach(function (a) { %>
+              <div class="ev"><div class="ev-d"><b><%= a.tgl %></b><span><%= a.bln %></span></div><div><b class="t"><%= a.judul %><% if (a.hariIni) { %><span class="today">Hari ini</span><% } %></b><small><%= a.hari %><%= a.jam_mulai ? ' · ' + a.jam_mulai : '' %><%= a.lokasi ? ' · ' + a.lokasi : '' %><%= a.pemateri ? ' · ' + a.pemateri : '' %></small></div></div>
+            <% }) %>
+            <a href="/info-masjid" class="more">Semua agenda <i class="fas fa-arrow-right"></i></a>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Interactive Carousel Section -->
-    <section
-      class="py-16 bg-gradient-to-br from-emerald-900 via-teal-900 to-cyan-900 relative overflow-hidden islamic-pattern"
-    >
-      <!-- Background decoration -->
-      <div class="absolute inset-0">
-        <div
-          class="absolute top-10 left-10 w-64 h-64 bg-emerald-400 rounded-full opacity-10 blur-3xl animate-pulse"
-        ></div>
-        <div
-          class="absolute bottom-10 right-10 w-56 h-56 bg-teal-400 rounded-full opacity-10 blur-3xl animate-pulse"
-          style="animation-delay: 2s"
-        ></div>
-        <!-- Islamic geometric patterns -->
-        <div class="absolute top-20 right-20 text-6xl text-white opacity-5">
-          ☪️
+    <!-- ===== ZAKAT ===== -->
+    <% if (zakat) { %>
+    <section class="sec" style="padding-top:24px">
+      <div class="wrap">
+        <div class="sec-head rv"><span class="eyebrow">Zakat Fitrah <%= zakat.tahun %></span><h2>Penunaian zakat yang tertata dan amanah</h2><p>Ringkasan penerimaan dan penyaluran zakat fitrah dari <%= zakat.rt %> RT.</p></div>
+        <div class="zk">
+          <div class="card zk-i rv"><i class="fas fa-people-roof"></i><b><%= zakat.muzakki %></b><span>Keluarga membayar zakat (<%= zakat.jiwa %> jiwa)</span></div>
+          <div class="card zk-i rv"><i class="fas fa-money-bill-wave"></i><b><%= rp(zakat.uang) %></b><span>Zakat fitrah berupa uang</span></div>
+          <div class="card zk-i rv"><i class="fas fa-wheat-awn"></i><b><%= new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(zakat.beras) %> kg</b><span>Zakat fitrah berupa beras</span></div>
+          <div class="card zk-i rv"><i class="fas fa-hands-holding-circle"></i><b><%= zakat.penerima %></b><span>Mustahik telah menerima</span></div>
         </div>
-        <div class="absolute bottom-20 left-20 text-6xl text-white opacity-5">
-          🕌
-        </div>
-      </div>
-
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="text-center mb-12">
-          <div class="mb-4">
-            <span class="text-4xl">🌟</span>
-          </div>
-          <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
-            Fitur Unggulan Platform Zakat
-          </h2>
-          <p class="text-lg text-emerald-100 max-w-2xl mx-auto mb-4">
-            "وَمَا تُنفِقُوا مِنْ خَيْرٍ فَلِأَنفُسِكُمْ"
-          </p>
-          <p class="text-sm text-emerald-200 italic">
-            "Dan apa saja yang kamu infakkan dari kebaikan, maka itu untuk
-            dirimu sendiri" - Al-Baqarah: 272
-          </p>
-        </div>
-
-        <!-- Carousel Container -->
-        <div class="relative">
-          <div class="carousel-container overflow-hidden rounded-2xl">
-            <div
-              class="carousel-track flex transition-transform duration-500 ease-in-out"
-              id="carouselTrack"
-            >
-              <!-- Slide 1: Smart Dashboard -->
-              <div class="carousel-slide min-w-full">
-                <div
-                  class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-6 lg:p-10"
-                >
-                  <div class="order-2 lg:order-1">
-                    <div
-                      class="bg-gradient-to-br from-emerald-400 to-teal-500 w-16 h-16 rounded-xl flex items-center justify-center mb-4 shadow-xl islamic-glow"
-                    >
-                      <i class="fas fa-chart-pie text-white text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">
-                      📊 Dashboard Zakat Terpadu
-                    </h3>
-                    <p class="text-lg text-emerald-100 mb-6 leading-relaxed">
-                      Dashboard interaktif dengan visualisasi data real-time,
-                      grafik dinamis, dan insights mendalam untuk memantau
-                      perkembangan zakat fitrah sesuai syariat dengan mudah dan
-                      akurat.
-                    </p>
-                    <div class="space-y-3">
-                      <div class="flex items-center text-emerald-100">
-                        <i class="fas fa-mosque text-emerald-400 mr-3"></i>
-                        <span>☪️ Monitoring Syariah Compliant</span>
-                      </div>
-                      <div class="flex items-center text-emerald-100">
-                        <i
-                          class="fas fa-check-circle text-emerald-400 mr-3"
-                        ></i>
-                        <span>📊 Grafik & Analitik Interaktif</span>
-                      </div>
-                      <div class="flex items-center text-emerald-100">
-                        <i
-                          class="fas fa-hands-praying text-emerald-400 mr-3"
-                        ></i>
-                        <span>🤲 Laporan Amanah & Transparan</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="order-1 lg:order-2">
-                    <div class="relative">
-                      <div
-                        class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 shadow-xl"
-                      >
-                        <div class="grid grid-cols-2 gap-4">
-                          <div
-                            class="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl p-4 text-center"
-                          >
-                            <div class="text-2xl font-bold text-white mb-1">
-                              1,250+
-                            </div>
-                            <div class="text-yellow-100 text-xs">
-                              Total Muzakki
-                            </div>
-                          </div>
-                          <div
-                            class="bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl p-4 text-center"
-                          >
-                            <div class="text-2xl font-bold text-white mb-1">
-                              3.5M
-                            </div>
-                            <div class="text-green-100 text-xs">
-                              Zakat Terkumpul
-                            </div>
-                          </div>
-                          <div
-                            class="bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl p-4 text-center"
-                          >
-                            <div class="text-2xl font-bold text-white mb-1">
-                              850+
-                            </div>
-                            <div class="text-purple-100 text-xs">Mustahik</div>
-                          </div>
-                          <div
-                            class="bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl p-4 text-center"
-                          >
-                            <div class="text-2xl font-bold text-white mb-1">
-                              95%
-                            </div>
-                            <div class="text-blue-100 text-xs">
-                              Transparansi
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Slide 2: AI Calculator -->
-              <div class="carousel-slide min-w-full">
-                <div
-                  class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-6 lg:p-10"
-                >
-                  <div>
-                    <div class="relative">
-                      <div
-                        class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 shadow-xl"
-                      >
-                        <div class="text-center mb-4">
-                          <h4 class="text-xl font-bold text-white mb-3">
-                            🧮 Kalkulator Zakat AI
-                          </h4>
-                          <div
-                            class="bg-gradient-to-r from-green-400 to-emerald-500 rounded-xl p-4"
-                          >
-                            <div class="text-3xl font-bold text-white mb-1">
-                              2.5 Kg
-                            </div>
-                            <div class="text-green-100 text-xs mb-3">
-                              Beras per Jiwa
-                            </div>
-                            <div class="grid grid-cols-2 gap-3 text-sm">
-                              <div class="bg-white/20 rounded-lg p-2">
-                                <div class="text-white font-semibold text-xs">
-                                  Keluarga: 4 Jiwa
-                                </div>
-                              </div>
-                              <div class="bg-white/20 rounded-lg p-2">
-                                <div class="text-white font-semibold text-xs">
-                                  Total: 10 Kg
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="space-y-2">
-                          <div
-                            class="bg-white/20 rounded-lg p-2 flex justify-between"
-                          >
-                            <span class="text-white text-sm"
-                              >Beras Premium</span
-                            >
-                            <span class="text-green-300 font-semibold text-sm"
-                              >Rp 15,000/kg</span
-                            >
-                          </div>
-                          <div
-                            class="bg-white/20 rounded-lg p-2 flex justify-between"
-                          >
-                            <span class="text-white text-sm">Total Nilai</span>
-                            <span class="text-yellow-300 font-semibold text-sm"
-                              >Rp 150,000</span
-                            >
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <div
-                      class="bg-gradient-to-br from-emerald-400 to-green-500 w-16 h-16 rounded-xl flex items-center justify-center mb-4 shadow-xl"
-                    >
-                      <i class="fas fa-calculator text-white text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">
-                      � Kalkulator Zakat Syar'i
-                    </h3>
-                    <p class="text-lg text-emerald-100 mb-6 leading-relaxed">
-                      Kalkulator zakat sesuai tuntunan syariah yang secara
-                      otomatis menghitung zakat fitrah berdasarkan nisab dan
-                      harga pasar terkini dengan akurasi tinggi sesuai fatwa
-                      ulama.
-                    </p>
-                    <div class="space-y-3">
-                      <div class="flex items-center text-emerald-100">
-                        <i
-                          class="fas fa-star-and-crescent text-emerald-400 mr-3"
-                        ></i>
-                        <span>📖 Sesuai Nisab Syariah</span>
-                      </div>
-                      <div class="flex items-center text-emerald-100">
-                        <i
-                          class="fas fa-check-circle text-emerald-400 mr-3"
-                        ></i>
-                        <span>💰 Update Harga Otomatis</span>
-                      </div>
-                      <div class="flex items-center text-emerald-100">
-                        <i
-                          class="fas fa-hands-praying text-emerald-400 mr-3"
-                        ></i>
-                        <span>🤲 Rekomendasi Bijak</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Slide 3: Digital Infak -->
-              <div class="carousel-slide min-w-full">
-                <div
-                  class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-6 lg:p-10"
-                >
-                  <div class="order-2 lg:order-1">
-                    <div
-                      class="bg-gradient-to-br from-amber-400 to-orange-500 w-16 h-16 rounded-xl flex items-center justify-center mb-4 shadow-xl islamic-glow"
-                    >
-                      <i
-                        class="fas fa-hand-holding-heart text-white text-2xl"
-                      ></i>
-                    </div>
-                    <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">
-                      💝 Platform Infak Digital
-                    </h3>
-                    <p class="text-lg text-emerald-100 mb-6 leading-relaxed">
-                      Platform infak digital yang mengikuti sunnah Rasulullah
-                      SAW dengan pembayaran mudah, tracking transparan, dan
-                      laporan berkala untuk meningkatkan kepercayaan dan
-                      keberkahan.
-                    </p>
-                    <div class="space-y-3">
-                      <div class="flex items-center text-emerald-100">
-                        <i class="fas fa-qrcode text-amber-400 mr-3"></i>
-                        <span>📱 QR Code Payment Mudah</span>
-                      </div>
-                      <div class="flex items-center text-emerald-100">
-                        <i class="fas fa-check-circle text-amber-400 mr-3"></i>
-                        <span>👁️ Tracking Transparan</span>
-                      </div>
-                      <div class="flex items-center text-emerald-100">
-                        <i class="fas fa-chart-line text-amber-400 mr-3"></i>
-                        <span>📋 Laporan Keberkahan</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="order-1 lg:order-2">
-                    <div class="relative">
-                      <div
-                        class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 shadow-xl"
-                      >
-                        <div class="text-center mb-4">
-                          <h4 class="text-xl font-bold text-white mb-3">
-                            📱 Mobile Payment
-                          </h4>
-                          <div
-                            class="bg-gradient-to-br from-orange-400 to-red-500 rounded-xl p-4 mb-4"
-                          >
-                            <div
-                              class="w-24 h-24 bg-white rounded-xl mx-auto flex items-center justify-center mb-3"
-                            >
-                              <i
-                                class="fas fa-qrcode text-gray-700 text-4xl"
-                              ></i>
-                            </div>
-                            <div class="text-white font-semibold text-sm">
-                              Scan QR untuk Infak
-                            </div>
-                          </div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2">
-                          <div class="bg-blue-500 rounded-lg p-2 text-center">
-                            <i
-                              class="fas fa-mobile-alt text-white text-lg mb-1"
-                            ></i>
-                            <div class="text-white text-xs font-semibold">
-                              Mobile
-                            </div>
-                          </div>
-                          <div class="bg-green-500 rounded-lg p-2 text-center">
-                            <i
-                              class="fas fa-credit-card text-white text-lg mb-1"
-                            ></i>
-                            <div class="text-white text-xs font-semibold">
-                              Card
-                            </div>
-                          </div>
-                          <div class="bg-purple-500 rounded-lg p-2 text-center">
-                            <i
-                              class="fas fa-wallet text-white text-lg mb-1"
-                            ></i>
-                            <div class="text-white text-xs font-semibold">
-                              E-Wallet
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Slide 4: Smart Distribution -->
-              <div class="carousel-slide min-w-full">
-                <div
-                  class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-6 lg:p-10"
-                >
-                  <div>
-                    <div class="relative">
-                      <div
-                        class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 shadow-xl"
-                      >
-                        <div class="text-center mb-4">
-                          <h4 class="text-xl font-bold text-white mb-3">
-                            🗺️ Smart Mapping
-                          </h4>
-                          <div
-                            class="bg-gradient-to-br from-indigo-400 to-purple-500 rounded-xl p-4"
-                          >
-                            <div class="grid grid-cols-2 gap-3 mb-3">
-                              <div
-                                class="bg-white/20 rounded-lg p-3 text-center"
-                              >
-                                <div class="text-xl font-bold text-white">
-                                  12
-                                </div>
-                                <div class="text-indigo-100 text-xs">
-                                  RT Active
-                                </div>
-                              </div>
-                              <div
-                                class="bg-white/20 rounded-lg p-3 text-center"
-                              >
-                                <div class="text-xl font-bold text-white">
-                                  3
-                                </div>
-                                <div class="text-indigo-100 text-xs">
-                                  RW Total
-                                </div>
-                              </div>
-                            </div>
-                            <div class="space-y-2">
-                              <div
-                                class="bg-white/20 rounded-lg p-2 flex justify-between items-center"
-                              >
-                                <span class="text-white text-xs">RT 001</span>
-                                <span
-                                  class="bg-green-400 text-white text-xs px-2 py-1 rounded"
-                                  >Complete</span
-                                >
-                              </div>
-                              <div
-                                class="bg-white/20 rounded-lg p-2 flex justify-between items-center"
-                              >
-                                <span class="text-white text-xs">RT 002</span>
-                                <span
-                                  class="bg-yellow-400 text-white text-xs px-2 py-1 rounded"
-                                  >Progress</span
-                                >
-                              </div>
-                              <div
-                                class="bg-white/20 rounded-lg p-2 flex justify-between items-center"
-                              >
-                                <span class="text-white text-xs">RT 003</span>
-                                <span
-                                  class="bg-blue-400 text-white text-xs px-2 py-1 rounded"
-                                  >Planning</span
-                                >
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <div
-                      class="bg-gradient-to-br from-indigo-400 to-purple-500 w-16 h-16 rounded-xl flex items-center justify-center mb-4 shadow-xl islamic-glow"
-                    >
-                      <i class="fas fa-mosque text-white text-2xl"></i>
-                    </div>
-                    <h3 class="text-2xl md:text-3xl font-bold text-white mb-4">
-                      � Jaringan Distribusi Syariah
-                    </h3>
-                    <p class="text-lg text-emerald-100 mb-6 leading-relaxed">
-                      Sistem distribusi sesuai syariat dengan pemetaan mustahik
-                      real-time, koordinasi RT/RW yang efisien, dan algoritma
-                      pemerataan yang adil sesuai tuntunan Islam.
-                    </p>
-                    <div class="space-y-3">
-                      <div class="flex items-center text-emerald-100">
-                        <i
-                          class="fas fa-map-marked-alt text-indigo-400 mr-3"
-                        ></i>
-                        <span>🗺️ Pemetaan Wilayah Akurat</span>
-                      </div>
-                      <div class="flex items-center text-emerald-100">
-                        <i class="fas fa-users text-indigo-400 mr-3"></i>
-                        <span>🤝 Koordinasi RT/RW</span>
-                      </div>
-                      <div class="flex items-center text-emerald-100">
-                        <i
-                          class="fas fa-balance-scale text-indigo-400 mr-3"
-                        ></i>
-                        <span>⚖️ Distribusi Adil & Merata</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Carousel Navigation -->
-          <div class="flex justify-center items-center mt-6 space-x-3">
-            <button
-              id="prevBtn"
-              class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-2 rounded-full transition-all duration-300 hover:scale-110"
-            >
-              <i class="fas fa-chevron-left text-lg"></i>
-            </button>
-
-            <!-- Dots indicator -->
-            <div class="flex space-x-2">
-              <button
-                class="carousel-dot w-2 h-2 rounded-full bg-white/50 hover:bg-white transition-all duration-300"
-                data-slide="0"
-              ></button>
-              <button
-                class="carousel-dot w-2 h-2 rounded-full bg-white/50 hover:bg-white transition-all duration-300"
-                data-slide="1"
-              ></button>
-              <button
-                class="carousel-dot w-2 h-2 rounded-full bg-white/50 hover:bg-white transition-all duration-300"
-                data-slide="2"
-              ></button>
-              <button
-                class="carousel-dot w-2 h-2 rounded-full bg-white/50 hover:bg-white transition-all duration-300"
-                data-slide="3"
-              ></button>
-            </div>
-
-            <button
-              id="nextBtn"
-              class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white p-2 rounded-full transition-all duration-300 hover:scale-110"
-            >
-              <i class="fas fa-chevron-right text-lg"></i>
-            </button>
-          </div>
-
-          <!-- Auto-play indicator -->
-          <div class="text-center mt-4">
-            <div
-              class="inline-flex items-center bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full"
-            >
-              <div
-                class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse mr-2"
-              ></div>
-              <span class="text-white/80 text-xs"
-                >☪️ Auto-play Berkah • Klik untuk jeda</span
-              >
-            </div>
-          </div>
-        </div>
+        <% if (zakat.tahun === 2026) { %><p style="margin-top:16px"><a class="more" href="/zakat-fitrah-2026">Lihat rincian laporan zakat <%= zakat.tahun %> <i class="fas fa-arrow-right"></i></a></p><% } %>
       </div>
     </section>
+    <% } %>
 
-    <!-- Stats Section -->
-    <section
-      id="stats"
-      class="py-20 bg-gradient-to-r from-emerald-600 to-teal-800"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-          <div class="mb-6">
-            <span class="text-4xl">🌙</span>
-          </div>
-          <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
-            Dampak Zakat Fitrah yang Berkah
-          </h2>
-          <p class="text-xl text-white/90 max-w-2xl mx-auto mb-4">
-            "إِنَّمَا الصَّدَقَاتُ لِلْفُقَرَاءِ وَالْمَسَاكِينِ"
-          </p>
-          <p class="text-sm text-emerald-100 italic">
-            "Sesungguhnya zakat-zakat itu, hanyalah untuk orang-orang fakir,
-            orang-orang miskin..." - At-Taubah: 60
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div class="text-center slide-up">
-            <div
-              class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl islamic-glow"
-            >
-              <div class="text-4xl md:text-5xl font-bold text-yellow-300 mb-2">
-                1,250+
-              </div>
-              <div class="text-white font-semibold text-lg mb-1">
-                👥 Muzakki
-              </div>
-              <div class="text-white/80 text-sm">Pembayar Zakat</div>
-            </div>
-          </div>
-
-          <div class="text-center slide-up" style="animation-delay: 0.1s">
-            <div
-              class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl islamic-glow"
-            >
-              <div class="text-4xl md:text-5xl font-bold text-emerald-300 mb-2">
-                3,500+
-              </div>
-              <div class="text-white font-semibold text-lg mb-1">🤲 Jiwa</div>
-              <div class="text-white/80 text-sm">Dibantu Zakat</div>
-            </div>
-          </div>
-
-          <div class="text-center slide-up" style="animation-delay: 0.2s">
-            <div
-              class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl islamic-glow"
-            >
-              <div class="text-4xl md:text-5xl font-bold text-teal-300 mb-2">
-                850+
-              </div>
-              <div class="text-white font-semibold text-lg mb-1">
-                🕌 Mustahik
-              </div>
-              <div class="text-white/80 text-sm">Penerima Manfaat</div>
-            </div>
-          </div>
-
-          <div class="text-center slide-up" style="animation-delay: 0.3s">
-            <div
-              class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl islamic-glow"
-            >
-              <div class="text-4xl md:text-5xl font-bold text-cyan-300 mb-2">
-                95%
-              </div>
-              <div class="text-white font-semibold text-lg mb-1">
-                ✨ Transparansi
-              </div>
-              <div class="text-white/80 text-sm">Pelaporan Amanah</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="text-center mt-12">
-          <p class="text-white/90 text-lg">
-            "وَالَّذِينَ فِي أَمْوَالِهِمْ حَقٌّ مَّعْلُومٌ * لِّلسَّائِلِ
-            وَالْمَحْرُومِ"<br />
-            <span class="text-sm italic text-emerald-200">
-              "Dan pada harta-harta mereka ada hak untuk orang miskin yang
-              meminta dan orang miskin yang tidak mendapat bagian" - Al-Ma'arij:
-              24-25
-            </span>
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- About Section -->
-    <section id="about" class="py-20 bg-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+    <!-- ===== PASANG APLIKASI ===== -->
+    <section style="padding-top:24px">
+      <div class="wrap">
+        <div class="card app rv">
           <div>
-            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-              Tentang Sistem Zakat Fitrah Syar'i
-            </h2>
-            <p class="text-lg text-gray-600 mb-6 leading-relaxed">
-              "وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ" - Sistem Manajemen
-              Zakat Fitrah adalah platform digital yang dirancang khusus sesuai
-              tuntunan syariat Islam untuk membantu masjid, komunitas, dan
-              lembaga zakat dalam mengelola zakat fitrah secara amanah,
-              transparan, dan berkah.
-            </p>
-            <p class="text-lg text-gray-600 mb-8 leading-relaxed">
-              Dengan mengintegrasikan teknologi modern dan nilai-nilai Islam,
-              sistem ini memungkinkan pengelolaan yang terstruktur sesuai
-              Al-Quran dan As-Sunnah, mulai dari pendataan muzakki, perhitungan
-              nisab yang tepat, hingga distribusi kepada 8 golongan mustahik.
-            </p>
-
-            <div class="space-y-4">
-              <div class="flex items-center space-x-3">
-                <div class="bg-emerald-100 p-2 rounded-lg">
-                  <i class="fas fa-mosque text-emerald-600"></i>
-                </div>
-                <span class="text-gray-700 font-medium"
-                  >🕌 Sesuai Syariat Islam</span
-                >
-              </div>
-              <div class="flex items-center space-x-3">
-                <div class="bg-emerald-100 p-2 rounded-lg">
-                  <i class="fas fa-hand-holding-heart text-emerald-600"></i>
-                </div>
-                <span class="text-gray-700 font-medium"
-                  >🤲 Laporan Amanah & Transparan</span
-                >
-              </div>
-              <div class="flex items-center space-x-3">
-                <div class="bg-emerald-100 p-2 rounded-lg">
-                  <i class="fas fa-shield-alt text-emerald-600"></i>
-                </div>
-                <span class="text-gray-700 font-medium"
-                  >🔒 Keamanan Data Terjamin</span
-                >
-              </div>
-              <div class="flex items-center space-x-3">
-                <div class="bg-emerald-100 p-2 rounded-lg">
-                  <i class="fas fa-mobile-alt text-emerald-600"></i>
-                </div>
-                <span class="text-gray-700 font-medium"
-                  >📱 Responsive & User Friendly</span
-                >
-              </div>
+            <h2>Bawa <%= nama %> di genggaman</h2>
+            <p>Pasang di layar utama HP: jadwal sholat dan imsakiyah tetap bisa dibuka walau sinyal lemah, tanpa perlu mengunduh dari toko aplikasi.</p>
+            <div class="app-act">
+              <button type="button" class="btn btn-primary" data-pwa-install hidden><i class="fas fa-download"></i>Pasang Aplikasi</button>
+              <a class="btn btn-wa" href="#" data-wa-share="<%= waText %>"><i class="fab fa-whatsapp"></i>Bagikan ke Jamaah</a>
             </div>
           </div>
-
-          <div class="relative">
-            <div
-              class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-8 text-white shadow-2xl"
-            >
-              <div class="text-center">
-                <div
-                  class="bg-white/20 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 p-3 islamic-glow"
-                >
-                  <img
-                    src="/images/logo-dkm.png"
-                    alt="Logo Musholla Nurul Fitrah"
-                    class="w-12 h-12 object-contain"
-                  />
-                </div>
-                <h3 class="text-2xl font-bold mb-4">🕌 Amanah & Berkah</h3>
-                <p class="text-white/90 text-lg leading-relaxed mb-4">
-                  "بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ"
-                </p>
-                <p class="text-white/80 text-base leading-relaxed">
-                  "Menunaikan zakat fitrah kini lebih mudah dengan sistem yang
-                  amanah dan transparan. Membantu umat dalam menjalankan
-                  kewajiban dengan teknologi yang diberkahi Allah SWT."
-                </p>
-              </div>
-            </div>
-
-            <!-- Floating elements -->
-            <div
-              class="absolute -top-6 -right-6 w-24 h-24 bg-emerald-300 rounded-full opacity-20 floating-animation"
-            ></div>
-            <div
-              class="absolute -bottom-6 -left-6 w-32 h-32 bg-teal-300 rounded-full opacity-20 floating-animation"
-              style="animation-delay: 1s"
-            ></div>
-            <!-- Islamic decorative elements -->
-            <div class="absolute top-4 right-4 text-2xl opacity-10">☪️</div>
-            <div class="absolute bottom-4 left-4 text-2xl opacity-10">🕌</div>
-          </div>
+          <img class="app-ic" src="/icons/icon-192.png" alt="" width="92" height="92">
         </div>
       </div>
     </section>
 
-    <!-- Enhanced Features Showcase Section -->
-    <section
-      id="quick-actions"
-      class="py-20 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 relative overflow-hidden islamic-pattern"
-    >
-      <!-- Background decorations -->
-      <div class="absolute inset-0">
-        <div
-          class="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-emerald-200 to-teal-200 rounded-full opacity-20 blur-3xl"
-        ></div>
-        <div
-          class="absolute bottom-20 right-10 w-80 h-80 bg-gradient-to-br from-emerald-200 to-cyan-200 rounded-full opacity-20 blur-3xl"
-        ></div>
-        <!-- Islamic symbols -->
-        <div
-          class="absolute top-10 right-20 text-6xl text-emerald-200 opacity-20"
-        >
-          ☪️
-        </div>
-        <div
-          class="absolute bottom-10 left-20 text-6xl text-teal-200 opacity-20"
-        >
-          🕌
-        </div>
-      </div>
-
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="text-center mb-20">
-          <div
-            class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl mb-6 shadow-xl islamic-glow"
-          >
-            <i class="fas fa-star-and-crescent text-white text-2xl"></i>
-          </div>
-          <h2
-            class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-emerald-900 to-teal-900 bg-clip-text text-transparent mb-6"
-          >
-            Kelola Zakat dengan Berkah
-          </h2>
-          <p
-            class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-4"
-          >
-            "وَمَا تُنفِقُوا مِنْ شَيْءٍ فَإِنَّ اللَّهَ بِهِ عَلِيمٌ"
-          </p>
-          <p class="text-sm text-emerald-600 italic">
-            "Dan apa saja yang kamu nafkahkan, maka Allah mengetahuinya" -
-            Al-Baqarah: 273
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <!-- Muzakki Management - Enhanced Card -->
-          <div class="group relative">
-            <div
-              class="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-3xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 blur-xl"
-            ></div>
-            <div
-              class="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 border border-white/50"
-            >
-              <div class="flex items-center justify-between mb-6">
-                <div
-                  class="bg-gradient-to-br from-emerald-500 to-teal-500 w-20 h-20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg islamic-glow"
-                >
-                  <i class="fas fa-users text-white text-2xl"></i>
-                </div>
-                <div class="bg-emerald-100 px-3 py-1 rounded-full">
-                  <span class="text-emerald-600 text-sm font-semibold"
-                    >Berkah</span
-                  >
-                </div>
-              </div>
-              <h3 class="text-2xl font-bold text-gray-900 mb-4">
-                � Data Muzakki Syar'i
-              </h3>
-              <p class="text-gray-600 mb-6 leading-relaxed">
-                Kelola database muzakki sesuai syariat dengan riwayat pembayaran
-                yang amanah, notifikasi menjelang Ramadhan, dan analisis per
-                wilayah yang transparan.
-              </p>
-              <div class="flex items-center justify-between">
-                <a
-                  href="/muzakki"
-                  class="inline-flex items-center text-emerald-600 font-bold hover:text-emerald-700 transition-colors duration-200 group"
-                >
-                  <span>🕌 Kelola Data</span>
-                  <i
-                    class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"
-                  ></i>
-                </a>
-                <div class="flex items-center space-x-1">
-                  <div
-                    class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"
-                  ></div>
-                  <span class="text-xs text-gray-500">Amanah</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Zakat Calculator - Enhanced Card -->
-          <div class="group relative">
-            <div
-              class="absolute inset-0 bg-gradient-to-r from-emerald-400 to-green-400 rounded-3xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 blur-xl"
-            ></div>
-            <div
-              class="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 border border-white/50"
-            >
-              <div class="flex items-center justify-between mb-6">
-                <div
-                  class="bg-gradient-to-br from-emerald-500 to-green-500 w-20 h-20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg islamic-glow"
-                >
-                  <i class="fas fa-calculator text-white text-2xl"></i>
-                </div>
-                <div class="bg-green-100 px-3 py-1 rounded-full">
-                  <span class="text-green-600 text-sm font-semibold"
-                    >Syar'i</span
-                  >
-                </div>
-              </div>
-              <h3 class="text-2xl font-bold text-gray-900 mb-4">
-                🧮 Kalkulator Nisab
-              </h3>
-              <p class="text-gray-600 mb-6 leading-relaxed">
-                Perhitungan zakat sesuai nisab syariah dengan standar beras
-                premium, estimasi harga terkini, dan rekomendasi distribusi yang
-                adil sesuai Al-Quran.
-              </p>
-              <div class="flex items-center justify-between">
-                <a
-                  href="/muzakki/create"
-                  class="inline-flex items-center text-green-600 font-bold hover:text-green-700 transition-colors duration-200 group"
-                >
-                  <span>🤲 Hitung Zakat</span>
-                  <i
-                    class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"
-                  ></i>
-                </a>
-                <div class="flex items-center space-x-1">
-                  <div
-                    class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"
-                  ></div>
-                  <span class="text-xs text-gray-500">Nisab</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Analytics Dashboard - Enhanced Card -->
-          <div class="group relative">
-            <div
-              class="absolute inset-0 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-3xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 blur-xl"
-            ></div>
-            <div
-              class="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 border border-white/50"
-            >
-              <div class="flex items-center justify-between mb-6">
-                <div
-                  class="bg-gradient-to-br from-teal-500 to-cyan-500 w-20 h-20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg islamic-glow"
-                >
-                  <i class="fas fa-chart-line text-white text-2xl"></i>
-                </div>
-                <div class="bg-teal-100 px-3 py-1 rounded-full">
-                  <span class="text-teal-600 text-sm font-semibold"
-                    >Amanah</span
-                  >
-                </div>
-              </div>
-              <h3 class="text-2xl font-bold text-gray-900 mb-4">
-                📊 Dashboard Transparansi
-              </h3>
-              <p class="text-gray-600 mb-6 leading-relaxed">
-                Visualisasi data amanah dengan grafik interaktif, prediksi
-                pengumpulan berdasar sejarah, dan insights berbasis data yang
-                terpercaya.
-              </p>
-              <div class="flex items-center justify-between">
-                <a
-                  href="/laporan"
-                  class="inline-flex items-center text-teal-600 font-bold hover:text-teal-700 transition-colors duration-200 group"
-                >
-                  <span>👁️ Lihat Laporan</span>
-                  <i
-                    class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"
-                  ></i>
-                </a>
-                <div class="flex items-center space-x-1">
-                  <div
-                    class="w-2 h-2 bg-teal-400 rounded-full animate-pulse"
-                  ></div>
-                  <span class="text-xs text-gray-500">Real-time</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Infak Management - Enhanced Card -->
-          <div class="group relative">
-            <div
-              class="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-400 rounded-3xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 blur-xl"
-            ></div>
-            <div
-              class="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 border border-white/50"
-            >
-              <div class="flex items-center justify-between mb-6">
-                <div
-                  class="bg-gradient-to-br from-amber-500 to-orange-500 w-20 h-20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg islamic-glow"
-                >
-                  <i class="fas fa-hand-holding-heart text-white text-2xl"></i>
-                </div>
-                <div class="bg-orange-100 px-3 py-1 rounded-full">
-                  <span class="text-orange-600 text-sm font-semibold"
-                    >Sunnah</span
-                  >
-                </div>
-              </div>
-              <h3 class="text-2xl font-bold text-gray-900 mb-4">
-                💝 Infak Sunnah Digital
-              </h3>
-              <p class="text-gray-600 mb-6 leading-relaxed">
-                Platform infak mengikuti sunnah Rasulullah SAW dengan sistem
-                pembayaran mudah, tracking transparansi, dan laporan keberkahan
-                ke donatur.
-              </p>
-              <div class="flex items-center justify-between">
-                <a
-                  href="/infak"
-                  class="inline-flex items-center text-orange-600 font-bold hover:text-orange-700 transition-colors duration-200 group"
-                >
-                  <span>💫 Kelola Infak</span>
-                  <i
-                    class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"
-                  ></i>
-                </a>
-                <div class="flex items-center space-x-1">
-                  <div
-                    class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"
-                  ></div>
-                  <span class="text-xs text-gray-500">Berkah</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Mustahik Distribution - Enhanced Card -->
-          <div class="group relative">
-            <div
-              class="absolute inset-0 bg-gradient-to-r from-rose-400 to-red-400 rounded-3xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 blur-xl"
-            ></div>
-            <div
-              class="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 border border-white/50"
-            >
-              <div class="flex items-center justify-between mb-6">
-                <div
-                  class="bg-gradient-to-br from-rose-500 to-red-500 w-20 h-20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg islamic-glow"
-                >
-                  <i class="fas fa-users-line text-white text-2xl"></i>
-                </div>
-                <div class="bg-rose-100 px-3 py-1 rounded-full">
-                  <span class="text-rose-600 text-sm font-semibold"
-                    >8 Golongan</span
-                  >
-                </div>
-              </div>
-              <h3 class="text-2xl font-bold text-gray-900 mb-4">
-                🤝 8 Golongan Mustahik
-              </h3>
-              <p class="text-gray-600 mb-6 leading-relaxed">
-                Sistem distribusi sesuai Al-Quran dengan verifikasi digital 8
-                golongan mustahik, algoritma pemerataan yang adil, dan tracking
-                bantuan real-time.
-              </p>
-              <div class="flex items-center justify-between">
-                <a
-                  href="/mustahik"
-                  class="inline-flex items-center text-rose-600 font-bold hover:text-rose-700 transition-colors duration-200 group"
-                >
-                  <span>🎯 Kelola Penerima</span>
-                  <i
-                    class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"
-                  ></i>
-                </a>
-                <div class="flex items-center space-x-1">
-                  <div
-                    class="w-2 h-2 bg-rose-400 rounded-full animate-pulse"
-                  ></div>
-                  <span class="text-xs text-gray-500">Syar'i</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Regional Management - Enhanced Card -->
-          <div class="group relative">
-            <div
-              class="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-3xl opacity-20 group-hover:opacity-30 transition-opacity duration-300 blur-xl"
-            ></div>
-            <div
-              class="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 border border-white/50"
-            >
-              <div class="flex items-center justify-between mb-6">
-                <div
-                  class="bg-gradient-to-br from-indigo-500 to-purple-500 w-20 h-20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg islamic-glow"
-                >
-                  <i class="fas fa-mosque text-white text-2xl"></i>
-                </div>
-                <div class="bg-indigo-100 px-3 py-1 rounded-full">
-                  <span class="text-indigo-600 text-sm font-semibold"
-                    >Jamaah</span
-                  >
-                </div>
-              </div>
-              <h3 class="text-2xl font-bold text-gray-900 mb-4">
-                � Manajemen Jamaah
-              </h3>
-              <p class="text-gray-600 mb-6 leading-relaxed">
-                Pemetaan wilayah jamaah dengan koordinasi RT/RW berbasis masjid,
-                optimasi distribusi per daerah, dan gotong royong digital antar
-                tetangga.
-              </p>
-              <div class="flex items-center justify-between">
-                <a
-                  href="/rt"
-                  class="inline-flex items-center text-indigo-600 font-bold hover:text-indigo-700 transition-colors duration-200 group"
-                >
-                  <span>🏘️ Kelola Wilayah</span>
-                  <i
-                    class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-200"
-                  ></i>
-                </a>
-                <div class="flex items-center space-x-1">
-                  <div
-                    class="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"
-                  ></div>
-                  <span class="text-xs text-gray-500">Gotong Royong</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Premium Call to Action -->
-        <div class="text-center mt-20">
-          <div
-            class="relative bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-3xl p-12 text-white shadow-2xl overflow-hidden islamic-pattern"
-          >
-            <!-- Animated background elements -->
-            <div class="absolute inset-0 opacity-20">
-              <div
-                class="absolute top-10 left-10 w-20 h-20 bg-white rounded-full animate-pulse"
-              ></div>
-              <div
-                class="absolute bottom-10 right-10 w-32 h-32 bg-white rounded-full animate-pulse"
-                style="animation-delay: 1s"
-              ></div>
-              <div
-                class="absolute top-1/2 left-1/4 w-16 h-16 bg-yellow-300 rounded-full animate-bounce"
-                style="animation-delay: 2s"
-              ></div>
-            </div>
-
-            <div class="relative z-10">
-              <div class="flex items-center justify-center mb-8">
-                <div
-                  class="bg-white/20 backdrop-blur-sm rounded-full p-4 mr-4 islamic-glow"
-                >
-                  <i class="fas fa-star-and-crescent text-3xl"></i>
-                </div>
-                <div class="text-left">
-                  <h3 class="text-3xl md:text-4xl font-bold mb-2">
-                    � Bergabunglah dengan Berkah
-                  </h3>
-                  <p class="text-xl text-emerald-100">
-                    Platform Zakat Digital Syar'i
-                  </p>
-                </div>
-              </div>
-
-              <p
-                class="text-xl mb-4 text-emerald-100 max-w-3xl mx-auto leading-relaxed"
-              >
-                "وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ"
-              </p>
-              <p
-                class="text-lg mb-8 text-teal-100 max-w-3xl mx-auto leading-relaxed"
-              >
-                "Dan tolong-menolonglah kamu dalam (mengerjakan) kebajikan dan
-                takwa" - Al-Maidah: 2<br />
-                Lebih dari
-                <span class="font-bold text-yellow-300">10,000+ jamaah</span>
-                telah mempercayai platform kami. Bergabunglah dengan komunitas
-                zakat digital terbesar yang berkah! 🇮🇩
-              </p>
-
-              <!-- Stats badges -->
-              <div class="flex flex-wrap justify-center gap-4 mb-10">
-                <div
-                  class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full"
-                >
-                  <span class="text-sm font-semibold">🚀 Setup 2 Menit</span>
-                </div>
-                <div
-                  class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full"
-                >
-                  <span class="text-sm font-semibold">🔒 100% Amanah</span>
-                </div>
-                <div
-                  class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full"
-                >
-                  <span class="text-sm font-semibold">📱 Mobile Friendly</span>
-                </div>
-                <div
-                  class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full"
-                >
-                  <span class="text-sm font-semibold">� Gratis Berkah</span>
-                </div>
-              </div>
-
-              <div
-                class="flex flex-col sm:flex-row gap-6 justify-center items-center"
-              >
-                <a
-                  href="/auth/login"
-                  class="group bg-white text-emerald-600 px-10 py-5 rounded-2xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 transform islamic-glow"
-                >
-                  <i
-                    class="fas fa-mosque mr-3 group-hover:scale-110 transition-transform duration-200"
-                  ></i>
-                  🕌 Masuk ke Platform
-                  <span
-                    class="ml-2 group-hover:translate-x-1 inline-block transition-transform duration-200"
-                    >→</span
-                  >
-                </a>
-                <a
-                  href="/auth/register"
-                  class="group glass-effect text-white px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white/20 transition-all duration-300 border-2 border-white/30 hover:border-white/50"
-                >
-                  <i
-                    class="fas fa-hands-praying mr-3 group-hover:scale-110 transition-transform duration-200"
-                  ></i>
-                  🤲 Daftar Berkah
-                  <span
-                    class="ml-2 group-hover:translate-x-1 inline-block transition-transform duration-200"
-                    >☪️</span
-                  >
-                </a>
-              </div>
-
-              <!-- Trust indicators -->
-              <div class="mt-8 pt-8 border-t border-white/20">
-                <p class="text-sm text-emerald-200 mb-4">
-                  Dipercaya oleh Umat:
-                </p>
-                <div
-                  class="flex flex-wrap justify-center items-center gap-6 text-sm text-emerald-200"
-                >
-                  <span class="flex items-center">
-                    <i class="fas fa-mosque mr-2"></i>🕌 500+ Masjid
-                  </span>
-                  <span class="flex items-center">
-                    <i class="fas fa-users mr-2"></i>👥 1000+ RT/RW
-                  </span>
-                  <span class="flex items-center">
-                    <i class="fas fa-hand-holding-heart mr-2"></i>🏛️ 50+ Lembaga
-                    Zakat
-                  </span>
-                  <span class="flex items-center">
-                    <i class="fas fa-star-and-crescent mr-2"></i>🌍 100+ Kota
-                    Berkah
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <!-- ===== FOOTER ===== -->
+    <footer class="foot">
+      <div class="wrap">
+        <div class="foot-grid">
           <div>
-            <div class="flex items-center space-x-3 mb-4">
-              <div class="bg-white p-2 rounded-lg">
-                <img
-                  src="/images/logo-dkm.png"
-                  alt="Logo Musholla Nurul Fitrah"
-                  class="w-6 h-6 object-contain"
-                />
-              </div>
-              <span class="text-xl font-bold">Musholla Nurul Fitrah</span>
-            </div>
-            <p class="text-gray-400 leading-relaxed">
-              "وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ" - Sistem manajemen
-              zakat fitrah digital sesuai syariat Islam yang membantu masyarakat
-              dalam menunaikan kewajiban zakat dengan amanah, mudah dan berkah.
-            </p>
+            <a href="#top" class="brand"><img src="/images/logo-dkm.png" alt="" width="42" height="42"><span><b><%= nama %></b><small><%= tipe %></small></span></a>
+            <p><%= alamat || 'Pusat ibadah dan kegiatan jamaah.' %> Dikelola secara amanah dan terbuka oleh pengurus.</p>
           </div>
-
-          <div>
-            <h3 class="font-bold mb-4">🌟 Fitur Syar'i</h3>
-            <ul class="space-y-2 text-gray-400">
-              <li>
-                <i class="fas fa-chevron-right text-emerald-500 mr-2"></i>🕌
-                Manajemen Muzakki
-              </li>
-              <li>
-                <i class="fas fa-chevron-right text-emerald-500 mr-2"></i>🧮
-                Kalkulator Nisab
-              </li>
-              <li>
-                <i class="fas fa-chevron-right text-emerald-500 mr-2"></i>📊
-                Laporan Transparansi
-              </li>
-              <li>
-                <i class="fas fa-chevron-right text-emerald-500 mr-2"></i>🤲 8
-                Golongan Mustahik
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 class="font-bold mb-4">🤝 Bantuan Umat</h3>
-            <ul class="space-y-2 text-gray-400">
-              <li>
-                <i class="fas fa-chevron-right text-emerald-500 mr-2"></i>📖
-                Panduan Syariah
-              </li>
-              <li>
-                <i class="fas fa-chevron-right text-emerald-500 mr-2"></i>🙋‍♂️ FAQ
-                Zakat
-              </li>
-              <li>
-                <i class="fas fa-chevron-right text-emerald-500 mr-2"></i>💬
-                Dukungan Teknis
-              </li>
-              <li>
-                <i class="fas fa-chevron-right text-emerald-500 mr-2"></i>📞
-                Kontak Ustadz
-              </li>
-            </ul>
-          </div>
+          <div><h4>Halaman Jamaah</h4><ul>
+            <li><a href="/jadwal-ramadan">Jadwal Ramadan</a></li><li><a href="/info-masjid">Info &amp; Agenda</a></li>
+            <li><a href="/donasi">Donasi Online</a></li><li><a href="/transparansi">Laporan Kas</a></li></ul></div>
+          <div><h4>Mutiara Hikmah</h4>
+            <p style="font-size:.9rem;font-style:italic;margin-top:0">“Sedekah tidak akan mengurangi harta.” (HR. Muslim)</p></div>
         </div>
-
-        <div
-          class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400"
-        >
-          <p class="mb-2">"بَارَكَ اللهُ فِيكُمْ" - Semoga Allah memberkahi</p>
-          <p>
-            &copy; 2024 Sistem Manajemen Zakat Fitrah Syar'i. Hak cipta
-            dilindungi Allah SWT.
-          </p>
-        </div>
+        <div class="foot-bar"><span>© <%= new Date().getFullYear() %> <%= nama %>. Semua hak dilindungi.</span><span>Jazakumullahu khairan katsiran 🤲</span></div>
       </div>
     </footer>
 
-
     <script>
-      function closeMessage(messageId) {
-        const message = document.getElementById(messageId);
-        if (!message) {
-          return;
-        }
-
-        message.style.opacity = "0";
-        message.style.transform = "translateX(100%)";
-        setTimeout(() => {
-          message.remove();
-        }, 300);
-      }
-
-      window.closeMessage = closeMessage;
-
       (function () {
-        const THEME_KEY = "app-theme";
-        const root = document.documentElement;
-        const body = document.body;
-        const navbar = document.getElementById("navbar");
-        const mobileMenuBtn = document.getElementById("mobile-menu-btn");
-        const mobileMenu = document.getElementById("mobile-menu");
-        const themeToggleButtons = document.querySelectorAll("[data-theme-toggle]");
-        const desktopThemeIcon = document.getElementById("theme-icon-desktop");
-        const desktopThemeLabel = document.getElementById("theme-label-desktop");
-        const mobileThemeIcon = document.getElementById("theme-icon-mobile");
+        // Navbar menjadi solid setelah digulir
+        var nav = document.getElementById("nav");
+        function onScroll() { nav.classList.toggle("is-solid", window.scrollY > 24); }
+        onScroll(); window.addEventListener("scroll", onScroll, { passive: true });
 
-        function getPreferredTheme() {
-          try {
-            const savedTheme = localStorage.getItem(THEME_KEY);
-            if (savedTheme === "dark" || savedTheme === "light") {
-              return savedTheme;
-            }
-          } catch (error) {
-            // Ignore storage failure and fallback to media query.
-          }
+        // Menu mobile
+        var burger = document.getElementById("burger"), sheet = document.getElementById("sheet");
+        burger.addEventListener("click", function () { var o = sheet.classList.toggle("is-open"); burger.setAttribute("aria-expanded", o); nav.classList.add("is-solid"); });
+        sheet.addEventListener("click", function (e) { if (e.target.closest("a")) { sheet.classList.remove("is-open"); } });
 
-          return window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches
-            ? "dark"
-            : "light";
-        }
+        // Tema
+        document.getElementById("theme").addEventListener("click", function () {
+          var dark = document.documentElement.classList.toggle("dark-mode");
+          try { localStorage.setItem("app-theme", dark ? "dark" : "light"); } catch (e) {}
+        });
 
-        function saveTheme(theme) {
-          try {
-            localStorage.setItem(THEME_KEY, theme);
-          } catch (error) {
-            // Ignore storage failure.
-          }
-        }
-
-        function updateThemeControls(theme) {
-          const isDark = theme === "dark";
-
-          if (desktopThemeIcon) {
-            desktopThemeIcon.classList.toggle("fa-sun", isDark);
-            desktopThemeIcon.classList.toggle("fa-moon", !isDark);
-          }
-
-          if (mobileThemeIcon) {
-            mobileThemeIcon.classList.toggle("fa-sun", isDark);
-            mobileThemeIcon.classList.toggle("fa-moon", !isDark);
-          }
-
-          if (desktopThemeLabel) {
-            desktopThemeLabel.textContent = isDark ? "Light" : "Dark";
-          }
-        }
-
-        function updateNavbarAppearance(scrollY) {
-          if (!navbar) {
-            return;
-          }
-
-          const isDark = root.classList.contains("dark-mode");
-          const isScrolled = scrollY > 50;
-
-          navbar.classList.toggle("shadow-xl", isScrolled);
-          navbar.classList.toggle("shadow-lg", !isScrolled);
-
-          if (isDark) {
-            navbar.style.backgroundColor = isScrolled
-              ? "rgba(2, 6, 23, 0.95)"
-              : "rgba(15, 23, 42, 0.86)";
+        // Hitung mundur waktu sholat / imsak / berbuka
+        var card = document.getElementById("prayer");
+        var tz = Number(card.dataset.tz), times = JSON.parse(card.dataset.times), inRamadan = card.dataset.in === "1";
+        var ORDER = ["imsak", "subuh", "terbit", "dzuhur", "ashar", "maghrib", "isya"];
+        var NAMES = { imsak: "Imsak", subuh: "Subuh", terbit: "Terbit", dzuhur: "Dzuhur", ashar: "Ashar", maghrib: "Maghrib", isya: "Isya" };
+        var label = document.getElementById("count-label"), clock = document.getElementById("count");
+        function pad(n) { return (n < 10 ? "0" : "") + n; }
+        function tick() {
+          var now = new Date(Date.now() + tz * 3600e3);
+          var sec = now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+          var key = null, target = 0, i;
+          for (i = 0; i < ORDER.length; i++) { if (times[ORDER[i]] * 60 > sec) { key = ORDER[i]; target = times[key] * 60; break; } }
+          if (!key) { key = "imsak"; target = times.imsak * 60 + 86400; }
+          if (inRamadan) {
+            var im = times.imsak * 60, mg = times.maghrib * 60;
+            if (sec >= im && sec < mg) { key = "maghrib"; target = mg; label.textContent = "Menuju waktu berbuka"; }
+            else { key = "imsak"; target = sec < im ? im : im + 86400; label.textContent = "Menuju imsak"; }
           } else {
-            navbar.style.backgroundColor = isScrolled
-              ? "rgba(255, 255, 255, 0.98)"
-              : "rgba(255, 255, 255, 0.95)";
+            label.textContent = "Menuju " + NAMES[key] + " · " + pad(Math.floor(times[key] / 60) % 24) + ":" + pad(times[key] % 60);
           }
+          var d = Math.max(0, target - sec);
+          clock.textContent = pad(Math.floor(d / 3600)) + ":" + pad(Math.floor(d % 3600 / 60)) + ":" + pad(d % 60);
+          var nextKey = null;
+          for (i = 0; i < ORDER.length; i++) { if (times[ORDER[i]] * 60 > sec) { nextKey = ORDER[i]; break; } }
+          if (!nextKey) { nextKey = "imsak"; }
+          card.querySelectorAll(".pt[data-key]").forEach(function (el) {
+            var k = el.dataset.key; el.classList.toggle("is-next", k === nextKey); el.classList.toggle("is-passed", times[k] * 60 <= sec);
+          });
         }
+        tick(); setInterval(tick, 1000);
 
-        function applyTheme(theme) {
-          const isDark = theme === "dark";
-          root.classList.toggle("dark-mode", isDark);
-          body.classList.toggle("dark-mode", isDark);
-          updateThemeControls(theme);
-          updateNavbarAppearance(window.scrollY);
-        }
+        // Muncul halus saat digulir
+        var rv = document.querySelectorAll(".rv");
+        if ("IntersectionObserver" in window) {
+          var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); } }); }, { threshold: .12 });
+          rv.forEach(function (el, i) { el.style.transitionDelay = (i % 4) * 70 + "ms"; io.observe(el); });
+          var bars = document.getElementById("bars");
+          if (bars) { new IntersectionObserver(function (es, o) { es.forEach(function (e) { if (e.isIntersecting) { bars.classList.add("is-in"); o.disconnect(); } }); }, { threshold: .3 }).observe(bars); }
+        } else { rv.forEach(function (el) { el.classList.add("is-in"); }); var b = document.getElementById("bars"); if (b) { b.classList.add("is-in"); } }
 
-        function toggleTheme() {
-          const nextTheme = root.classList.contains("dark-mode")
-            ? "light"
-            : "dark";
-          applyTheme(nextTheme);
-          saveTheme(nextTheme);
-        }
-
-        function setMobileMenuOpen(isOpen) {
-          if (!mobileMenu || !mobileMenuBtn) {
+        // Salin nomor rekening & bagikan WhatsApp
+        document.addEventListener("click", function (e) {
+          var c = e.target.closest("[data-copy]");
+          if (c) {
+            var text = c.getAttribute("data-copy"), old = c.innerHTML;
+            var done = function () { c.innerHTML = '<i class="fas fa-check"></i> Tersalin'; setTimeout(function () { c.innerHTML = old; }, 1600); };
+            if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done); }
+            else { var t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); done(); } catch (x) {} t.remove(); }
             return;
           }
-
-          const icon = mobileMenuBtn.querySelector("i");
-          if (!icon) {
-            return;
-          }
-
-          if (isOpen) {
-            mobileMenu.classList.remove("hidden");
-            setTimeout(() => {
-              mobileMenu.style.opacity = "1";
-              mobileMenu.style.transform = "translateY(0)";
-            }, 10);
-            icon.classList.remove("fa-bars");
-            icon.classList.add("fa-times");
-          } else {
-            mobileMenu.style.opacity = "0";
-            mobileMenu.style.transform = "translateY(-10px)";
-            setTimeout(() => {
-              mobileMenu.classList.add("hidden");
-            }, 200);
-            icon.classList.remove("fa-times");
-            icon.classList.add("fa-bars");
-          }
-        }
-
-        const initialTheme = root.classList.contains("dark-mode")
-          ? "dark"
-          : getPreferredTheme();
-        applyTheme(initialTheme);
-
-        themeToggleButtons.forEach((button) => {
-          button.addEventListener("click", toggleTheme);
+          var s = e.target.closest("[data-wa-share]");
+          if (s) { e.preventDefault(); window.open("https://wa.me/?text=" + encodeURIComponent(s.getAttribute("data-wa-share") + location.origin), "_blank", "noopener"); }
         });
 
-        const successMessage = document.getElementById("success-message");
-        const errorMessage = document.getElementById("error-message");
-
-        if (successMessage) {
-          setTimeout(() => {
-            closeMessage("success-message");
-          }, 5000);
-        }
-
-        if (errorMessage) {
-          setTimeout(() => {
-            closeMessage("error-message");
-          }, 7000);
-        }
-
-        if (mobileMenuBtn && mobileMenu) {
-          mobileMenuBtn.addEventListener("click", function (event) {
-            event.stopPropagation();
-            setMobileMenuOpen(mobileMenu.classList.contains("hidden"));
-          });
-        }
-
-        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-          anchor.addEventListener("click", function (event) {
-            event.preventDefault();
-            const target = document.querySelector(this.getAttribute("href"));
-            if (!target) {
-              return;
-            }
-
-            if (mobileMenu && !mobileMenu.classList.contains("hidden")) {
-              setMobileMenuOpen(false);
-            }
-
-            const offsetTop =
-              target.offsetTop - (window.innerWidth < 768 ? 80 : 100);
-            window.scrollTo({
-              top: offsetTop,
-              behavior: "smooth",
-            });
-          });
-        });
-
-        document.addEventListener("click", function (event) {
-          if (!mobileMenu || !mobileMenuBtn) {
-            return;
-          }
-
-          if (
-            !mobileMenuBtn.contains(event.target) &&
-            !mobileMenu.contains(event.target) &&
-            !mobileMenu.classList.contains("hidden")
-          ) {
-            setMobileMenuOpen(false);
-          }
-        });
-
-        if (navbar) {
-          navbar.style.transform = "translateY(0)";
-        }
-
-        window.addEventListener("scroll", function () {
-          const currentScrollY = window.scrollY;
-          updateNavbarAppearance(currentScrollY);
-
-          if (navbar) {
-            navbar.style.transform = "translateY(0)";
-          }
-        });
-
-        let touchStartY = 0;
-        let touchEndY = 0;
-
-        document.addEventListener("touchstart", function (event) {
-          touchStartY = event.changedTouches[0].screenY;
-        });
-
-        document.addEventListener("touchend", function (event) {
-          touchEndY = event.changedTouches[0].screenY;
-          const swipeThreshold = 50;
-          const diff = touchStartY - touchEndY;
-
-          if (Math.abs(diff) > swipeThreshold && navigator.vibrate) {
-            navigator.vibrate(10);
-          }
-        });
-
-        const carouselTrack = document.getElementById("carouselTrack");
-        const prevBtn = document.getElementById("prevBtn");
-        const nextBtn = document.getElementById("nextBtn");
-        const dots = document.querySelectorAll(".carousel-dot");
-        const carouselContainer = document.querySelector(".carousel-container");
-        const autoPlayIndicator = document.querySelector(".text-center.mt-4");
-        const autoPlayText = autoPlayIndicator
-          ? autoPlayIndicator.querySelector("span")
-          : null;
-        const autoPlayDot = autoPlayIndicator
-          ? autoPlayIndicator.querySelector(".w-2")
-          : null;
-
-        if (carouselTrack && prevBtn && nextBtn && dots.length && carouselContainer) {
-          let currentSlide = 0;
-          const totalSlides = dots.length;
-          let autoPlayInterval;
-          let isAutoPlaying = true;
-          let startX = 0;
-          let endX = 0;
-
-          function updateAutoPlayIndicator(paused) {
-            if (!autoPlayText || !autoPlayDot) {
-              return;
-            }
-
-            if (paused) {
-              autoPlayText.textContent = "Auto-play dijeda - klik untuk lanjut";
-              autoPlayDot.classList.remove("animate-pulse", "bg-emerald-400");
-              autoPlayDot.classList.add("bg-red-400");
-            } else {
-              autoPlayText.textContent = "Auto-play aktif - klik untuk jeda";
-              autoPlayDot.classList.add("animate-pulse", "bg-emerald-400");
-              autoPlayDot.classList.remove("bg-red-400");
-            }
-          }
-
-          function updateCarousel() {
-            const translateX = -currentSlide * 100;
-            carouselTrack.style.transform = `translateX(${translateX}%)`;
-
-            dots.forEach((dot, index) => {
-              if (index === currentSlide) {
-                dot.classList.remove("bg-white/50");
-                dot.classList.add("bg-white", "scale-125");
-              } else {
-                dot.classList.remove("bg-white", "scale-125");
-                dot.classList.add("bg-white/50");
-              }
-            });
-          }
-
-          function nextSlide() {
-            currentSlide = (currentSlide + 1) % totalSlides;
-            updateCarousel();
-          }
-
-          function prevSlide() {
-            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-            updateCarousel();
-          }
-
-          function goToSlide(slideIndex) {
-            currentSlide = slideIndex;
-            updateCarousel();
-          }
-
-          function startAutoPlay() {
-            clearInterval(autoPlayInterval);
-            autoPlayInterval = setInterval(nextSlide, 5000);
-            isAutoPlaying = true;
-            updateAutoPlayIndicator(false);
-          }
-
-          function stopAutoPlay() {
-            clearInterval(autoPlayInterval);
-            isAutoPlaying = false;
-            updateAutoPlayIndicator(true);
-          }
-
-          prevBtn.addEventListener("click", () => {
-            prevSlide();
-            stopAutoPlay();
-          });
-
-          nextBtn.addEventListener("click", () => {
-            nextSlide();
-            stopAutoPlay();
-          });
-
-          dots.forEach((dot, index) => {
-            dot.addEventListener("click", () => {
-              goToSlide(index);
-              stopAutoPlay();
-            });
-          });
-
-          carouselContainer.addEventListener("mouseenter", stopAutoPlay);
-          carouselContainer.addEventListener("mouseleave", () => {
-            if (!isAutoPlaying) {
-              startAutoPlay();
-            }
-          });
-
-          carouselContainer.addEventListener("touchstart", (event) => {
-            startX = event.touches[0].clientX;
-          });
-
-          carouselContainer.addEventListener("touchend", (event) => {
-            endX = event.changedTouches[0].clientX;
-            const swipeThreshold = 50;
-            const diff = startX - endX;
-
-            if (Math.abs(diff) <= swipeThreshold) {
-              return;
-            }
-
-            if (diff > 0) {
-              nextSlide();
-            } else {
-              prevSlide();
-            }
-            stopAutoPlay();
-          });
-
-          document.addEventListener("keydown", (event) => {
-            if (event.key === "ArrowLeft") {
-              prevSlide();
-              stopAutoPlay();
-            } else if (event.key === "ArrowRight") {
-              nextSlide();
-              stopAutoPlay();
-            }
-          });
-
-          if (autoPlayIndicator) {
-            autoPlayIndicator.addEventListener("click", () => {
-              if (isAutoPlaying) {
-                stopAutoPlay();
-              } else {
-                startAutoPlay();
-              }
-            });
-          }
-
-          updateCarousel();
-          startAutoPlay();
-        }
+        var toast = document.getElementById("toast");
+        if (toast) { setTimeout(function () { toast.style.display = "none"; }, 4500); }
       })();
     </script>
+    <%- include('layouts/pwa') %>
   </body>
 </html>
-

@@ -155,8 +155,7 @@
     width: var(--sidebar-w);
     display: flex;
     flex-direction: column;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
     background: var(--surface);
     border-right: 1px solid var(--line);
     transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1), width 0.28s ease;
@@ -173,12 +172,14 @@
     z-index: 2;
   }
 
-  .sidebar::-webkit-scrollbar { width: 4px; }
-  .sidebar::-webkit-scrollbar-track { background: transparent; }
-  .sidebar::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 10px; }
+  /* Logo (atas) dan kartu akun (bawah) tetap diam; hanya daftar menu yang bergulir */
+  .sidebar-nav::-webkit-scrollbar { width: 4px; }
+  .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+  .sidebar-nav::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 10px; }
 
   .sidebar-logo {
     position: relative;
+    flex: 0 0 auto;
     padding: 22px 17px 18px;
   }
 
@@ -238,7 +239,12 @@
   }
 
   .sidebar-nav {
-    flex: 1;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
     padding: 6px 14px 16px;
   }
 
@@ -278,6 +284,21 @@
     font-size: 0.9rem;
     font-weight: 500;
     transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .nav-link .nav-badge {
+    margin-left: auto;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #e0b84f, #b88a22);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    box-shadow: 0 6px 12px -6px rgba(184, 138, 34, 0.9);
   }
 
   .nav-link i {
@@ -651,7 +672,8 @@
      SIDEBAR: KARTU INFO LOGIN
      ========================================================== */
   .sidebar-user {
-    margin: 0 12px 16px;
+    flex: 0 0 auto;
+    margin: 6px 12px 16px;
     padding: 8px;
     display: flex;
     align-items: center;
@@ -758,6 +780,7 @@
     html.sidebar-collapsed .nav-group-title::before { display: none; }
 
     html.sidebar-collapsed .nav-link span { display: none; }
+    html.sidebar-collapsed .nav-link .nav-badge { display: grid; position: absolute; top: -2px; right: 2px; min-width: 18px; height: 18px; padding: 0 4px; font-size: 0.64rem; }
 
     html.sidebar-collapsed .sidebar-user {
       flex-direction: column;

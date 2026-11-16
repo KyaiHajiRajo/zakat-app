@@ -1,0 +1,33 @@
+<%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'agenda' }) %>
+<%- include('../masjid/partials/ui') %>
+<% if (!user) { %><%- include('../masjid/partials/public-nav', { settings: settings, active: 'info' }) %><% } %>
+<%- include('../agenda/partials/agenda-css') %>
+<section class="mj-page" style="--mj-glyph:'\f186'">
+  <header class="mj-hero">
+    <div>
+      <div class="mj-kicker">Informasi Jamaah</div>
+      <h1 class="mj-title"><%= settings.masjid_nama %></h1>
+      <p class="mj-sub"><%= settings.masjid_alamat || 'Agenda kegiatan dan pengumuman terbaru.' %></p>
+    </div>
+    <div class="mj-actions">
+      <a href="/jadwal-ramadan" class="mj-btn is-solid"><i class="fas fa-moon"></i>Jadwal Ramadan</a>
+    </div>
+  </header>
+
+  <% if (aktif.length) { %>
+    <section class="mj-card">
+      <div class="mj-head"><div><h2>Pengumuman</h2></div></div>
+      <div class="pg-list"><% aktif.forEach(function (p) { %><%- include('../agenda/partials/pengumuman-card', { p: p, settings: settings, readonly: true, labelTanggal: labelTanggal }) %><% }) %></div>
+    </section>
+  <% } %>
+
+  <section class="mj-card">
+    <div class="mj-head"><div><h2>Agenda Kegiatan</h2><p>Kegiatan yang akan datang</p></div></div>
+    <% if (!mendatang.length) { %>
+      <div class="mj-empty"><i class="fas fa-calendar-days"></i><h3>Belum ada agenda</h3><p>Pantau terus halaman ini untuk kegiatan berikutnya.</p></div>
+    <% } else { %>
+      <div class="ag-list"><% mendatang.forEach(function (a) { %><%- include('../agenda/partials/agenda-card', { a: a, settings: settings, readonly: true, today: today, hariTanggal: hariTanggal, labelTanggal: labelTanggal }) %><% }) %></div>
+    <% } %>
+  </section>
+</section>
+<%- include('../layouts/footer') %>

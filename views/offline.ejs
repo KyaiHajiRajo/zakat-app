@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#14912a">
+  <title>Sedang Offline - <%= nama %></title>
+  <style>
+    :root { color-scheme: light dark; --bg: #f4faf5; --card: #fff; --ink: #0f2a17; --muted: #5b7263; --line: #dbe8de; --g: #14912a; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #08130c; --card: #0f1e14; --ink: #e8f5ec; --muted: #8fa89a; --line: #1d3326; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 20px; background: var(--bg); color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .box { width: 100%; max-width: 420px; text-align: center; background: var(--card); border: 1px solid var(--line); border-radius: 26px; padding: 34px 26px; box-shadow: 0 24px 60px -30px rgba(0,0,0,.35); }
+    .ic { width: 84px; height: 84px; margin: 0 auto 18px; border-radius: 26px; display: grid; place-items: center; font-size: 2.4rem; background: linear-gradient(135deg, #1eaf2f, #0b4d1a); box-shadow: 0 16px 30px -16px rgba(30,175,47,.9); }
+    h1 { margin: 0 0 8px; font-size: 1.4rem; }
+    p { margin: 0 0 20px; color: var(--muted); line-height: 1.55; }
+    a, button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 20px; border-radius: 14px; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--ink); margin: 4px; }
+    .p { background: linear-gradient(135deg, #2bc23c, #0f7a22); border-color: transparent; color: #fff; }
+  </style>
+</head>
+<body>
+  <main class="box">
+    <div class="ic">📡</div>
+    <h1>Sedang offline</h1>
+    <p>Tidak ada sambungan internet. Halaman yang pernah Anda buka (jadwal Ramadan, info, laporan kas) masih bisa dilihat, dan akan diperbarui saat sinyal kembali.</p>
+    <button class="p" onclick="location.reload()">Coba lagi</button>
+    <a href="/jadwal-ramadan">Jadwal Ramadan</a>
+    <a href="/transparansi">Laporan Kas</a>
+  </main>
+</body>
+</html>

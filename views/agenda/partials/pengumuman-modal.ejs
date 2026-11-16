@@ -1,0 +1,92 @@
+<%# Modal pengumuman. <a data-modal-open="pengumuman-modal" data-mode="create|edit" data-id> %>
+<div class="am" id="pengumuman-modal" role="dialog" aria-modal="true" aria-labelledby="pg-m-title" aria-hidden="true">
+  <div class="am-backdrop" data-modal-close></div>
+  <div class="am-panel" data-loading="0">
+    <header class="am-head">
+      <span class="am-head-icon"><i class="fas fa-bullhorn" id="pg-m-icon"></i></span>
+      <div class="am-head-text">
+        <h2 class="am-title" id="pg-m-title">Tambah Pengumuman</h2>
+        <p class="am-sub">Informasi untuk jamaah dan pengurus</p>
+      </div>
+      <button type="button" class="am-close" data-modal-close aria-label="Tutup"><i class="fas fa-xmark"></i></button>
+    </header>
+    <form class="am-form" id="pg-m-form" method="POST" action="/agenda/pengumuman" novalidate>
+      <input type="hidden" name="return_to" id="pg-m-return">
+      <div class="am-body">
+        <div class="am-error" data-am-error role="alert"><i class="fas fa-circle-exclamation"></i><span></span></div>
+        <div class="am-field">
+          <label for="pg-m-judul">Judul <span class="req">*</span></label>
+          <div class="am-control" data-control><i class="fas fa-heading lead"></i>
+            <input type="text" id="pg-m-judul" name="judul" required maxlength="150" placeholder="Mis. Pembagian Zakat Fitrah" autocomplete="off"></div>
+        </div>
+        <div class="am-field">
+          <label for="pg-m-isi">Isi Pengumuman <span class="req">*</span></label>
+          <div class="am-control is-area" data-control><i class="fas fa-align-left lead"></i>
+            <textarea id="pg-m-isi" name="isi" rows="5" required maxlength="2000" placeholder="Tulis informasi selengkap mungkin"></textarea></div>
+        </div>
+        <div class="am-field">
+          <label for="pg-m-berlaku">Berlaku sampai <span class="opt">(opsional)</span></label>
+          <div class="am-control" data-control><i class="fas fa-hourglass-half lead"></i>
+            <input type="date" id="pg-m-berlaku" name="berlaku_sampai"></div>
+          <div class="am-hint">Setelah tanggal ini pengumuman otomatis masuk arsip.</div>
+        </div>
+        <label class="ag-check"><input type="checkbox" name="penting" value="1" id="pg-m-penting"> <i class="fas fa-bullhorn" style="color:var(--gold-ink)"></i> Tandai sebagai penting</label>
+        <label class="ag-check"><input type="checkbox" name="tampil_publik" value="1" id="pg-m-publik" checked> Tampilkan di halaman publik (info jamaah)</label>
+      </div>
+      <footer class="am-foot">
+        <button type="button" class="am-btn am-btn-danger-ghost" id="pg-m-delete" hidden style="margin-right:auto"><i class="fas fa-trash-can"></i><span>Hapus</span></button>
+        <button type="button" class="am-btn am-btn-ghost" data-modal-close>Batal</button>
+        <button type="submit" class="am-btn am-btn-primary" id="pg-m-submit"><i class="fas fa-paper-plane"></i><span>Terbitkan</span></button>
+      </footer>
+    </form>
+  </div>
+</div>
+<script>
+  (function () {
+    var modal = document.getElementById("pengumuman-modal");
+    var panel = modal.querySelector(".am-panel");
+    var form = document.getElementById("pg-m-form");
+    var f = { judul: gid("pg-m-judul"), isi: gid("pg-m-isi"), berlaku: gid("pg-m-berlaku"), penting: gid("pg-m-penting"), publik: gid("pg-m-publik") };
+    var errorBox = form.querySelector("[data-am-error]");
+    var delBtn = gid("pg-m-delete");
+    var currentId = null;
+    function gid(id) { return document.getElementById(id); }
+    function showError(m) { errorBox.querySelector("span").textContent = m; errorBox.classList.add("is-visible"); }
+    function clearErrors() { errorBox.classList.remove("is-visible"); [].forEach.call(form.querySelectorAll("[data-control]"), function (c) { c.classList.remove("is-invalid"); }); }
+    function setDate(v) { var fp = f.berlaku._flatpickr; if (fp) { fp.setDate(v || null, false); } else { f.berlaku.value = v || ""; } }
+    function focusFirst() { setTimeout(function () { f.judul.focus(); }, 80); }
+    function fill(d) {
+      f.judul.value = d.judul || ""; f.isi.value = d.isi || ""; setDate(d.berlaku_sampai || "");
+      f.penting.checked = !!Number(d.penting || 0); f.publik.checked = d.tampil_publik === undefined ? true : !!Number(d.tampil_publik);
+    }
+    function openWith(t) {
+      var d = (t && t.dataset) || {}, edit = d.mode === "edit";
+      currentId = edit ? d.id : null; clearErrors();
+      gid("pg-m-return").value = "/agenda?tab=pengumuman";
+      gid("pg-m-title").textContent = edit ? "Ubah Pengumuman" : "Tambah Pengumuman";
+      document.querySelector("#pg-m-submit span").textContent = edit ? "Simpan Perubahan" : "Terbitkan";
+      form.setAttribute("action", edit ? "/agenda/pengumuman/" + d.id + "/edit" : "/agenda/pengumuman");
+      delBtn.hidden = !edit;
+      if (!edit) { fill({}); focusFirst(); return; }
+      panel.setAttribute("data-loading", "1");
+      fetch("/agenda/pengumuman/form-data?id=" + encodeURIComponent(d.id), { credentials: "same-origin", headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (data) { if (!data.ok) { throw new Error(data.message || "Gagal memuat data"); } fill(data.pengumuman); })
+        .catch(function (e) { showError(e.message || "Gagal memuat data"); })
+        .then(function () { panel.setAttribute("data-loading", "0"); focusFirst(); });
+    }
+    modal.addEventListener("am:open", function (e) { openWith(e.detail.trigger); });
+    form.addEventListener("submit", function (event) {
+      event.preventDefault(); clearErrors();
+      var missing = [f.judul, f.isi].filter(function (el) { return !el.value.trim(); });
+      if (missing.length) { missing.forEach(function (el) { el.closest("[data-control]").classList.add("is-invalid"); }); showError("Judul dan isi pengumuman wajib diisi."); return; }
+      window.AppModal.submit(form);
+    });
+    delBtn.addEventListener("click", function () {
+      if (!currentId) { return; }
+      var run = function () { var d = document.createElement("form"); d.method = "POST"; d.action = "/agenda/pengumuman/" + currentId + "/delete"; var b = document.createElement("input"); b.type = "hidden"; b.name = "return_to"; b.value = "/agenda?tab=pengumuman"; d.appendChild(b); document.body.appendChild(d); d.submit(); };
+      if (window.Swal) { Swal.fire({ title: "Hapus pengumuman ini?", text: "Tindakan ini tidak dapat dibatalkan.", icon: "warning", showCancelButton: true, confirmButtonText: "Ya, hapus", cancelButtonText: "Batal", confirmButtonColor: "#dc2626", reverseButtons: true }).then(function (r) { if (r.isConfirmed) { run(); } }); }
+      else if (confirm("Hapus pengumuman ini?")) { run(); }
+    });
+  })();
+</script>

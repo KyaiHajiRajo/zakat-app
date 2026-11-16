@@ -46,14 +46,21 @@
         }
       })();
     </script>
-    <link rel="shortcut icon" href="/public/images/logo.png" type="image/x-icon">
+    <link rel="shortcut icon" href="/images/logo.png" type="image/x-icon">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#14912a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Musholla">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
     <link href="/css/output.css" rel="stylesheet" />
     <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      href="/vendor/fontawesome/css/all.min.css"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+    <link rel="stylesheet" href="/vendor/sweetalert2/sweetalert2.min.css">
+    <script src="/vendor/sweetalert2/sweetalert2.all.min.js"></script>
     <%- include("theme") %>
     <link rel="stylesheet" href="/vendor/flatpickr/flatpickr.min.css" />
     <script src="/vendor/flatpickr/flatpickr.min.js"></script>
@@ -205,6 +212,12 @@
         distribusi: 'Distribusi',
         infak: 'Infak',
         laporan: 'Laporan',
+        ramadan: 'Jadwal Ramadan',
+        kas: 'Kas Masjid',
+        donasi: 'Donasi Masuk',
+        agenda: 'Agenda & Pengumuman',
+        inventaris: 'Inventaris',
+        aktivitas: 'Log Aktivitas',
         profile: 'Profil Saya'
       };
       const shellTitle = shellLabels[shellPage] || 'Zakat - App';
@@ -243,6 +256,12 @@
             <i class="fas fa-user-gear"></i>
             <span>Manajemen User</span>
           </a>
+          <% if (user.role === 'admin') { %>
+          <a href="/aktivitas" class="nav-link <%= shellPage === 'aktivitas' ? 'active' : '' %>" data-tip-collapsed="Log Aktivitas" data-tip-pos="right" <%- shellPage === 'aktivitas' ? 'aria-current="page"' : '' %>>
+            <i class="fas fa-clock-rotate-left"></i>
+            <span>Log Aktivitas</span>
+          </a>
+          <% } %>
         </div>
 
         <div class="nav-group">
@@ -266,6 +285,31 @@
           <a href="/infak" class="nav-link <%= shellPage === 'infak' ? 'active' : '' %>" data-tip-collapsed="Infak" data-tip-pos="right" <%- shellPage === 'infak' ? 'aria-current="page"' : '' %>>
             <i class="fas fa-hand-holding-heart"></i>
             <span>Infak</span>
+          </a>
+        </div>
+
+        <div class="nav-group">
+          <div class="nav-group-title">Masjid &amp; Ramadan</div>
+          <a href="/ramadan" class="nav-link <%= shellPage === 'ramadan' ? 'active' : '' %>" data-tip-collapsed="Jadwal Ramadan" data-tip-pos="right" <%- shellPage === 'ramadan' ? 'aria-current="page"' : '' %>>
+            <i class="fas fa-moon"></i>
+            <span>Jadwal Ramadan</span>
+          </a>
+          <a href="/kas" class="nav-link <%= shellPage === 'kas' ? 'active' : '' %>" data-tip-collapsed="Kas Masjid" data-tip-pos="right" <%- shellPage === 'kas' ? 'aria-current="page"' : '' %>>
+            <i class="fas fa-wallet"></i>
+            <span>Kas Masjid</span>
+          </a>
+          <a href="/donasi-masuk" class="nav-link <%= shellPage === 'donasi' ? 'active' : '' %>" data-tip-collapsed="Donasi Masuk" data-tip-pos="right" <%- shellPage === 'donasi' ? 'aria-current="page"' : '' %>>
+            <i class="fas fa-hand-holding-dollar"></i>
+            <span>Donasi</span>
+            <% if (typeof donasiPending !== 'undefined' && donasiPending > 0) { %><span class="nav-badge" aria-label="<%= donasiPending %> menunggu"><%= donasiPending > 99 ? '99+' : donasiPending %></span><% } %>
+          </a>
+          <a href="/agenda" class="nav-link <%= shellPage === 'agenda' ? 'active' : '' %>" data-tip-collapsed="Agenda &amp; Pengumuman" data-tip-pos="right" <%- shellPage === 'agenda' ? 'aria-current="page"' : '' %>>
+            <i class="fas fa-calendar-days"></i>
+            <span>Agenda &amp; Pengumuman</span>
+          </a>
+          <a href="/inventaris" class="nav-link <%= shellPage === 'inventaris' ? 'active' : '' %>" data-tip-collapsed="Inventaris" data-tip-pos="right" <%- shellPage === 'inventaris' ? 'aria-current="page"' : '' %>>
+            <i class="fas fa-boxes-stacked"></i>
+            <span>Inventaris</span>
           </a>
         </div>
 
@@ -312,6 +356,7 @@
       </div>
 
       <div class="top-navbar-right">
+        <button type="button" class="pwa-top" data-pwa-install hidden title="Pasang aplikasi di perangkat ini" aria-label="Pasang aplikasi"><i class="fas fa-download"></i><span>Pasang Aplikasi</span></button>
         <button type="button" class="search-trigger" id="searchTrigger" aria-label="Cari menu" aria-haspopup="dialog" data-tip="Cari menu" data-tip-pos="bottom">
           <i class="fas fa-magnifying-glass"></i>
           <span class="search-trigger-text">Cari menu…</span>
@@ -460,6 +505,36 @@
       }
 
       window.toggleTheme = toggleTheme;
+
+      // Konfirmasi sebelum keluar (tombol di sidebar maupun menu cepat Ctrl+K)
+      function confirmLogout() {
+        const form = document.getElementById("logoutForm");
+        if (!form) { return; }
+        if (!window.Swal) {
+          if (window.confirm("Keluar dari aplikasi?")) { form.submit(); }
+          return;
+        }
+        Swal.fire({
+          title: "Keluar dari aplikasi?",
+          text: "Anda perlu login lagi untuk masuk kembali.",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "Ya, keluar",
+          cancelButtonText: "Batal",
+          reverseButtons: true,
+          focusCancel: true,
+          confirmButtonColor: "#14912a"
+        }).then(function (result) {
+          if (result.isConfirmed) { form.submit(); }
+        });
+      }
+      window.confirmLogout = confirmLogout;
+      document.addEventListener("submit", function (event) {
+        if (event.target && event.target.id === "logoutForm") {
+          event.preventDefault();
+          confirmLogout();
+        }
+      });
 
       function toggleSidebar() {
         const sidebar = document.getElementById("sidebar");
@@ -706,10 +781,7 @@
             icon: "fas fa-right-from-bracket",
             keywords: "logout sign out",
             run: function () {
-              const form = document.getElementById("logoutForm");
-              if (form) {
-                form.submit();
-              }
+              confirmLogout();
             }
           });
 

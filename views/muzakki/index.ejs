@@ -148,7 +148,7 @@
                 </thead>
                 <tbody>
                   <% tanggalData.forEach(function(group, index) { %>
-                    <tr class="table-row-animated" style="animation-delay: <%= index * 0.05 %>s;">
+                    <tr class="table-row-animated" style="animation-delay: <%= Math.min(index, 12) * 0.04 %>s;">
                       <td>
                         <div class="cell-content-primary">
                           <div class="rt-badge">

@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
     <link rel="shortcut icon" href="/images/logo-dkm.png" type="image/png" />
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#14912a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Musholla">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
     <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      href="/vendor/fontawesome/css/all.min.css"
       rel="stylesheet"
     />
     <script>
@@ -679,5 +686,6 @@
         }, 6000);
       })();
     </script>
+    <%- include('../layouts/pwa') %>
   </body>
 </html>

@@ -833,7 +833,6 @@ router.get("/rt/:rt_id/export-excel", async (req, res) => {
       return res.status(500).json({
         success: false,
         message: "Terjadi kesalahan saat export data RT ke Excel",
-        error: error.message,
       });
     }
   }
@@ -1060,7 +1059,7 @@ router.post("/", async (req, res) => {
     console.error("Error creating muzakki:", error);
     req.flash(
       "error_msg",
-      `Terjadi kesalahan saat menyimpan data muzakki: ${error.message}`
+      `Terjadi kesalahan saat menyimpan data muzakki`
     );
     res.redirect(retryUrl);
   }
@@ -1788,7 +1787,6 @@ router.get("/export-excel", async (req, res) => {
         res.status(500).json({
           success: false,
           message: "Terjadi kesalahan saat export ke Excel",
-          error: error.message
         });
       } catch (sendError) {
         console.error("❌ Failed to send error JSON:", sendError);
@@ -1923,7 +1921,7 @@ router.post("/api/master-zakat", async (req, res) => {
     console.error("Error creating master zakat:", error);
     res.status(500).json({
       success: false,
-      message: "Terjadi kesalahan saat menyimpan data: " + error.message
+      message: "Terjadi kesalahan saat menyimpan data"
     });
   }
 });
@@ -1988,7 +1986,7 @@ router.put("/api/master-zakat/:id", async (req, res) => {
     console.error("Error updating master zakat:", error);
     res.status(500).json({
       success: false,
-      message: "Terjadi kesalahan saat mengupdate data: " + error.message
+      message: "Terjadi kesalahan saat mengupdate data"
     });
   }
 });
@@ -2037,7 +2035,7 @@ router.delete("/api/master-zakat/:id", async (req, res) => {
     console.error("Error deleting master zakat:", error);
     res.status(500).json({
       success: false,
-      message: "Terjadi kesalahan saat menghapus data: " + error.message
+      message: "Terjadi kesalahan saat menghapus data"
     });
   }
 });

@@ -1,0 +1,32 @@
+<%# params: a (agenda), settings, readonly, today %>
+<%
+  const d = new Date(a.tanggal + 'T00:00:00Z');
+  const BLN = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
+  const diff = Math.round((Date.parse(a.tanggal + 'T00:00:00Z') - Date.parse(today + 'T00:00:00Z')) / 864e5);
+  const rel = diff === 0 ? 'Hari ini' : diff === 1 ? 'Besok' : (diff > 1 && diff <= 7 ? diff + ' hari lagi' : '');
+  const jam = a.jam_mulai ? (a.jam_mulai + (a.jam_selesai ? ' – ' + a.jam_selesai : '') + ' ' + (a.jam_mulai ? 'WIB' : '')).replace(/ WIB$/, '') : '';
+  const wa = ['📢 *' + a.judul + '*', '📅 ' + hariTanggal(a.tanggal) + ', ' + labelTanggal(a.tanggal)]
+    .concat(jam ? ['🕐 ' + jam] : [], a.lokasi ? ['📍 ' + a.lokasi] : [], a.pemateri ? ['🎤 ' + a.pemateri] : [], a.deskripsi ? ['', a.deskripsi] : [], ['', '_' + settings.masjid_nama + '_']).join('\n');
+%>
+<article class="ag-card <%= diff === 0 ? 'is-today' : '' %> <%= diff < 0 ? 'is-past' : '' %>">
+  <div class="ag-date" aria-hidden="true"><b><%= d.getUTCDate() %></b><span><%= BLN[d.getUTCMonth()] %></span></div>
+  <div class="ag-body">
+    <div class="ag-top">
+      <span class="mj-badge is-<%= a.tone === 'green' ? 'green' : a.tone === 'gold' ? 'gold' : a.tone === 'blue' ? 'blue' : a.tone === 'red' ? 'red' : '' %>"><i class="fas <%= a.icon %>"></i><%= a.jenisLabel %></span>
+      <% if (rel) { %><span class="mj-badge is-gold"><%= rel %></span><% } %>
+      <% if (!readonly && !a.tampil_publik) { %><span class="mj-badge" title="Tidak tampil di halaman publik"><i class="fas fa-eye-slash"></i>Internal</span><% } %>
+    </div>
+    <h3 class="ag-title"><%= a.judul %></h3>
+    <ul class="ag-meta">
+      <li><i class="fas fa-calendar-day"></i><%= hariTanggal(a.tanggal) %>, <%= labelTanggal(a.tanggal) %></li>
+      <% if (jam) { %><li><i class="fas fa-clock"></i><%= jam %></li><% } %>
+      <% if (a.lokasi) { %><li><i class="fas fa-location-dot"></i><%= a.lokasi %></li><% } %>
+      <% if (a.pemateri) { %><li><i class="fas fa-microphone-lines"></i><%= a.pemateri %></li><% } %>
+    </ul>
+    <% if (a.deskripsi) { %><p class="ag-desc"><%= a.deskripsi %></p><% } %>
+  </div>
+  <div class="ag-act mj-noprint">
+    <a href="#" class="mj-icon-btn is-wa" title="Bagikan ke WhatsApp" aria-label="Bagikan ke WhatsApp" data-wa-text="<%= wa %>"><i class="fab fa-whatsapp"></i></a>
+    <% if (!readonly) { %><a href="#" class="mj-icon-btn" title="Ubah" aria-label="Ubah agenda" data-modal-open="agenda-modal" data-mode="edit" data-id="<%= a.id %>"><i class="fas fa-pen"></i></a><% } %>
+  </div>
+</article>

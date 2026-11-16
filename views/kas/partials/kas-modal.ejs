@@ -1,0 +1,202 @@
+<%# Modal catat pemasukan/pengeluaran. Dibuka lewat <a data-modal-open="kas-modal" data-mode="create|edit" data-id data-tipe="masuk|keluar"> %>
+<div class="am" id="kas-modal" role="dialog" aria-modal="true" aria-labelledby="kas-m-title" aria-hidden="true">
+  <div class="am-backdrop" data-modal-close></div>
+  <div class="am-panel" data-loading="0">
+    <header class="am-head">
+      <span class="am-head-icon"><i class="fas fa-wallet" id="kas-m-icon"></i></span>
+      <div class="am-head-text">
+        <h2 class="am-title" id="kas-m-title">Catat Transaksi</h2>
+        <p class="am-sub" id="kas-m-sub">Tambahkan pemasukan atau pengeluaran kas</p>
+      </div>
+      <button type="button" class="am-close" data-modal-close aria-label="Tutup"><i class="fas fa-xmark"></i></button>
+    </header>
+
+    <form class="am-form" id="kas-m-form" method="POST" action="/kas" novalidate>
+      <input type="hidden" name="return_to" id="kas-m-return">
+      <div class="am-body">
+        <div class="am-error" data-am-error role="alert"><i class="fas fa-circle-exclamation"></i><span></span></div>
+
+        <div class="mj-choice" role="radiogroup" aria-label="Jenis transaksi">
+          <label><input type="radio" name="tipe" value="masuk" checked><span class="is-in"><i class="fas fa-arrow-down"></i>Pemasukan</span></label>
+          <label><input type="radio" name="tipe" value="keluar"><span class="is-out"><i class="fas fa-arrow-up"></i>Pengeluaran</span></label>
+        </div>
+
+        <div class="am-row">
+          <div class="am-field">
+            <label for="kas-m-tanggal">Tanggal <span class="req">*</span></label>
+            <div class="am-control" data-control><i class="fas fa-calendar-day lead"></i>
+              <input type="date" id="kas-m-tanggal" name="tanggal" required></div>
+          </div>
+          <div class="am-field">
+            <label for="kas-m-kategori">Kategori <span class="req">*</span></label>
+            <div class="am-control" data-control><i class="fas fa-tags lead"></i>
+              <select id="kas-m-kategori" name="kategori" required></select></div>
+          </div>
+        </div>
+
+        <div class="am-field">
+          <label for="kas-m-jumlah">Jumlah (Rp) <span class="req">*</span></label>
+          <div class="am-control" data-control><i class="fas fa-coins lead"></i>
+            <input type="number" id="kas-m-jumlah" name="jumlah" data-amount-input min="0" step="1" placeholder="0" required inputmode="numeric"></div>
+        </div>
+
+        <div class="am-row">
+          <div class="am-field">
+            <label for="kas-m-pihak" id="kas-m-pihak-label">Sumber / Donatur <span class="opt">(opsional)</span></label>
+            <div class="am-control" data-control><i class="fas fa-user lead"></i>
+              <input type="text" id="kas-m-pihak" name="pihak" maxlength="120" placeholder="Mis. Hamba Allah" autocomplete="off"></div>
+          </div>
+          <div class="am-field">
+            <label for="kas-m-ket">Keterangan <span class="opt">(opsional)</span></label>
+            <div class="am-control" data-control><i class="fas fa-note-sticky lead"></i>
+              <input type="text" id="kas-m-ket" name="keterangan" maxlength="255" placeholder="Catatan singkat" autocomplete="off"></div>
+          </div>
+        </div>
+
+        <div class="am-preview" aria-hidden="true">
+          <span class="am-preview-label">Pratinjau</span>
+          <span class="am-preview-badge" id="kas-m-pv-badge">+</span>
+          <div style="min-width:0">
+            <div class="am-preview-name" id="kas-m-pv-amount">Rp 0</div>
+            <div class="am-preview-meta" id="kas-m-pv-meta">Pemasukan</div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="am-foot">
+        <button type="button" class="am-btn am-btn-danger-ghost" id="kas-m-delete" hidden style="margin-right:auto"><i class="fas fa-trash-can"></i><span>Hapus</span></button>
+        <button type="button" class="am-btn am-btn-ghost" data-modal-close>Batal</button>
+        <button type="submit" class="am-btn am-btn-primary" id="kas-m-submit"><i class="fas fa-floppy-disk"></i><span>Simpan</span></button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var KATEGORI = <%- JSON.stringify(Object.fromEntries(Object.keys(KATEGORI).map(function (t) { return [t, Object.fromEntries(Object.keys(KATEGORI[t]).map(function (k) { return [k, KATEGORI[t][k].label]; }))]; }))) %>;
+    var CAN_DELETE = <%= isAdmin ? 'true' : 'false' %>;
+    var modal = document.getElementById("kas-modal");
+    var panel = modal.querySelector(".am-panel");
+    var form = document.getElementById("kas-m-form");
+    var f = {
+      tanggal: document.getElementById("kas-m-tanggal"),
+      kategori: document.getElementById("kas-m-kategori"),
+      jumlah: document.getElementById("kas-m-jumlah"),
+      pihak: document.getElementById("kas-m-pihak"),
+      ket: document.getElementById("kas-m-ket")
+    };
+    var radios = form.querySelectorAll("input[name=tipe]");
+    var errorBox = form.querySelector("[data-am-error]");
+    var delBtn = document.getElementById("kas-m-delete");
+    var currentId = null;
+    var rupiah = new Intl.NumberFormat("id-ID");
+
+    function tipe() { return form.querySelector("input[name=tipe]:checked").value; }
+
+    function fillKategori(selected) {
+      var map = KATEGORI[tipe()];
+      f.kategori.innerHTML = "";
+      Object.keys(map).forEach(function (key) {
+        var o = document.createElement("option");
+        o.value = key; o.textContent = map[key];
+        f.kategori.appendChild(o);
+      });
+      if (selected && map[selected]) { f.kategori.value = selected; }
+      document.getElementById("kas-m-pihak-label").innerHTML = (tipe() === "masuk" ? "Sumber / Donatur" : "Dibayarkan kepada") + ' <span class="opt">(opsional)</span>';
+      f.pihak.placeholder = tipe() === "masuk" ? "Mis. Hamba Allah" : "Mis. PLN, tukang, toko";
+      preview();
+    }
+
+    function preview() {
+      var masuk = tipe() === "masuk";
+      var n = Number(f.jumlah.value) || 0;
+      var badge = document.getElementById("kas-m-pv-badge");
+      badge.textContent = masuk ? "+" : "−";
+      badge.style.background = masuk ? "" : "linear-gradient(135deg,#ef4444,#b91c1c)";
+      document.getElementById("kas-m-pv-amount").textContent = (masuk ? "+ " : "− ") + "Rp " + rupiah.format(n);
+      document.getElementById("kas-m-pv-meta").textContent = (masuk ? "Pemasukan" : "Pengeluaran") + " · " + (KATEGORI[tipe()][f.kategori.value] || "");
+    }
+
+    function setDate(v) {
+      var fp = f.tanggal._flatpickr;
+      if (fp) { fp.setDate(v || null, false); } else { f.tanggal.value = v || ""; }
+    }
+    function today() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+
+    function showError(m) { errorBox.querySelector("span").textContent = m; errorBox.classList.add("is-visible"); }
+    function clearErrors() {
+      errorBox.classList.remove("is-visible");
+      [].forEach.call(form.querySelectorAll("[data-control]"), function (c) { c.classList.remove("is-invalid"); });
+    }
+    function focusAmount() {
+      var fp = f.tanggal._flatpickr; if (fp) { fp.close(); }
+      setTimeout(function () { (document.getElementById("kas-m-jumlah_display") || f.jumlah).focus(); }, 80);
+    }
+
+    function fill(d) {
+      [].forEach.call(radios, function (r) { r.checked = r.value === (d.tipe || "masuk"); });
+      fillKategori(d.kategori);
+      setDate(d.tanggal || today());
+      f.jumlah.value = d.jumlah ? String(d.jumlah) : "";
+      f.pihak.value = d.pihak || "";
+      f.ket.value = d.keterangan || "";
+      preview();
+    }
+
+    function openWith(t) {
+      var d = (t && t.dataset) || {};
+      var edit = d.mode === "edit";
+      currentId = edit ? d.id : null;
+      clearErrors();
+      document.getElementById("kas-m-return").value = window.location.pathname + window.location.search;
+      document.getElementById("kas-m-title").textContent = edit ? "Ubah Transaksi" : (d.tipe === "keluar" ? "Catat Pengeluaran" : "Catat Pemasukan");
+      document.getElementById("kas-m-icon").className = edit ? "fas fa-pen-to-square" : "fas fa-wallet";
+      document.querySelector("#kas-m-submit span").textContent = edit ? "Simpan Perubahan" : "Simpan";
+      form.setAttribute("action", edit ? "/kas/" + d.id + "/edit" : "/kas");
+      delBtn.hidden = !(edit && CAN_DELETE);
+
+      if (!edit) { fill({ tipe: d.tipe === "keluar" ? "keluar" : "masuk" }); focusAmount(); return; }
+
+      panel.setAttribute("data-loading", "1");
+      fetch("/kas/form-data?id=" + encodeURIComponent(d.id), { credentials: "same-origin", headers: { Accept: "application/json" } })
+        .then(function (r) { return r.json(); })
+        .then(function (data) { if (!data.ok) { throw new Error(data.message || "Gagal memuat data"); } fill(data.kas); })
+        .catch(function (e) { showError(e.message || "Gagal memuat data"); })
+        .then(function () { panel.setAttribute("data-loading", "0"); focusAmount(); });
+    }
+
+    modal.addEventListener("am:open", function (e) { openWith(e.detail.trigger); });
+    [].forEach.call(radios, function (r) { r.addEventListener("change", function () { fillKategori(); }); });
+    f.kategori.addEventListener("change", preview);
+    f.jumlah.addEventListener("input", preview);
+    document.addEventListener("input", function (e) { if (e.target && e.target.id === "kas-m-jumlah_display") { preview(); } });
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      clearErrors();
+      if (!f.tanggal.value) { f.tanggal.closest("[data-control]").classList.add("is-invalid"); showError("Tanggal wajib diisi."); return; }
+      if (!(Number(f.jumlah.value) > 0)) {
+        var disp = document.getElementById("kas-m-jumlah_display");
+        (disp || f.jumlah).closest("[data-control]").classList.add("is-invalid");
+        showError("Jumlah harus lebih dari 0."); return;
+      }
+      window.AppModal.submit(form);
+    });
+
+    delBtn.addEventListener("click", function () {
+      if (!currentId) { return; }
+      var run = function () {
+        var del = document.createElement("form");
+        del.method = "POST"; del.action = "/kas/" + currentId + "/delete";
+        var back = document.createElement("input");
+        back.type = "hidden"; back.name = "return_to"; back.value = window.location.pathname + window.location.search;
+        del.appendChild(back); document.body.appendChild(del); del.submit();
+      };
+      if (window.Swal) {
+        Swal.fire({ title: "Hapus transaksi ini?", text: "Saldo kas akan dihitung ulang. Tindakan ini tidak dapat dibatalkan.", icon: "warning", showCancelButton: true, confirmButtonText: "Ya, hapus", cancelButtonText: "Batal", confirmButtonColor: "#dc2626", reverseButtons: true })
+          .then(function (r) { if (r.isConfirmed) { run(); } });
+      } else if (confirm("Hapus transaksi ini?")) { run(); }
+    });
+  })();
+</script>

@@ -1,6 +1,16 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
+const { createLimiter } = require("../utils/rate-limit");
+const { isLoopback } = require("../utils/security");
+const { logAktivitas } = require("../utils/audit");
 const router = express.Router();
+
+// 5 kali salah untuk satu nomor dari satu perangkat, atau 30 kali dari satu perangkat -> kunci 15 menit
+const WINDOW_MS = 15 * 60 * 1000;
+const accountLimiter = createLimiter({ windowMs: WINDOW_MS, max: 5 });
+const ipLimiter = createLimiter({ windowMs: WINDOW_MS, max: 30 });
+// pembanding palsu agar waktu respons sama baik nomor terdaftar maupun tidak
+const DUMMY_HASH = bcrypt.hashSync("tidak-dipakai", 10);
 
 // GET /auth/login - Show login form
 router.get("/login", (req, res) => {
@@ -32,6 +42,14 @@ router.post("/login", async (req, res) => {
       return res.redirect("/auth/login");
     }
 
+    const ipKey = req.ip;
+    const accountKey = `${req.ip}|${String(nomor_wa).trim()}`;
+    const lockedFor = Math.max(ipLimiter.blockedFor(ipKey), accountLimiter.blockedFor(accountKey));
+    if (lockedFor > 0) {
+      req.flash("error_msg", `Terlalu banyak percobaan login. Coba lagi dalam ${Math.ceil(lockedFor / 60)} menit.`);
+      return res.redirect("/auth/login");
+    }
+
     // Get database connection
     const db = req.app.locals.db;
 
@@ -40,31 +58,43 @@ router.post("/login", async (req, res) => {
       nomor_wa,
     ]);
 
-    if (users.length === 0) {
-      req.flash("error_msg", "Nomor WhatsApp atau password salah");
-      return res.redirect("/auth/login");
-    }
-
     const user = users[0];
 
-    // Check password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // Check password (tetap dihitung walau user tidak ada)
+    const isPasswordValid = await bcrypt.compare(
+      String(password),
+      user ? user.password : DUMMY_HASH
+    );
 
-    if (!isPasswordValid) {
+    if (!user || !isPasswordValid) {
+      ipLimiter.fail(ipKey);
+      accountLimiter.fail(accountKey);
+      logAktivitas(db, { user: user ? { id: user.id, name: user.name } : null, aksi: "Login gagal", modul: "Akun", ringkasan: `Login gagal untuk nomor ${String(nomor_wa).slice(0, 20)}`, ip: req.ip });
       req.flash("error_msg", "Nomor WhatsApp atau password salah");
       return res.redirect("/auth/login");
     }
 
-    // Create session
-    req.session.user = {
-      id: user.id,
-      name: user.name,
-      nomor_wa: user.nomor_wa,
-      role: user.role,
-    };
+    accountLimiter.reset(accountKey);
 
-    req.flash("success", `Selamat datang, ${user.name}!`);
-    res.redirect("/dashboard");
+    // Sesi baru setelah login (mencegah session fixation)
+    req.session.regenerate((regenError) => {
+      if (regenError) {
+        console.error("Session regenerate error:", regenError);
+        req.flash("error_msg", "Terjadi kesalahan saat login");
+        return res.redirect("/auth/login");
+      }
+
+      req.session.user = {
+        id: user.id,
+        name: user.name,
+        nomor_wa: user.nomor_wa,
+        role: user.role,
+      };
+
+      logAktivitas(db, { user: { id: user.id, name: user.name }, aksi: "Login", modul: "Akun", ringkasan: "Masuk ke aplikasi", ip: req.ip });
+      req.flash("success", `Selamat datang, ${user.name}!`);
+      res.redirect("/dashboard");
+    });
   } catch (error) {
     console.error("Login error:", error);
     req.flash("error_msg", "Terjadi kesalahan saat login");
@@ -96,8 +126,8 @@ router.post("/logout", (req, res) => {
 
 // GET /auth/register - Show register form (only for development)
 router.get("/register", (req, res) => {
-  // Only show register form in development mode
-  if (process.env.NODE_ENV !== "development") {
+  // Hanya mode development dan hanya dari komputer ini sendiri
+  if (process.env.NODE_ENV !== "development" || !isLoopback(req)) {
     return res.status(404).send("Not Found");
   }
 
@@ -109,12 +139,12 @@ router.get("/register", (req, res) => {
 
 // POST /auth/register - Process registration (only for development)
 router.post("/register", async (req, res) => {
-  // Only allow registration in development mode
-  if (process.env.NODE_ENV !== "development") {
+  // Hanya mode development dan hanya dari komputer ini sendiri
+  if (process.env.NODE_ENV !== "development" || !isLoopback(req)) {
     return res.status(404).send("Not Found");
   }
 
-  const { name, nomor_wa, password, confirm_password, role } = req.body;
+  const { name, nomor_wa, password, confirm_password } = req.body;
 
   try {
     // Input validation
@@ -128,8 +158,8 @@ router.post("/register", async (req, res) => {
       return res.redirect("/auth/register");
     }
 
-    if (password.length < 6) {
-      req.flash("error_msg", "Password minimal 6 karakter");
+    if (password.length < 8) {
+      req.flash("error_msg", "Password minimal 8 karakter");
       return res.redirect("/auth/register");
     }
 
@@ -148,10 +178,11 @@ router.post("/register", async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert new user
+    // Akun pertama menjadi admin; selanjutnya selalu panitia (admin dibuat lewat menu Pengguna)
+    const [[{ total }]] = await db.execute("SELECT COUNT(*) AS total FROM users");
     await db.execute(
       "INSERT INTO users (name, nomor_wa, password, role) VALUES (?, ?, ?, ?)",
-      [name, nomor_wa, hashedPassword, role || "panitia"]
+      [name, nomor_wa, hashedPassword, total === 0 ? "admin" : "panitia"]
     );
 
     req.flash("success_msg", "Registrasi berhasil! Silakan login");

@@ -1,0 +1,70 @@
+<%- include('../layouts/header', { title: title, bodyClass: 'bg-gray-50 min-h-screen', currentPage: 'inventaris' }) %>
+<%- include('../masjid/partials/ui') %>
+<style>
+  .inv-cell { display: flex; align-items: center; gap: 12px; }
+  .inv-ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(30,175,47,.12); color: var(--primary-dark); flex: none; }
+  .inv-qty { font-variant-numeric: tabular-nums; font-weight: 700; }
+  @media print { .mj-hero, .mj-filter, .mj-stats, .mj-icon-btn { display: none !important; } .mj-table td, .mj-table th { color: #000 !important; background: #fff !important; border: 1px solid #999 !important; } }
+</style>
+<section class="mj-page" style="--mj-glyph:'\f466'">
+
+  <header class="mj-hero">
+    <div>
+      <div class="mj-kicker"><%= settings.masjid_nama %></div>
+      <h1 class="mj-title">Inventaris</h1>
+      <p class="mj-sub">Daftar perlengkapan beserta jumlah, lokasi simpan, dan kondisinya — supaya mudah dicek dan diserahterimakan antar pengurus.</p>
+    </div>
+    <div class="mj-actions mj-noprint">
+      <a href="#" class="mj-btn is-solid" data-modal-open="inv-modal" data-mode="create"><i class="fas fa-plus"></i>Tambah Barang</a>
+      <button type="button" class="mj-btn" onclick="window.print()"><i class="fas fa-print"></i>Cetak</button>
+    </div>
+  </header>
+
+  <div class="mj-stats">
+    <article class="mj-card mj-stat"><span class="mj-stat-icon"><i class="fas fa-boxes-stacked"></i></span><div><small>Jenis barang</small><b><%= totals.jenis %></b><span><%= new Intl.NumberFormat('id-ID').format(totals.unit) %> unit total</span></div></article>
+    <article class="mj-card mj-stat"><span class="mj-stat-icon is-gold"><i class="fas fa-screwdriver-wrench"></i></span><div><small>Perlu perbaikan</small><b><%= totals.perbaikan %></b><span>jenis barang</span></div></article>
+    <article class="mj-card mj-stat"><span class="mj-stat-icon is-out"><i class="fas fa-triangle-exclamation"></i></span><div><small>Rusak</small><b><%= totals.rusak %></b><span>jenis barang</span></div></article>
+  </div>
+
+  <section class="mj-card">
+    <form class="mj-filter mj-noprint" method="GET" action="/inventaris" id="inv-filter">
+      <select name="kategori" class="mj-select" aria-label="Kategori">
+        <option value="">Semua kategori</option>
+        <% Object.keys(KATEGORI).forEach(function (k) { %><option value="<%= k %>" <%= f.kategori === k ? 'selected' : '' %>><%= KATEGORI[k].label %></option><% }) %>
+      </select>
+      <select name="kondisi" class="mj-select" aria-label="Kondisi">
+        <option value="">Semua kondisi</option>
+        <% Object.keys(KONDISI).forEach(function (k) { %><option value="<%= k %>" <%= f.kondisi === k ? 'selected' : '' %>><%= KONDISI[k].label %></option><% }) %>
+      </select>
+      <input type="search" name="q" value="<%= f.q %>" class="mj-input mj-grow" placeholder="Cari nama barang / lokasi…" aria-label="Cari">
+      <button type="submit" class="mj-btn is-solid"><i class="fas fa-magnifying-glass"></i>Cari</button>
+    </form>
+
+    <% if (!items.length) { %>
+      <div class="mj-empty"><i class="fas fa-box-open"></i><h3><%= (f.kategori || f.kondisi || f.q) ? 'Tidak ada barang yang cocok' : 'Inventaris masih kosong' %></h3><p>Tambahkan sajadah, speaker, karpet, dan perlengkapan lainnya.</p>
+        <a href="#" class="mj-btn is-solid" data-modal-open="inv-modal" data-mode="create"><i class="fas fa-plus"></i>Tambah Barang</a></div>
+    <% } else { %>
+      <div class="mj-scroll">
+        <table class="mj-table">
+          <thead><tr><th>Barang</th><th>Kategori</th><th style="text-align:right">Jumlah</th><th>Kondisi</th><th>Lokasi</th><th>Perolehan</th><th style="text-align:right">Aksi</th></tr></thead>
+          <tbody>
+            <% items.forEach(function (i) { %>
+              <tr>
+                <td data-label="Barang"><div class="inv-cell"><span class="inv-ico"><i class="fas <%= i.icon %>"></i></span><div><b><%= i.nama %></b><% if (i.catatan) { %><small><%= i.catatan %></small><% } %></div></div></td>
+                <td data-label="Kategori"><%= i.kategoriLabel %></td>
+                <td data-label="Jumlah" class="is-num"><span class="inv-qty"><%= i.jumlah %></span> <%= i.satuan %></td>
+                <td data-label="Kondisi"><span class="mj-badge is-<%= i.tone %>"><%= i.kondisiLabel %></span></td>
+                <td data-label="Lokasi"><%= i.lokasi || '—' %></td>
+                <td data-label="Perolehan"><%= i.tanggal_perolehan ? labelTanggal(i.tanggal_perolehan) : '—' %><% if (i.sumber) { %><small><%= i.sumber %></small><% } %></td>
+                <td class="is-act"><a href="#" class="mj-icon-btn" title="Ubah" aria-label="Ubah barang" data-modal-open="inv-modal" data-mode="edit" data-id="<%= i.id %>"><i class="fas fa-pen"></i></a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </section>
+</section>
+<%- include('partials/inventaris-modal') %>
+<script>[].forEach.call(document.querySelectorAll('#inv-filter select'), function (s) { s.addEventListener('change', function () { s.form.submit(); }); });</script>
+<%- include('../layouts/footer') %>

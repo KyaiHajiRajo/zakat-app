@@ -1,0 +1,56 @@
+<style>
+  .pwa-top { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(30,175,47,.45); background: rgba(30,175,47,.1); color: var(--primary-dark); font: inherit; font-weight: 700; font-size: .84rem; cursor: pointer; white-space: nowrap; }
+  .pwa-top:hover { background: rgba(30,175,47,.18); }
+  .pwa-top[hidden] { display: none !important; }
+  html.dark-mode .pwa-top { color: #6ee37e; }
+  @media (max-width: 900px) { .pwa-top span { display: none; } .pwa-top { width: 40px; padding: 0; justify-content: center; } }
+  @media print { .pwa-top { display: none !important; } }
+</style>
+<script>
+  (function () {
+    // Service worker (hanya HTTPS atau localhost)
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () { /* abaikan */ });
+      });
+    }
+
+    var standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+    var deferred = null;
+
+    function buttons() { return document.querySelectorAll("[data-pwa-install]"); }
+    function show(flag) { buttons().forEach(function (b) { b.hidden = !flag; }); }
+
+    window.addEventListener("beforeinstallprompt", function (event) {
+      event.preventDefault();
+      deferred = event;
+      if (!standalone) { show(true); }
+    });
+    window.addEventListener("appinstalled", function () { deferred = null; show(false); });
+
+    // iOS tidak punya prompt otomatis: tampilkan tombol dengan petunjuk
+    document.addEventListener("DOMContentLoaded", function () {
+      if (ios && !standalone) { show(true); }
+    });
+
+    document.addEventListener("click", function (event) {
+      var btn = event.target.closest && event.target.closest("[data-pwa-install]");
+      if (!btn) { return; }
+      event.preventDefault();
+      if (deferred) {
+        deferred.prompt();
+        deferred.userChoice.finally(function () { deferred = null; show(false); });
+      } else if (ios && !window.Swal) {
+        alert("Di iPhone: ketuk tombol Bagikan di Safari, lalu pilih 'Tambah ke Layar Utama'.");
+      } else if (ios) {
+        Swal.fire({
+          icon: "info",
+          title: "Pasang di iPhone",
+          html: 'Ketuk tombol <b>Bagikan</b> <i class="fas fa-arrow-up-from-bracket"></i> di Safari, lalu pilih <b>Tambah ke Layar Utama</b>.',
+          confirmButtonText: "Mengerti"
+        });
+      }
+    });
+  })();
+</script>

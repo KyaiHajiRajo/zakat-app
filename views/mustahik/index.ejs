@@ -1,5 +1,10 @@
 <%- include('../layouts/header', { title: 'Data Mustahik - Zakat Fitrah App' , bodyClass: 'bg-gray-50' ,
   currentPage: 'mustahik' }) %>
+<%
+  const dateLong = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateShort = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+%>
+<style>html:not(.pg-ready) #mustahikTable tbody tr:nth-child(n+26){display:none}html:not(.pg-ready) .mobile-view .mobile-card:nth-child(n+26){display:none}</style>
 
   <div class="page-wrapper">
     <!-- Modern Header -->
@@ -190,7 +195,7 @@
                 </thead>
                 <tbody>
                   <% mustahik.forEach((m, index)=> { %>
-                    <tr class="table-row-animated" style="animation-delay: <%= index * 0.05 %>s;"
+                    <tr class="table-row-animated" style="animation-delay: <%= Math.min(index, 12) * 0.04 %>s;"
                       data-category="<%= m.kategori %>" data-rt="<%= m.rt_id || '' %>">
                       <td>
                         <div class="cell-mustahik">
@@ -240,8 +245,7 @@
                       <td>
                         <div class="cell-date">
                           <i class="fas fa-calendar"></i>
-                          <%= new Date(m.created_at).toLocaleDateString('id-ID', { day: 'numeric' , month: 'long' ,
-                            year: 'numeric' }) %>
+                          <%= dateLong.format(new Date(m.created_at)) %>
                         </div>
                       </td>
                       <td>
@@ -271,7 +275,7 @@
             <div class="mobile-view">
               <% mustahik.forEach((m, index)=> { %>
                 <div class="mobile-card" data-category="<%= m.kategori %>" data-rt="<%= m.rt_id || '' %>"
-                  style="animation-delay: <%= index * 0.05 %>s;">
+                  style="animation-delay: <%= Math.min(index, 12) * 0.04 %>s;">
                   <div class="mobile-card-header">
                     <div class="mobile-card-avatar">
                       <div class="mustahik-avatar">
@@ -338,8 +342,7 @@
                       <p class="mobile-card-label">Tanggal Daftar</p>
                       <div class="mobile-card-value">
                         <i class="fas fa-calendar"></i>
-                        <%= new Date(m.created_at).toLocaleDateString('id-ID', { day: 'numeric' , month: 'short' ,
-                          year: 'numeric' }) %>
+                        <%= dateShort.format(new Date(m.created_at)) %>
                       </div>
                     </div>
                   </div>
@@ -1505,4 +1508,5 @@
     }
   </script>
 
+<script>(window.AppPagerQueue = window.AppPagerQueue || []).push({ groups: ["#mustahikTable tbody tr", ".mobile-view .mobile-card"], after: ".mobile-view", scrollTo: ".table-section, #mustahikTable" });</script>
   <%- include('../layouts/footer') %>
